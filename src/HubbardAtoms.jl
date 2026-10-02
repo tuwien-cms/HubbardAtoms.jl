@@ -1,5 +1,6 @@
 """
-Analytic expressions for vertices in the half-filled Hubbard atom.
+Analytic expressions for vertices in the half-filled Hubbard atom. All quantities except the
+Green's function `gf` are real.
 
 All equation numbers refer to Phys. Rev. B 98, 235107 (2018) by Thunström et al.:
 https://journals.aps.org/prb/abstract/10.1103/PhysRevB.98.235107
@@ -38,7 +39,7 @@ const FermiFermiBose = Tuple{FermionicFreq,FermionicFreq,BosonicFreq}
 
 
 """
-Represents a half-filled Hubbard atom embedded. Its Hamiltonian is:
+Represents a half-filled Hubbard atom. Its Hamiltonian is:
 
     H = U * (c'[↑] * c[↑] - 1/2) * (c'[↓] * c[↓] - 1/2)
  
@@ -102,12 +103,14 @@ const gf = G
     χ(::SpinChannel, at::HubbardAtom, (n, n´, m)::FermiFermiBose)
     chi(::SpinChannel, atom::HubbardAtom, (n, n´, m)::FermiFermiBose)
 
-Two-point susceptibility in each channel for the Hubbard atom. (Equation 10)
+Generalized (two-particle) susceptibility `χᵣ(ν, ν´, ω)` in channel `r`, defined in Equations 3-5.
+(Equation 10)
 """
 χ(r::SpinChannel, at::HubbardAtom, (n, n´, m)::FermiFermiBose) =
     a₀(r, at, (n, m)) * (δ(n, n´) - δ(n, -n´ - m)) +
     b₀(r, at, (n, m)) * (δ(n, n´) + δ(n, -n´ - m)) +
-    b₁(r, at, (n, m)) * b₁(r, at, (n´, m)) + b₂(r, at, (n, m)) * b₂(r, at, (n´, m))
+    # each bᵢ is purely real or purely imaginary, so these products are real
+    real(b₁(r, at, (n, m)) * b₁(r, at, (n´, m)) + b₂(r, at, (n, m)) * b₂(r, at, (n´, m)))
 
 const chi = χ
 
@@ -216,17 +219,29 @@ C(::t, at::HubbardAtom, m::BosonicFreq) = zero(at.U)
     χ(::SpinChannel, atom::HubbardAtom, m::BosonicFreq)
     chi(::SpinChannel, atom::HubbardAtom, m::BosonicFreq)
 
-Physical susceptibility `χᵣ(ω) = -⟨ρᵣ; ρᵣ⟩(ω)` of the charge (`ρ = n↑ + n↓`), spin
-(`ρ = n↑ - n↓`) and singlet pair (`ρ = c↓c↑`) density. All three are conserved by the atom,
-so `χᵣ` vanishes for `ω ≠ 0`. For `r = d, m, s` it equals
-`-2/β^2 * sum(χ(r, atom, (n, n´, m)) for n in -∞:+∞, n´ in -∞:+∞)`.
+Susceptibility `-2/β^2 * sum(χ(r, atom, (n, n´, m)) for n in -∞:+∞, n´ in -∞:+∞)`.
 
-The local triplet pair `c↑c↑` vanishes identically (Pauli principle), so `χ(t, …) = 0`.
+For `r = d, m, s` this is the physical susceptibility `χᵣ(ω) = -⟨ρᵣ; ρᵣ⟩(ω)` of the charge
+(`ρ = n↑ + n↓`), spin (`ρ = n↑ - n↓`) and singlet pair (`ρ = c↓c↑`) density. All three are
+conserved by the atom, so `χᵣ` vanishes for `ω ≠ 0`.
+
+For `r = t` it is not an observable: the local triplet pair density vanishes identically (Pauli
+principle), and the sum is nonzero only because Equation 5d includes a bare particle-particle
+bubble. As `F_t` is antisymmetric under `ν´ → -ν´ - ω`, the vertex part drops out and the sum is
+the bubble `1/β * sum(G(ν) G(-ν - ω) for n in -∞:+∞)`.
 """
 χ(::d, at::HubbardAtom, m::BosonicFreq) = -at.beta * δ(m) * at._p
 χ(::m, at::HubbardAtom, m::BosonicFreq) = -at.beta * δ(m) * at._q
 χ(::s, at::HubbardAtom, m::BosonicFreq) = -at.beta * δ(m) * at._p / 2
-χ(::t, at::HubbardAtom, m::BosonicFreq) = zero(at.U)
+# With G(ν) = (1/(iν - U/2) + 1/(iν + U/2))/2 the bubble is
+# U/2 tanh(βU/4)/(U² + ω²) + δ_ω0 β/(8 cosh²(βU/4)), evaluated without 0/0 at U = 0 for ω = 0.
+function χ(::t, at::HubbardAtom, m::BosonicFreq)
+    β = at.beta
+    U = at.U
+    x = β * U / 4
+    iszero(m) || return U / 2 * tanh(x) / (U^2 + value(m, β)^2)
+    β / 8 * ((iszero(x) ? one(x) : tanh(x) / x) + sech(x)^2)
+end
 
 """
     χ₀(::SpinChannel, at::HubbardAtom, (n, n´, m)::FermiFermiBose)
@@ -243,8 +258,9 @@ function χ₀(r::SpinChannel, at::HubbardAtom, (n, n´, m)::FermiFermiBose)
     β * δ(n, n´) * χ₀(r, at, (n, m))
 end
 
-χ₀(::PHChannel, at::HubbardAtom, (n, m)::FermiBose) = -G(at, n) * G(at, n + m)
-χ₀(::PPChannel, at::HubbardAtom, (n, m)::FermiBose) = -G(at, n) * G(at, -n - m) / 2
+# G is purely imaginary, so these products are real
+χ₀(::PHChannel, at::HubbardAtom, (n, m)::FermiBose) = -real(G(at, n) * G(at, n + m))
+χ₀(::PPChannel, at::HubbardAtom, (n, m)::FermiBose) = -real(G(at, n) * G(at, -n - m)) / 2
 
 const chi0 = χ₀
 
@@ -426,8 +442,9 @@ end
 #=
 T = U tan(β(s + ω)/4) / s + σ, evaluated without complex arithmetic. For ω = 2πk/β,
 tan(β(s + ω)/4) is tan(z) for even k and -cot(z) for odd k, with z = βs/4, so T is even in s and
-real. For s² < 0, z = iζ and T = σ + U tanh(ζ)/a or σ + U coth(ζ)/a with a = √(-s²); if U = -σ|U|
-the two terms cancel for βU → ±∞, which is avoided by U² - a² = 4(B² + U²/4) + ω².
+real. For s² < 0, z = iζ and T = σ + U tanh(ζ)/a or σ + U coth(ζ)/a with a = √(-s²). Then B² < 0,
+which requires U < 0 for r = d, s and U > 0 for r = m, i.e. U = -σ|U|: the two terms cancel for
+βU → ±∞, which is avoided by U² - a² = 4(B² + U²/4) + ω².
 =#
 function _T(σ, U, β, s², bU, ω, kodd)
     if s² >= 0
@@ -437,22 +454,18 @@ function _T(σ, U, β, s², bU, ω, kodd)
     end
     a = √(-s²)
     ζ = β * a / 4
-    if sign(U) == -σ
-        w₀ = bU / U^2  # q (d, s) or p (m), 1/(1 + exp(β|U|/2))
-        if iszero(ω) && w₀ < 1 // 8
-            # Here both terms below are ≈ 2|U| w₀ while T ∝ w₀². With ε = 4w₀, c = a/|U| = √(1 - ε)
-            # and |x| = β|U|/2: 1/(1 + exp(|x|c)) = w₀ (1 + g expm1(|x|(1 - c))), g = 1/(1 + exp(-|x|c)).
-            ε = 4w₀
-            c = √(1 - ε)
-            x = β * abs(U) / 2
-            g = 1 / (1 + exp(-x * c))
-            return 2σ * w₀ * (g * expm1(x * ε / (1 + c)) - ε / (1 + c)^2) / c
-        end
-        th1 = kodd ? 2 / expm1(2ζ) : -2 / (exp(2ζ) + 1)  # coth(ζ) - 1 or tanh(ζ) - 1
-        (-σ * (4bU + ω^2) / (a + abs(U)) + U * th1) / a
-    else
-        σ + U * (kodd ? coth(ζ) : tanh(ζ)) / a
+    w₀ = bU / U^2  # q (d, s) or p (m), 1/(1 + exp(β|U|/2))
+    if iszero(ω) && w₀ < 1 // 8
+        # Here both terms below are ≈ 2|U| w₀ while T ∝ w₀². With ε = 4w₀, c = a/|U| = √(1 - ε)
+        # and |x| = β|U|/2: 1/(1 + exp(|x|c)) = w₀ (1 + g expm1(|x|(1 - c))), g = 1/(1 + exp(-|x|c)).
+        ε = 4w₀
+        c = √(1 - ε)
+        x = β * abs(U) / 2
+        g = 1 / (1 + exp(-x * c))
+        return 2σ * w₀ * (g * expm1(x * ε / (1 + c)) - ε / (1 + c)^2) / c
     end
+    th1 = kodd ? 2 / expm1(2ζ) : -2 / (exp(2ζ) + 1)  # coth(ζ) - 1 or tanh(ζ) - 1
+    (-σ * (4bU + ω^2) / (a + abs(U)) + U * th1) / a
 end
 
 #=
@@ -538,8 +551,8 @@ identities of Krien and Valli, Phys. Rev. B 100, 245147 (2019), Eqs. (C1)-(C3).
 At half filling, the singlet pair and the charge density are related by the η-pairing
 symmetry, which gives `G₃(s) = G₃(d)/2`. The triplet one vanishes since `c↑c↑ = 0`.
 """
-G₃(::d, at::HubbardAtom, (n, m)::FermiBose) = iszero(m) ? -∂G∂μ(at, n) : -∂G∂ν(at, n, m)
-G₃(::m, at::HubbardAtom, (n, m)::FermiBose) = iszero(m) ? -∂G∂H(at, n) : -∂G∂ν(at, n, m)
+G₃(::d, at::HubbardAtom, (n, m)::FermiBose) = -real(iszero(m) ? ∂G∂μ(at, n) : ∂G∂ν(at, n, m))
+G₃(::m, at::HubbardAtom, (n, m)::FermiBose) = -real(iszero(m) ? ∂G∂H(at, n) : ∂G∂ν(at, n, m))
 G₃(::s, at::HubbardAtom, w::FermiBose) = G₃(d(), at, w) / 2
 G₃(::t, at::HubbardAtom, (n, m)::FermiBose) = zero(at.U)
 
