@@ -1,15 +1,18 @@
-@testitem "Generic floating-point types" begin
-    using SparseIR
+@testsetup module AllFunctions
+using HubbardAtoms, SparseIR
 
-    # All public functions at one generic point.
-    function results(r, at)
-        ν, ν´, ω = FermionicFreq(3), FermionicFreq(-1), BosonicFreq(2)
-        w = (ν, ν´, ω)
-        [bare_vertex(r, at), gf(at, ν), chi(r, at, w), chi(r, at, ω), chi0(r, at, w),
-         chi0(r, at, (ν, ω)), full_vertex(r, at, w), gamma(r, at, w), irreducible_vertex(r, at, w),
-         channel_reducible_vertex(r, at, w), g3(r, at, (ν, ω)), hedin(r, at, (ν, ω))]
-    end
+export results
 
+"All public functions of channel `r` at one generic frequency point."
+function results(r, at; ν=FermionicFreq(3), ν´=FermionicFreq(-1), ω=BosonicFreq(2))
+    w = (ν, ν´, ω)
+    [bare_vertex(r, at), gf(at, ν), chi(r, at, w), chi(r, at, ω), chi0(r, at, w),
+     chi0(r, at, (ν, ω)), full_vertex(r, at, w), gamma(r, at, w), irreducible_vertex(r, at, w),
+     channel_reducible_vertex(r, at, w), g3(r, at, (ν, ω)), hedin(r, at, (ν, ω))]
+end
+end
+
+@testitem "Generic floating-point types" setup = [AllFunctions] begin
     U, β = 1.3, 2.1
     for r in CHANNELS
         ref = results(r, HubbardAtom(U, β))
