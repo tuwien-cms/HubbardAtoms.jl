@@ -14,9 +14,9 @@ end
             res = results(r, at)
             ref = results(r, HubbardAtom(big(U), big(β)))
             @test all(isfinite, res)
-            # Entry 8 is `gamma`: for βU ≫ 1 its denominator `U tan(…)/√(…) ± 1` cancels
-            # catastrophically (~8 digits here); this is unrelated to the thermal weights.
-            @test all(isapprox(res[i], ref[i]; rtol=i == 8 ? 1e-7 : 1e-10, atol=1e-300) for i in eachindex(res))
+            # Entry 9 is `irreducible_vertex`: for β = 1e4, Λ_t ≈ 1e-3 is a sum of Γ's of size up to
+            # 45, each of which is only determined to ≈ 6e-12 by a 1-ulp change of U.
+            @test all(isapprox(res[i], ref[i]; rtol=i == 9 ? 1e-8 : 1e-10, atol=1e-300) for i in eachindex(res))
         end
 
         # The atom is empty or doubly occupied with probability p = 1/(1 + exp(βU/2)),
