@@ -216,14 +216,17 @@ C(::t, at::HubbardAtom, m::BosonicFreq) = zero(at.U)
     χ(::SpinChannel, atom::HubbardAtom, m::BosonicFreq)
     chi(::SpinChannel, atom::HubbardAtom, m::BosonicFreq)
 
-Sum over all fermionic frequencies of the susceptibility, i.e.
-`-sum(χ(r, atom, (n, n´, m)) for n in -∞:+∞, n´ in -∞:+∞) * atom.beta^2/2 * tanh(atom.U * atom.beta / 4)^2`.
-This is an original calculation.
+Physical susceptibility `χᵣ(ω) = -⟨ρᵣ; ρᵣ⟩(ω)` of the charge (`ρ = n↑ + n↓`), spin
+(`ρ = n↑ - n↓`) and singlet pair (`ρ = c↓c↑`) density. All three are conserved by the atom,
+so `χᵣ` vanishes for `ω ≠ 0`. For `r = d, m, s` it equals
+`-2/β^2 * sum(χ(r, atom, (n, n´, m)) for n in -∞:+∞, n´ in -∞:+∞)`.
+
+The local triplet pair `c↑c↑` vanishes identically (Pauli principle), so `χ(t, …) = 0`.
 """
 χ(::d, at::HubbardAtom, m::BosonicFreq) = -at.beta * δ(m) * at._p
 χ(::m, at::HubbardAtom, m::BosonicFreq) = -at.beta * δ(m) * at._q
 χ(::s, at::HubbardAtom, m::BosonicFreq) = -at.beta * δ(m) * at._p / 2
-χ(::t, at::HubbardAtom, m::BosonicFreq) = at.U / (2tanh(at.beta * at.U / 4) * (value(m, at.beta)^2 + 4at._uhalf2))
+χ(::t, at::HubbardAtom, m::BosonicFreq) = zero(at.U)
 
 """
     χ₀(::SpinChannel, at::HubbardAtom, (n, n´, m)::FermiFermiBose)
@@ -528,21 +531,16 @@ const channel_reducible_vertex = Φ
     G₃(::SpinChannel, atom::HubbardAtom, (n, m)::Tuple{FermionicFreq, BosonicFreq})
     g3(::SpinChannel, atom::HubbardAtom, (n, m)::Tuple{FermionicFreq, BosonicFreq})
 
-Three-point Green's function.
+Three-point (fermion-boson) Green's function. For `r = d, m, s` it equals
+`-1/β * sum(χ(r, atom, (n, n´, m)) for n´ in -∞:+∞)`; for `r = d, m` these are the Ward
+identities of Krien and Valli, Phys. Rev. B 100, 245147 (2019), Eqs. (C1)-(C3).
+
+At half filling, the singlet pair and the charge density are related by the η-pairing
+symmetry, which gives `G₃(s) = G₃(d)/2`. The triplet one vanishes since `c↑c↑ = 0`.
 """
 G₃(::d, at::HubbardAtom, (n, m)::FermiBose) = iszero(m) ? -∂G∂μ(at, n) : -∂G∂ν(at, n, m)
 G₃(::m, at::HubbardAtom, (n, m)::FermiBose) = iszero(m) ? -∂G∂H(at, n) : -∂G∂ν(at, n, m)
-function G₃(::s, at::HubbardAtom, (n, m)::FermiBose)
-    β = at.beta
-    U = at.U
-    iν = valueim(n, β)
-    iω = valueim(m, β)
-
-    r = 1 / ((iν + U / 2) * (iω - iν - U / 2))
-    r += 1 / ((iν + U / 2) * (iω - iν + U / 2))
-    r += (δ(m) * β * U * at._p) / ((iν + U / 2) * (iν - U / 2))
-    -r / 2
-end
+G₃(::s, at::HubbardAtom, w::FermiBose) = G₃(d(), at, w) / 2
 G₃(::t, at::HubbardAtom, (n, m)::FermiBose) = zero(at.U)
 
 const g3 = G₃
@@ -585,11 +583,18 @@ end
 """
     hedin(::SpinChannel, atom::HubbardAtom, (n, m)::Tuple{FermionicFreq, BosonicFreq})
 
-Hedin vertex `γ(ν, ω)`, i.e. the interaction-irreducible three-point vertex.
+Hedin vertex `λ(ν, ω)`, i.e. the interaction-irreducible three-point vertex,
+`λ = -G₃ / (χ₀ (1 + Uᵣ χᵣ(ω) / 2))` with the bare vertex `Uᵣ` and susceptibility `χᵣ` of the
+channel. This is the convention of Krien, Valli and Capone, Phys. Rev. B 100, 155149 (2019),
+Eqs. (8) and (15): `λ` tends to `1` for `d, m` and to `-1` for `s`, both for `U → 0` and
+`|ν| → ∞`, and at half filling `hedin(s, …) = -hedin(d, …)`.
+
+There is no Hedin vertex in the triplet channel, where the bare interaction vanishes.
 """
 hedin(r::SpinChannel, at::HubbardAtom, (n, m)::FermiBose) =
-    G₃(r, at, (n, m)) /
-    (χ₀(r, at, (n, m)) * (1 + bare_vertex(r, at) * χ(r, at, m) / 2))
+    -G₃(r, at, (n, m)) / (χ₀(r, at, (n, m)) * (1 + bare_vertex(r, at) * χ(r, at, m) / 2))
+hedin(::t, at::HubbardAtom, w::FermiBose) =
+    throw(ArgumentError("there is no Hedin vertex in the triplet channel, where the bare interaction vanishes"))
 
 "Kronecker delta"
 δ(a) = δ(a, zero(a))
