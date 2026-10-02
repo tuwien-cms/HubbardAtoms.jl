@@ -45,27 +45,27 @@ Represents a half-filled Hubbard atom embedded. Its Hamiltonian is:
 where `c[σ]` annihilates a spin-σ electron. We assume that the atom is
 connected to a large heat bath with temperature `1/β`. (Equation 1)
 
-`U` and `beta` are promoted to a common floating-point type `T`, which is used
-for all results, e.g. `HubbardAtom(big"2.0", big"10.0")` evaluates everything
-in `BigFloat`.
+`U` must be finite and `beta` finite and positive. Both are promoted to a common
+floating-point type `T`, which is used for all results, e.g.
+`HubbardAtom(big"2.0", big"10.0")` evaluates everything in `BigFloat`.
 """
 struct HubbardAtom{T<:AbstractFloat}
     U::T              # Hubbard interaction
     beta::T           # inverse temperature
 
-    _expuhalfbeta::T  # exp(βU/2)
     _uhalf2::T        # (U/2)^2
-    _psum::T          # shifted partition function
+    _p::T             # 1/(1 + exp(βU/2)), probability of an empty or doubly occupied atom
+    _q::T             # 1/(1 + exp(-βU/2)) = 1 - p, probability of a singly occupied atom
 
     function HubbardAtom(U::Real, beta::Real)
         U, beta = float.(promote(U, beta))
-        0 <= beta || throw(DomainError("beta must be non-negative"))
+        isfinite(U) || throw(DomainError(U, "U must be finite"))
+        (isfinite(beta) && beta > 0) || throw(DomainError(beta, "beta must be positive and finite"))
 
-        expuhalfbeta = exp(beta * U / 2)
-        uhalf2 = (U / 2)^2
-        psum = 2 + 2 / expuhalfbeta
-        isfinite(expuhalfbeta) || error(beta * U / 2, "exp(βU/2) must be finite")
-        new{typeof(U)}(U, beta, expuhalfbeta, uhalf2, psum)
+        # Both weights are computed directly, so each is accurate (and neither
+        # overflows) for arbitrarily large |βU|.
+        x = beta * U / 2
+        new{typeof(U)}(U, beta, (U / 2)^2, 1 / (1 + exp(x)), 1 / (1 + exp(-x)))
     end
 end
 
@@ -173,14 +173,14 @@ A(::m, at::HubbardAtom) = im * at.U / 2
 A(::s, at::HubbardAtom) = zero(at.U)
 A(::t, at::HubbardAtom) = im * at.U / 2
 
-B(::d, at::HubbardAtom) = at.U / 2 * √(Complex((-1 + 3at._expuhalfbeta) / (1 + at._expuhalfbeta)))
-B(::m, at::HubbardAtom) = -at.U / 2 * √(Complex((-at._expuhalfbeta + 3) / (at._expuhalfbeta + 1)))
-B(::s, at::HubbardAtom) = at.U / 2 * √(Complex((-1 + 3at._expuhalfbeta) / (1 + at._expuhalfbeta)))
+B(::d, at::HubbardAtom) = at.U / 2 * √(Complex(3 - 4at._p))
+B(::m, at::HubbardAtom) = -at.U / 2 * √(Complex(4at._p - 1))
+B(::s, at::HubbardAtom) = at.U / 2 * √(Complex(3 - 4at._p))
 B(::t, at::HubbardAtom) = zero(at.U)
 
-C(::d, at::HubbardAtom, m::BosonicFreq) = at.beta * at.U / 2 * δ(m) / (1 + at._expuhalfbeta)
-C(::m, at::HubbardAtom, m::BosonicFreq) = -at.beta * at.U / 2 * δ(m) / (1 + 1 / at._expuhalfbeta)
-C(::s, at::HubbardAtom, m::BosonicFreq) = at.beta * at.U / 2 * δ(m) / (1 + at._expuhalfbeta)
+C(::d, at::HubbardAtom, m::BosonicFreq) = at.beta * at.U / 2 * δ(m) * at._p
+C(::m, at::HubbardAtom, m::BosonicFreq) = -at.beta * at.U / 2 * δ(m) * at._q
+C(::s, at::HubbardAtom, m::BosonicFreq) = at.beta * at.U / 2 * δ(m) * at._p
 C(::t, at::HubbardAtom, m::BosonicFreq) = zero(at.U)
 
 𝒜₀(::d) = +1
@@ -212,10 +212,10 @@ Sum over all fermionic frequencies of the susceptibility, i.e.
 `-sum(χ(r, atom, (n, n´, m)) for n in -∞:+∞, n´ in -∞:+∞) * atom.beta^2/2 * tanh(atom.U * atom.beta / 4)^2`.
 This is an original calculation.
 """
-χ(::d, at::HubbardAtom, m::BosonicFreq) = -2at.beta * δ(m) / (at._expuhalfbeta * at._psum)
-χ(::m, at::HubbardAtom, m::BosonicFreq) = -2at.beta * δ(m) / at._psum
-χ(::s, at::HubbardAtom, m::BosonicFreq) = -at.beta * δ(m) / (at._expuhalfbeta * at._psum)
-χ(::t, at::HubbardAtom, m::BosonicFreq) = at.U / ((8 / at._psum - 2) * (value(m, at.beta)^2 + 4at._uhalf2))
+χ(::d, at::HubbardAtom, m::BosonicFreq) = -at.beta * δ(m) * at._p
+χ(::m, at::HubbardAtom, m::BosonicFreq) = -at.beta * δ(m) * at._q
+χ(::s, at::HubbardAtom, m::BosonicFreq) = -at.beta * δ(m) * at._p / 2
+χ(::t, at::HubbardAtom, m::BosonicFreq) = at.U / (2tanh(at.beta * at.U / 4) * (value(m, at.beta)^2 + 4at._uhalf2))
 
 """
     χ₀(::SpinChannel, at::HubbardAtom, (n, n´, m)::FermiFermiBose)
@@ -287,12 +287,12 @@ function F_up_down(at::HubbardAtom, w::FermiFermiBose)
 
     deltas1 = 2 * δ(n, -(n´ + m)) + δ(m)
     if !iszero(deltas1)
-        res -= β * U²₄ / (1 + at._expuhalfbeta) * ((ν + ω)^2 + U²₄) * ((ν´ + ω)^2 + U²₄) / ((ν + ω)^2 * (ν´ + ω)^2) * deltas1
+        res -= β * U²₄ * at._p * ((ν + ω)^2 + U²₄) * ((ν´ + ω)^2 + U²₄) / ((ν + ω)^2 * (ν´ + ω)^2) * deltas1
     end
 
     deltas2 = 2 * δ(n, n´) + δ(m)
     if !iszero(deltas2)
-        res += β * U²₄ / (1 + 1 / at._expuhalfbeta) * (ν^2 + U²₄) * ((ν´ + ω)^2 + U²₄) / (ν^2 * (ν´ + ω)^2) * deltas2
+        res += β * U²₄ * at._q * (ν^2 + U²₄) * ((ν´ + ω)^2 + U²₄) / (ν^2 * (ν´ + ω)^2) * deltas2
     end
 
     res
@@ -400,10 +400,10 @@ function G₃(::s, at::HubbardAtom, (n, m)::FermiBose)
     iν = valueim(n, β)
     iω = valueim(m, β)
 
-    r = (1 + at._expuhalfbeta) / ((iν + U / 2) * (iω - iν - U / 2))
-    r += (1 + at._expuhalfbeta) / ((iν + U / 2) * (iω - iν + U / 2))
-    r += (δ(m) * β * U) / ((iν + U / 2) * (iν - U / 2))
-    r / (-at._expuhalfbeta * at._psum)
+    r = 1 / ((iν + U / 2) * (iω - iν - U / 2))
+    r += 1 / ((iν + U / 2) * (iω - iν + U / 2))
+    r += (δ(m) * β * U * at._p) / ((iν + U / 2) * (iν - U / 2))
+    -r / 2
 end
 G₃(::t, at::HubbardAtom, (n, m)::FermiBose) = zero(at.U)
 
@@ -419,32 +419,29 @@ end
 
 "Derivative of the Green's function with respect to the chemical potential"
 function ∂G∂μ(at::HubbardAtom, n::FermionicFreq)
-    psum = at._psum
     U = at.U
     β = at.beta
     iν = valueim(n, β)
 
     # dgdμ enters the charge channel, while dgdh enters the spin channel.
-    # There is an additional factor exp(-beta*U/2) here while it is absent
-    # in the spin channel. This factor suppresses the beta dependence and thus
-    # the "Curie-like" term.
-    r = -β * U / (at._expuhalfbeta * (iν^2 - at._uhalf2))
-    r += (psum / 2) / (iν + U / 2)^2
-    r += (psum / 2) / (iν - U / 2)^2
-    -r / psum
+    # The "Curie-like" term ∝ β is weighted by p here and by q = 1 - p in the
+    # spin channel, which suppresses it in the charge channel for βU ≫ 1.
+    r = -β * U * at._p / (iν^2 - at._uhalf2)
+    r += 1 / (iν + U / 2)^2
+    r += 1 / (iν - U / 2)^2
+    -r / 2
 end
 
 "Derivative of the Green's function with respect to the magnetic field"
 function ∂G∂H(at::HubbardAtom, n::FermionicFreq)
-    psum = at._psum
     U = at.U
     β = at.beta
     iν = valueim(n, β)
 
-    r = β * U / (iν^2 - at._uhalf2)
-    r += (psum / 2) / (iν + U / 2)^2
-    r += (psum / 2) / (iν - U / 2)^2
-    -r / psum
+    r = β * U * at._q / (iν^2 - at._uhalf2)
+    r += 1 / (iν + U / 2)^2
+    r += 1 / (iν - U / 2)^2
+    -r / 2
 end
 
 """
