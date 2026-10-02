@@ -1,6 +1,6 @@
 name = "HubbardAtoms"
 uuid = "4f3da25b-ea28-4d4f-a81f-380d3f5e56a6"
-version = "0.1.1"
+version = "0.2.0"
 authors = ["Samuel Badr <samuel.badr@gmail.com>"]
 
 [deps]
