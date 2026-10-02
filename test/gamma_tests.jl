@@ -164,3 +164,23 @@ end
         end
     end
 end
+
+@testitem "High Matsubara frequencies" setup = [Eq19] begin
+    using SparseIR
+
+    # Large indices with small ν + ω (or 2ν + ω): computing ν + ω as value(n) + value(m) cancels, as
+    # does tan(β(s + ω)/4) of its large argument; both must be avoided.
+    for (U, β) in ((1.3, 2.1), (-5.0, 10.0), (20.0, 200.0)), r in CHANNELS
+        at, atb = HubbardAtom(U, β), HubbardAtom(big(U), big(β))
+        for (n, n´, k) in ((-10^6, -1, 10^6), (-10^6, 10^6 - 1, 10^6), (10^6, -10^6, -10^6), (-1000, 5, 1000), (999, -1000, 1))
+            w = (FermionicFreq(2n + 1), FermionicFreq(2n´ + 1), BosonicFreq(2k))
+            @test chi(r, at, w) ≈ chi(r, atb, w) rtol = 1e-14 atol = 1e-300
+            @test full_vertex(r, at, w) ≈ full_vertex(r, atb, w) rtol = 1e-14 atol = 1e-300
+            setprecision(BigFloat, 256 + ceil(Int, 3abs(β * U))) do
+                ref = Γref(r, big(U), big(β), w)
+                sensitivity = max(abs(Γref(r, big(nextfloat(U)), big(β), w) - ref), abs(Γref(r, big(U), big(nextfloat(β)), w) - ref))
+                @test abs(gamma(r, at, w) - ref) <= 10sensitivity + 1e-14 * abs(ref)
+            end
+        end
+    end
+end
