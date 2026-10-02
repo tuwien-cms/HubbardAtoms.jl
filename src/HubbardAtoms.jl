@@ -378,31 +378,11 @@ function Γ_B(r::SpinChannel, at::HubbardAtom, (n, n´, m)::FermiFermiBose)
     z = β * √(max(s², zero(s²))) / 4
     T = _T(σ, U, β, s², bU, ω, isodd(Int(m) ÷ 2))
 
-    # T X(ν), evaluated via w if ν is close to the pole of T (if any) that belongs to it
-    function TX(ν)
-        X = ν * (ν + ω) - b
-        zν = β * abs(2ν + ω) / 4
-        if iszero(zν)
-            t = β^2 * s² / 16  # z², the pole is at z = 0
-            if abs(t) <= 1
-                ψ = _ψ(t)
-                return (; X, R=σ * X + U / β * (1 + t * ψ), w=√abs(t), ψ, zν)
-            end
-        elseif s² > 0
-            w = β^2 * X / (4(zν + z))
-            if abs(w) <= 1
-                ψ = _ψ(w^2)
-                return (; X, R=σ * X + U / β * (1 + zν / z) * (1 + w^2 * ψ), w, ψ, zν)
-            end
-        end
-        (; X, R=T * X, w=oftype(z, Inf), ψ=zero(z), zν)
-    end
-
-    a = TX(ν)
+    a = _TX(ν, ω, β, U, σ, b, s², z, T)
     D = δ(n, n´) + δ(n, -n´ - m)
     if iszero(D)
         # Only the third term contributes; use T X of whichever frequency is closer to its pole.
-        a´ = TX(ν´)
+        a´ = _TX(ν´, ω, β, U, σ, b, s², z, T)
         return abs(a.w) <= abs(a´.w) ? -K / (a.R * a´.X) : -K / (a´.R * a.X)
     end
 
@@ -418,6 +398,26 @@ function Γ_B(r::SpinChannel, at::HubbardAtom, (n, n´, m)::FermiFermiBose)
     else
         (D * β * b * P / (2ℬ₀(r) * ν * (ν + ω)) - K / R) / X
     end
+end
+
+# T X(ν), evaluated via w if ν is close to the pole of T (if any) that belongs to it
+function _TX(ν, ω, β, U, σ, b, s², z, T)
+    X = ν * (ν + ω) - b
+    zν = β * abs(2ν + ω) / 4
+    if iszero(zν)
+        t = β^2 * s² / 16  # z², the pole is at z = 0
+        if abs(t) <= 1
+            ψ = _ψ(t)
+            return (; X, R=σ * X + U / β * (1 + t * ψ), w=√abs(t), ψ, zν)
+        end
+    elseif s² > 0
+        w = β^2 * X / (4(zν + z))
+        if abs(w) <= 1
+            ψ = _ψ(w^2)
+            return (; X, R=σ * X + U / β * (1 + zν / z) * (1 + w^2 * ψ), w, ψ, zν)
+        end
+    end
+    (; X, R=T * X, w=oftype(z, Inf), ψ=zero(z), zν)
 end
 
 #=
