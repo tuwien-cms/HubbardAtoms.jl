@@ -55,3 +55,24 @@ end
     end
     @test_throws ArgumentError hedin(t, HubbardAtom(1.3, 2.1), (FermionicFreq(1), BosonicFreq(0)))
 end
+
+@testitem "Hedin equation for the self-energy" begin
+    using SparseIR
+
+    # Krien and Valli, Phys. Rev. B 100, 245147 (2019), Eq. (B2) with r = 1/2: apart from the Hartree
+    # term, Σ(ν) = -1/(2β) Σ_ω G(ν + ω) (w_ch λ_ch + w_sp λ_sp) with w = U + U χ U / 2. For ω ≠ 0,
+    # χ = 0 and λ_ch = λ_sp, so the terms cancel and only ω = 0 remains. For the atom Σ(ν) = U²/(4iν).
+    (d, m) = CHANNELS
+    for (U, β) in ((1.3, 2.1), (-0.7, 3.0), (5.0, 2.0), (0.4, 20.0))
+        at = HubbardAtom(U, β)
+        ω = BosonicFreq(0)
+        w_ch = U * (1 + U * chi(d, at, ω) / 2)
+        w_sp = -U * (1 - U * chi(m, at, ω) / 2)
+        for n in -3:2
+            ν = FermionicFreq(2n + 1)
+            Σ = -gf(at, ν) * (w_ch * hedin(d, at, (ν, ω)) + w_sp * hedin(m, at, (ν, ω))) / 2β
+            @test Σ ≈ U^2 / (4 * SparseIR.valueim(ν, β))
+            @test hedin(d, at, (ν, BosonicFreq(2))) == hedin(m, at, (ν, BosonicFreq(2)))
+        end
+    end
+end

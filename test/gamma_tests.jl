@@ -105,3 +105,19 @@ end
         @test abs(gamma(r, tiny, w)) < 1e-190
     end
 end
+
+@testitem "Bethe-Salpeter equation at a removable singularity" begin
+    using SparseIR
+
+    # Independent of Eq. 19: F - Γ = -1/β Σ_ν₁ Γ(ν, ν₁, ω) χ₀(ν₁, ω) F(ν₁, ν´, ω) at the point of the
+    # reported failure; the truncated sum converges like 1/N.
+    d = DensityChannel()
+    at = HubbardAtom(3.961870127108698, 1.0)
+    ν, ω = FermionicFreq(1), BosonicFreq(0)
+    N = 10^5
+    for ν´ in (FermionicFreq(1), FermionicFreq(3))
+        Φ = -sum(j -> gamma(d, at, (ν, FermionicFreq(2j + 1), ω)) * chi0(d, at, (FermionicFreq(2j + 1), ω)) *
+                      full_vertex(d, at, (FermionicFreq(2j + 1), ν´, ω)), -N:N-1)
+        @test Φ ≈ full_vertex(d, at, (ν, ν´, ω)) - gamma(d, at, (ν, ν´, ω)) rtol = 1e-5
+    end
+end
