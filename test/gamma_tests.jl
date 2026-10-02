@@ -121,3 +121,46 @@ end
         @test Φ ≈ full_vertex(d, at, (ν, ν´, ω)) - gamma(d, at, (ν, ν´, ω)) rtol = 1e-5
     end
 end
+
+@testitem "Γ at low temperatures, at the accuracy of its inputs" setup = [Eq19] begin
+    using SparseIR
+
+    # For β ≫ 1 the first two terms of Eq. 19 are ∝ β/ν² and nearly cancel at ν´ = -ν - ω for
+    # A² ≈ B² (r = d, m and βU ≫ 1). For ω = 0 and |βU| ≳ 700 the third term is a ratio of two
+    # numbers ∝ exp(-|βU|) that underflow in Float64. Γ must be as accurate as a 1-ulp change of U
+    # or β allows. The literal Eq. 19 loses ~|βU|/ln(10) digits there, hence the precision.
+    for (U, β) in ((3.0, 50.0), (-3.0, 50.0), (3.0, 1e3), (-3.0, 1e3), (20.0, 50.0), (-20.0, 50.0), (20.0, 200.0), (-20.0, 200.0))
+        setprecision(BigFloat, 256 + ceil(Int, 3abs(β * U))) do
+            for r in CHANNELS, n in (-4, -1, 0), n´ in (-1, 0, 3), k in (-3, 0, 2)
+                w = (FermionicFreq(2n + 1), FermionicFreq(2n´ + 1), BosonicFreq(2k))
+                ref = Γref(r, big(U), big(β), w)
+                sensitivity = max(abs(Γref(r, big(nextfloat(U)), big(β), w) - ref), abs(Γref(r, big(U), big(nextfloat(β)), w) - ref))
+                @test abs(gamma(r, HubbardAtom(U, β), w) - ref) <= 10sensitivity + 1e-13 * abs(ref)
+            end
+        end
+    end
+end
+
+@testitem "Γ near genuine divergences" setup = [Eq19] begin
+    using SparseIR
+
+    # Unlike Eq. 21, these divergences of Eq. 19 are physical and must survive: a local one at
+    # ν(ν + ω) = A_d² = 3U²/4 and a global one where U tan(β(s + ω)/4)/s + 1 = 0 (d, β = 1, ν = ν´ = π, ω = 0).
+    d = DensityChannel()
+    β = 1.0
+    w = (FermionicFreq(1), FermionicFreq(1), BosonicFreq(0))
+    setprecision(BigFloat, 512) do
+        T(U) = (s = 2sqrt(B²ref(d, U, big(β))); U * tan(β * s / 4) / s + 1)
+        for U₀ in (2π / sqrt(3), Float64(bisect(T, big(4.0), big(8.0))))
+            for δ in (1e-3, 1e-6, 1e-9)
+                Γ₊, Γ₋ = (gamma(d, HubbardAtom(U₀ * (1 + x), β), w) for x in (δ, -δ))
+                for (U, Γ) in ((U₀ * (1 + δ), Γ₊), (U₀ * (1 - δ), Γ₋))
+                    ref = Γref(d, big(U), big(β), w)
+                    @test abs(Γ - ref) <= 10abs(Γref(d, big(nextfloat(U)), big(β), w) - ref) + 1e-13 * abs(ref)
+                end
+                @test sign(Γ₊) == -sign(Γ₋)                   # pole of first order:
+                @test abs(Γ₊ * δ) ≈ abs(gamma(d, HubbardAtom(U₀ * (1 + 1e-3), β), w) * 1e-3) rtol = 1e-2
+            end
+        end
+    end
+end

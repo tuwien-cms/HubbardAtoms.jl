@@ -183,6 +183,11 @@ B²U²₄(::d, at::HubbardAtom) = 4at._uhalf2 * at._q
 B²U²₄(::m, at::HubbardAtom) = 4at._uhalf2 * at._p
 B²U²₄(::s, at::HubbardAtom) = 4at._uhalf2 * at._q
 
+# Bᵣ² - Aᵣ², without cancellation for p → 0
+B²mA²(::d, at::HubbardAtom) = -4at._uhalf2 * at._p
+B²mA²(::m, at::HubbardAtom) = 4at._uhalf2 * at._p
+B²mA²(::s, at::HubbardAtom) = at._uhalf2 * (3 - 4at._p)
+
 C(::d, at::HubbardAtom, m::BosonicFreq) = at.beta * at.U / 2 * δ(m) * at._p
 C(::m, at::HubbardAtom, m::BosonicFreq) = -at.beta * at.U / 2 * δ(m) * at._q
 C(::s, at::HubbardAtom, m::BosonicFreq) = at.beta * at.U / 2 * δ(m) * at._p
@@ -345,7 +350,7 @@ function Γ(r::SpinChannel, at::HubbardAtom, (n, n´, m)::FermiFermiBose)
          (δ(n, n´) - δ(n, -n´ - m))
     r isa TripletChannel && return Γᵣ
 
-    Γᵣ += Γ_B(r, at, (n, n´, m))
+    Γᵣ = Γ_B(r, at, (n, n´, m), Γᵣ)
     Γᵣ -= at.U * ℬ₁²(r) / ℬ₀(r)^2
 
     Γᵣ
@@ -379,8 +384,13 @@ For 2ν + ω = 0 (z_ν = 0, odd k) both deltas hold, X = -s²/4, and the pole of
 R = ±X + (U/β) z cot(z) = ±X + (U/β)(1 + z² ψ(z²)); the sum then becomes
 
     [±β B² P - UQ + U B² (2(B² + U²/4) + X - β² P ψ/4)] / (ℬ₀ ν(ν + ω) R).
+
+Γ_B returns ΓA plus these terms, where ΓA is the first term of Eq. 19. For ν´ = -ν - ω, ΓA is
+-β A² P / (2ℬ₀ ν(ν + ω) X_A) with X_A = ν(ν + ω) - A² (𝒜₀ = ℬ₀), which cancels the second term
+for A² ≈ B², i.e. r = d, m for βU ≫ 1; both are ∝ β/ν², large for β ≫ 1. Their sum is
+β P (B² - A²) / (2ℬ₀ X_A X), with B² - A² = ∓U² p for r = d, m.
 =#
-function Γ_B(r::SpinChannel, at::HubbardAtom, (n, n´, m)::FermiFermiBose)
+function Γ_B(r::SpinChannel, at::HubbardAtom, (n, n´, m)::FermiFermiBose, ΓA)
     β = at.beta
     U = at.U
     U²₄ = at._uhalf2
@@ -392,30 +402,33 @@ function Γ_B(r::SpinChannel, at::HubbardAtom, (n, n´, m)::FermiFermiBose)
     b = B²(r, at)
     bU = B²U²₄(r, at)
     Q = bU^2 + U²₄ * ω^2
-    K = U * Q / ℬ₀(r)
     s² = 4b + ω^2
     z = β * √(max(s², zero(s²))) / 4
-    T = _T(σ, U, β, s², bU, ω, isodd(Int(m) ÷ 2))
+    T, scaled = _T(σ, U, β, s², bU, ω, isodd(Int(m) ÷ 2))
+    # If `scaled`, T and K are divided by w₀² (see _T); only K/T enters then.
+    K = scaled ? U^5 / ℬ₀(r) : U * Q / ℬ₀(r)
 
     a = _TX(ν, ω, β, U, σ, b, s², z, T)
     D = δ(n, n´) + δ(n, -n´ - m)
     if iszero(D)
         # Only the third term contributes; use T X of whichever frequency is closer to its pole.
         a´ = _TX(ν´, ω, β, U, σ, b, s², z, T)
-        return abs(a.w) <= abs(a´.w) ? -K / (a.R * a´.X) : -K / (a´.R * a.X)
+        return ΓA + (abs(a.w) <= abs(a´.w) ? -K / (a.R * a´.X) : -K / (a´.R * a.X))
     end
 
     # Both deltas hold (D = 2) only for 2ν + ω = 0, i.e. z_ν = 0.
     (; X, R, w, ψ, zν) = a
     P = (X + bU)^2 + U²₄ * ω^2
     if isfinite(w) && iszero(zν)
-        (σ * β * b * P - U * Q + U * b * (2bU + X - β^2 * P * ψ / 4)) / (ℬ₀(r) * ν * (ν + ω) * R)
+        ΓA + (σ * β * b * P - U * Q + U * b * (2bU + X - β^2 * P * ψ / 4)) / (ℬ₀(r) * ν * (ν + ω) * R)
     elseif isfinite(w)
         ρ = β^2 / (4(zν + z))
         η = (1 + w^2 * ψ) / (2z) + w * ψ
-        (σ * β * b * P - 2U * Q + 2U * b * (P * ρ * η + 2bU + X)) / (2ℬ₀(r) * ν * (ν + ω) * R)
+        ΓA + (σ * β * b * P - 2U * Q + 2U * b * (P * ρ * η + 2bU + X)) / (2ℬ₀(r) * ν * (ν + ω) * R)
+    elseif D == 1 && iszero(δ(n, n´))  # ν´ = -ν - ω
+        β * P * B²mA²(r, at) / (2ℬ₀(r) * (ν * (ν + ω) - A²(r, at)) * X) - K / (R * X)
     else
-        (D * β * b * P / (2ℬ₀(r) * ν * (ν + ω)) - K / R) / X
+        ΓA + (D * β * b * P / (2ℬ₀(r) * ν * (ν + ω)) - K / R) / X
     end
 end
 
@@ -445,27 +458,32 @@ tan(β(s + ω)/4) is tan(z) for even k and -cot(z) for odd k, with z = βs/4, so
 real. For s² < 0, z = iζ and T = σ + U tanh(ζ)/a or σ + U coth(ζ)/a with a = √(-s²). Then B² < 0,
 which requires U < 0 for r = d, s and U > 0 for r = m, i.e. U = -σ|U|: the two terms cancel for
 βU → ±∞, which is avoided by U² - a² = 4(B² + U²/4) + ω².
+
+Returns (T, scaled). For ω = 0 and |βU| ≫ 1, T and K = U (B² + U²/4)²/ℬ₀ are both ∝ w₀², which
+underflows for |βU| ≳ 700; then T/w₀² is returned with scaled = true, and K/w₀² = U⁵/ℬ₀.
 =#
 function _T(σ, U, β, s², bU, ω, kodd)
     if s² >= 0
         z = β * √s² / 4
         f = kodd ? -cot(z) / z : iszero(z) ? one(z) : tan(z) / z
-        return σ + U * β / 4 * f
+        return σ + U * β / 4 * f, false
     end
     a = √(-s²)
     ζ = β * a / 4
     w₀ = bU / U^2  # q (d, s) or p (m), 1/(1 + exp(β|U|/2))
     if iszero(ω) && w₀ < 1 // 8
         # Here both terms below are ≈ 2|U| w₀ while T ∝ w₀². With ε = 4w₀, c = a/|U| = √(1 - ε)
-        # and |x| = β|U|/2: 1/(1 + exp(|x|c)) = w₀ (1 + g expm1(|x|(1 - c))), g = 1/(1 + exp(-|x|c)).
+        # and |x| = β|U|/2: 1/(1 + exp(|x|c)) = w₀ (1 + g expm1(y)), y = |x|(1 - c), g = 1/(1 + exp(-|x|c)).
         ε = 4w₀
         c = √(1 - ε)
         x = β * abs(U) / 2
         g = 1 / (1 + exp(-x * c))
-        return 2σ * w₀ * (g * expm1(x * ε / (1 + c)) - ε / (1 + c)^2) / c
+        y = x * ε / (1 + c)
+        expm1y_y = iszero(y) ? one(y) : expm1(y) / y
+        return 2σ * (4g * expm1y_y * x / (1 + c) - 4 / (1 + c)^2) / c, true
     end
     th1 = kodd ? 2 / expm1(2ζ) : -2 / (exp(2ζ) + 1)  # coth(ζ) - 1 or tanh(ζ) - 1
-    (-σ * (4bU + ω^2) / (a + abs(U)) + U * th1) / a
+    (-σ * (4bU + ω^2) / (a + abs(U)) + U * th1) / a, false
 end
 
 #=
