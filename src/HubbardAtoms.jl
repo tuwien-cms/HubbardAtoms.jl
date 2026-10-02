@@ -38,7 +38,7 @@ const FermiFermiBose = Tuple{FermionicFreq,FermionicFreq,BosonicFreq}
 
 
 """
-Represents a half-filled Hubbard atom embedded. Its Hamiltonian is:
+Represents a half-filled Hubbard atom. Its Hamiltonian is:
 
     H = U * (c'[↑] * c[↑] - 1/2) * (c'[↓] * c[↓] - 1/2)
  
@@ -102,7 +102,8 @@ const gf = G
     χ(::SpinChannel, at::HubbardAtom, (n, n´, m)::FermiFermiBose)
     chi(::SpinChannel, atom::HubbardAtom, (n, n´, m)::FermiFermiBose)
 
-Two-point susceptibility in each channel for the Hubbard atom. (Equation 10)
+Generalized (two-particle) susceptibility `χᵣ(ν, ν´, ω)` in channel `r`, defined in Equations 3-5.
+(Equation 10)
 """
 χ(r::SpinChannel, at::HubbardAtom, (n, n´, m)::FermiFermiBose) =
     a₀(r, at, (n, m)) * (δ(n, n´) - δ(n, -n´ - m)) +
@@ -426,8 +427,9 @@ end
 #=
 T = U tan(β(s + ω)/4) / s + σ, evaluated without complex arithmetic. For ω = 2πk/β,
 tan(β(s + ω)/4) is tan(z) for even k and -cot(z) for odd k, with z = βs/4, so T is even in s and
-real. For s² < 0, z = iζ and T = σ + U tanh(ζ)/a or σ + U coth(ζ)/a with a = √(-s²); if U = -σ|U|
-the two terms cancel for βU → ±∞, which is avoided by U² - a² = 4(B² + U²/4) + ω².
+real. For s² < 0, z = iζ and T = σ + U tanh(ζ)/a or σ + U coth(ζ)/a with a = √(-s²). Then B² < 0,
+which requires U < 0 for r = d, s and U > 0 for r = m, i.e. U = -σ|U|: the two terms cancel for
+βU → ±∞, which is avoided by U² - a² = 4(B² + U²/4) + ω².
 =#
 function _T(σ, U, β, s², bU, ω, kodd)
     if s² >= 0
@@ -437,22 +439,18 @@ function _T(σ, U, β, s², bU, ω, kodd)
     end
     a = √(-s²)
     ζ = β * a / 4
-    if sign(U) == -σ
-        w₀ = bU / U^2  # q (d, s) or p (m), 1/(1 + exp(β|U|/2))
-        if iszero(ω) && w₀ < 1 // 8
-            # Here both terms below are ≈ 2|U| w₀ while T ∝ w₀². With ε = 4w₀, c = a/|U| = √(1 - ε)
-            # and |x| = β|U|/2: 1/(1 + exp(|x|c)) = w₀ (1 + g expm1(|x|(1 - c))), g = 1/(1 + exp(-|x|c)).
-            ε = 4w₀
-            c = √(1 - ε)
-            x = β * abs(U) / 2
-            g = 1 / (1 + exp(-x * c))
-            return 2σ * w₀ * (g * expm1(x * ε / (1 + c)) - ε / (1 + c)^2) / c
-        end
-        th1 = kodd ? 2 / expm1(2ζ) : -2 / (exp(2ζ) + 1)  # coth(ζ) - 1 or tanh(ζ) - 1
-        (-σ * (4bU + ω^2) / (a + abs(U)) + U * th1) / a
-    else
-        σ + U * (kodd ? coth(ζ) : tanh(ζ)) / a
+    w₀ = bU / U^2  # q (d, s) or p (m), 1/(1 + exp(β|U|/2))
+    if iszero(ω) && w₀ < 1 // 8
+        # Here both terms below are ≈ 2|U| w₀ while T ∝ w₀². With ε = 4w₀, c = a/|U| = √(1 - ε)
+        # and |x| = β|U|/2: 1/(1 + exp(|x|c)) = w₀ (1 + g expm1(|x|(1 - c))), g = 1/(1 + exp(-|x|c)).
+        ε = 4w₀
+        c = √(1 - ε)
+        x = β * abs(U) / 2
+        g = 1 / (1 + exp(-x * c))
+        return 2σ * w₀ * (g * expm1(x * ε / (1 + c)) - ε / (1 + c)^2) / c
     end
+    th1 = kodd ? 2 / expm1(2ζ) : -2 / (exp(2ζ) + 1)  # coth(ζ) - 1 or tanh(ζ) - 1
+    (-σ * (4bU + ω^2) / (a + abs(U)) + U * th1) / a
 end
 
 #=
