@@ -44,23 +44,28 @@ Represents a half-filled Hubbard atom embedded. Its Hamiltonian is:
  
 where `c[σ]` annihilates a spin-σ electron. We assume that the atom is
 connected to a large heat bath with temperature `1/β`. (Equation 1)
+
+`U` and `beta` are promoted to a common floating-point type `T`, which is used
+for all results, e.g. `HubbardAtom(big"2.0", big"10.0")` evaluates everything
+in `BigFloat`.
 """
-struct HubbardAtom
-    U::Float64              # Hubbard interaction
-    beta::Float64           # inverse temperature
+struct HubbardAtom{T<:AbstractFloat}
+    U::T              # Hubbard interaction
+    beta::T           # inverse temperature
 
-    _expuhalfbeta::Float64  # exp(βU/2)
-    _uhalf2::Float64        # (U/2)^2
-    _psum::Float64          # shifted partition function
+    _expuhalfbeta::T  # exp(βU/2)
+    _uhalf2::T        # (U/2)^2
+    _psum::T          # shifted partition function
 
-    function HubbardAtom(U, beta)
+    function HubbardAtom(U::Real, beta::Real)
+        U, beta = float.(promote(U, beta))
         0 <= beta || throw(DomainError("beta must be non-negative"))
 
         expuhalfbeta = exp(beta * U / 2)
         uhalf2 = (U / 2)^2
         psum = 2 + 2 / expuhalfbeta
         isfinite(expuhalfbeta) || error(beta * U / 2, "exp(βU/2) must be finite")
-        new(U, beta, expuhalfbeta, uhalf2, psum)
+        new{typeof(U)}(U, beta, expuhalfbeta, uhalf2, psum)
     end
 end
 
@@ -138,7 +143,7 @@ function b₁(r::SpinChannel, at::HubbardAtom, (n, m)::FermiBose)
     Cᵣʷ = C(r, at, m)
     Dᵣʷ = D(r, at, m)
 
-    ℬ₁(r) * √(Complex(U * (1 - Cᵣʷ))) * (ν * (ν + ω) - Dᵣʷ) / ((ν^2 + U²₄) * ((ν + ω)^2 + U²₄))
+    ℬ₁(r, at) * √(Complex(U * (1 - Cᵣʷ))) * (ν * (ν + ω) - Dᵣʷ) / ((ν^2 + U²₄) * ((ν + ω)^2 + U²₄))
 end
 
 "Equation 11d"
@@ -150,7 +155,7 @@ function b₂(r::SpinChannel, at::HubbardAtom, (n, m)::FermiBose)
     ω = value(m, β)
     Cᵣʷ = C(r, at, m)
 
-    ℬ₂(r) * √(Complex(U * U²₄)) * √(U^2 / (1 - Cᵣʷ) + ω^2) / ((ν^2 + U²₄) * ((ν + ω)^2 + U²₄))
+    ℬ₂(r, at) * √(Complex(U * U²₄)) * √(U^2 / (1 - Cᵣʷ) + ω^2) / ((ν^2 + U²₄) * ((ν + ω)^2 + U²₄))
 end
 
 "Equation 12"
@@ -163,40 +168,40 @@ end
 
 # Table I
 
-A(::d, at::HubbardAtom) = at.U / 2 * √3
+A(::d, at::HubbardAtom) = at.U / 2 * √(3one(at.U))
 A(::m, at::HubbardAtom) = im * at.U / 2
-A(::s, at::HubbardAtom) = 0.0
+A(::s, at::HubbardAtom) = zero(at.U)
 A(::t, at::HubbardAtom) = im * at.U / 2
 
 B(::d, at::HubbardAtom) = at.U / 2 * √(Complex((-1 + 3at._expuhalfbeta) / (1 + at._expuhalfbeta)))
 B(::m, at::HubbardAtom) = -at.U / 2 * √(Complex((-at._expuhalfbeta + 3) / (at._expuhalfbeta + 1)))
 B(::s, at::HubbardAtom) = at.U / 2 * √(Complex((-1 + 3at._expuhalfbeta) / (1 + at._expuhalfbeta)))
-B(::t, at::HubbardAtom) = 0.0
+B(::t, at::HubbardAtom) = zero(at.U)
 
 C(::d, at::HubbardAtom, m::BosonicFreq) = at.beta * at.U / 2 * δ(m) / (1 + at._expuhalfbeta)
 C(::m, at::HubbardAtom, m::BosonicFreq) = -at.beta * at.U / 2 * δ(m) / (1 + 1 / at._expuhalfbeta)
 C(::s, at::HubbardAtom, m::BosonicFreq) = at.beta * at.U / 2 * δ(m) / (1 + at._expuhalfbeta)
-C(::t, at::HubbardAtom, m::BosonicFreq) = 0.0
+C(::t, at::HubbardAtom, m::BosonicFreq) = zero(at.U)
 
-𝒜₀(::d) = +1.0
-𝒜₀(::m) = +1.0
-𝒜₀(::s) = +0.5
-𝒜₀(::t) = -0.5
+𝒜₀(::d) = +1
+𝒜₀(::m) = +1
+𝒜₀(::s) = +1 // 2
+𝒜₀(::t) = -1 // 2
 
-ℬ₀(::d) = +1.0
-ℬ₀(::m) = +1.0
-ℬ₀(::s) = +0.5
-ℬ₀(::t) = -0.5
+ℬ₀(::d) = +1
+ℬ₀(::m) = +1
+ℬ₀(::s) = +1 // 2
+ℬ₀(::t) = -1 // 2
 
-ℬ₁(::d) = 1.0im
-ℬ₁(::m) = 1.0
-ℬ₁(::s) = 1.0im / √2
-ℬ₁(::t) = 0.0
+ℬ₁(::d, at::HubbardAtom) = im
+ℬ₁(::m, at::HubbardAtom) = 1
+ℬ₁(::s, at::HubbardAtom) = im / √(2one(at.U))
+ℬ₁(::t, at::HubbardAtom) = 0
 
-ℬ₂(::d) = 1.0
-ℬ₂(::m) = 1.0im
-ℬ₂(::s) = 1.0 / √2
-ℬ₂(::t) = 0.0
+ℬ₂(::d, at::HubbardAtom) = 1
+ℬ₂(::m, at::HubbardAtom) = im
+ℬ₂(::s, at::HubbardAtom) = 1 / √(2one(at.U))
+ℬ₂(::t, at::HubbardAtom) = 0
 
 
 """
@@ -228,7 +233,7 @@ function χ₀(r::SpinChannel, at::HubbardAtom, (n, n´, m)::FermiFermiBose)
 end
 
 χ₀(::PHChannel, at::HubbardAtom, (n, m)::FermiBose) = -G(at, n) * G(at, n + m)
-χ₀(::PPChannel, at::HubbardAtom, (n, m)::FermiBose) = -1 / 2 * G(at, n) * G(at, -n - m)
+χ₀(::PPChannel, at::HubbardAtom, (n, m)::FermiBose) = -G(at, n) * G(at, -n - m) / 2
 
 const chi0 = χ₀
 
@@ -319,11 +324,11 @@ function Γ(r::SpinChannel, at::HubbardAtom, (n, n´, m)::FermiFermiBose)
     sqrtω = √(4Bᵣ² + ω^2)
     ± = ifelse(r isa MagneticChannel, -, +)
 
-    Γᵣ -= U * abs2(ℬ₂(r)) / ℬ₀(r)^2 * U²₄ * (U²₄ * (Bᵣ² / U²₄ + 1)^2 + ω^2) /
+    Γᵣ -= U * abs2(ℬ₂(r, at)) / ℬ₀(r)^2 * U²₄ * (U²₄ * (Bᵣ² / U²₄ + 1)^2 + ω^2) /
           ((U * tan(β / 4 * (sqrtω + ω)) / sqrtω ± 1) *
            (ν * (ν + ω) - Bᵣ²) * (ν´ * (ν´ + ω) - Bᵣ²))
 
-    Γᵣ -= (ℬ₁(r) / ℬ₀(r))^2 * U
+    Γᵣ -= U * ℬ₁(r, at)^2 / ℬ₀(r)^2
 
     Γᵣ
 end
@@ -341,33 +346,32 @@ function Λ(::d, at::HubbardAtom, (ν, ν´, ω)::FermiFermiBose)
     w_phbar = (ν, ν + ω, ν´ - ν)
     w_pp = (ν, ν´, -ν - ν´ - ω)
 
-    (Γ(d(), at, w) - 0.5Γ(d(), at, w_phbar) - 1.5Γ(m(), at, w_phbar)
-     + 0.5Γ(s(), at, w_pp) + 1.5Γ(t(), at, w_pp) - 2F(d(), at, w))
+    (Γ(d(), at, w) - Γ(d(), at, w_phbar) / 2 - 3Γ(m(), at, w_phbar) / 2
+     + Γ(s(), at, w_pp) / 2 + 3Γ(t(), at, w_pp) / 2 - 2F(d(), at, w))
 end
 function Λ(::m, at::HubbardAtom, (ν, ν´, ω)::FermiFermiBose)
     w = (ν, ν´, ω)
     w_phbar = (ν, ν + ω, ν´ - ν)
     w_pp = (ν, ν´, -ν - ν´ - ω)
 
-    (Γ(m(), at, w) - 0.5Γ(d(), at, w_phbar) + 0.5Γ(m(), at, w_phbar)
-     -
-     0.5Γ(s(), at, w_pp) + 0.5Γ(t(), at, w_pp) - 2F(m(), at, w))
+    (Γ(m(), at, w) - Γ(d(), at, w_phbar) / 2 + Γ(m(), at, w_phbar) / 2
+     - Γ(s(), at, w_pp) / 2 + Γ(t(), at, w_pp) / 2 - 2F(m(), at, w))
 end
 function Λ(::s, at::HubbardAtom, (ν, ν´, ω)::FermiFermiBose)
     w = (ν, ν´, ω)
     w_phbar = (ν, -ν´ - ω, ν´ - ν)
     w_pp = (ν, ν´, -ν - ν´ - ω)
 
-    (Γ(s(), at, w) + 0.5Γ(d(), at, w_pp) - 1.5Γ(m(), at, w_pp) +
-     0.5Γ(d(), at, w_phbar) - 1.5Γ(m(), at, w_phbar) - 2F(s(), at, w))
+    (Γ(s(), at, w) + Γ(d(), at, w_pp) / 2 - 3Γ(m(), at, w_pp) / 2 +
+     Γ(d(), at, w_phbar) / 2 - 3Γ(m(), at, w_phbar) / 2 - 2F(s(), at, w))
 end
 function Λ(::t, at::HubbardAtom, (ν, ν´, ω)::FermiFermiBose)
     w = (ν, ν´, ω)
     w_phbar = (ν, -ν´ - ω, ν´ - ν)
     w_pp = (ν, ν´, -ν - ν´ - ω)
 
-    (Γ(t(), at, w) + 0.5Γ(d(), at, w_pp) + 0.5Γ(m(), at, w_pp) -
-     0.5Γ(d(), at, w_phbar) - 0.5Γ(m(), at, w_phbar) - 2F(t(), at, w))
+    (Γ(t(), at, w) + Γ(d(), at, w_pp) / 2 + Γ(m(), at, w_pp) / 2 -
+     Γ(d(), at, w_phbar) / 2 - Γ(m(), at, w_phbar) / 2 - 2F(t(), at, w))
 end
 
 const irreducible_vertex = Λ
@@ -401,7 +405,7 @@ function G₃(::s, at::HubbardAtom, (n, m)::FermiBose)
     r += (δ(m) * β * U) / ((iν + U / 2) * (iν - U / 2))
     r / (-at._expuhalfbeta * at._psum)
 end
-G₃(::t, at::HubbardAtom, (n, m)::FermiBose) = 0.0
+G₃(::t, at::HubbardAtom, (n, m)::FermiBose) = zero(at.U)
 
 const g3 = G₃
 
@@ -454,7 +458,6 @@ hedin(r::SpinChannel, at::HubbardAtom, (n, m)::FermiBose) =
 
 "Kronecker delta"
 δ(a) = δ(a, zero(a))
-δ(a, b) = δ(Float64, a, b)
-δ(::Type{T}, a, b) where {T} = ifelse(a == b, one(T), zero(T))
+δ(a, b) = Int(a == b)
 
 end
