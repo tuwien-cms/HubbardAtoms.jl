@@ -75,25 +75,26 @@ end
     @test _ψ(-1e-300) ≈ -1 / 3
 end
 
-@testitem "Type stability and allocations" setup = [AllFunctions] begin
+@testitem "Return types, type stability and allocations" setup = [AllFunctions] begin
     using SparseIR
 
     for T in (Float64, Float32, BigFloat), r in CHANNELS
         at = HubbardAtom(T(1.3), T(2.1))
         ν, ν´, ω = FermionicFreq(3), FermionicFreq(-3), BosonicFreq(2)
         w = (ν, ν´, ω)
-        @inferred bare_vertex(r, at)
-        @inferred gf(at, ν)
-        @inferred chi(r, at, w)
-        @inferred chi(r, at, ω)
-        @inferred chi0(r, at, w)
-        @inferred chi0(r, at, (ν, ω))
-        @inferred full_vertex(r, at, w)
-        @inferred gamma(r, at, w)
-        @inferred irreducible_vertex(r, at, w)
-        @inferred channel_reducible_vertex(r, at, w)
-        @inferred g3(r, at, (ν, ω))
-        r isa TripletChannel || @inferred hedin(r, at, (ν, ω))
+        # all quantities except the Green's function are real
+        @test (@inferred gf(at, ν)) isa Complex{T}
+        @test (@inferred bare_vertex(r, at)) isa T
+        @test (@inferred chi(r, at, w)) isa T
+        @test (@inferred chi(r, at, ω)) isa T
+        @test (@inferred chi0(r, at, w)) isa T
+        @test (@inferred chi0(r, at, (ν, ω))) isa T
+        @test (@inferred full_vertex(r, at, w)) isa T
+        @test (@inferred gamma(r, at, w)) isa T
+        @test (@inferred irreducible_vertex(r, at, w)) isa T
+        @test (@inferred channel_reducible_vertex(r, at, w)) isa T
+        @test (@inferred g3(r, at, (ν, ω))) isa T
+        r isa TripletChannel || @test (@inferred hedin(r, at, (ν, ω))) isa T
     end
 
     # Behind function barriers with concrete argument types, so that the test item's globals do not count.

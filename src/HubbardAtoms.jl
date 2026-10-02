@@ -1,5 +1,6 @@
 """
-Analytic expressions for vertices in the half-filled Hubbard atom.
+Analytic expressions for vertices in the half-filled Hubbard atom. All quantities except the
+Green's function `gf` are real.
 
 All equation numbers refer to Phys. Rev. B 98, 235107 (2018) by Thunström et al.:
 https://journals.aps.org/prb/abstract/10.1103/PhysRevB.98.235107
@@ -108,7 +109,8 @@ Generalized (two-particle) susceptibility `χᵣ(ν, ν´, ω)` in channel `r`, 
 χ(r::SpinChannel, at::HubbardAtom, (n, n´, m)::FermiFermiBose) =
     a₀(r, at, (n, m)) * (δ(n, n´) - δ(n, -n´ - m)) +
     b₀(r, at, (n, m)) * (δ(n, n´) + δ(n, -n´ - m)) +
-    b₁(r, at, (n, m)) * b₁(r, at, (n´, m)) + b₂(r, at, (n, m)) * b₂(r, at, (n´, m))
+    # each bᵢ is purely real or purely imaginary, so these products are real
+    real(b₁(r, at, (n, m)) * b₁(r, at, (n´, m)) + b₂(r, at, (n, m)) * b₂(r, at, (n´, m)))
 
 const chi = χ
 
@@ -244,8 +246,9 @@ function χ₀(r::SpinChannel, at::HubbardAtom, (n, n´, m)::FermiFermiBose)
     β * δ(n, n´) * χ₀(r, at, (n, m))
 end
 
-χ₀(::PHChannel, at::HubbardAtom, (n, m)::FermiBose) = -G(at, n) * G(at, n + m)
-χ₀(::PPChannel, at::HubbardAtom, (n, m)::FermiBose) = -G(at, n) * G(at, -n - m) / 2
+# G is purely imaginary, so these products are real
+χ₀(::PHChannel, at::HubbardAtom, (n, m)::FermiBose) = -real(G(at, n) * G(at, n + m))
+χ₀(::PPChannel, at::HubbardAtom, (n, m)::FermiBose) = -real(G(at, n) * G(at, -n - m)) / 2
 
 const chi0 = χ₀
 
@@ -536,8 +539,8 @@ identities of Krien and Valli, Phys. Rev. B 100, 245147 (2019), Eqs. (C1)-(C3).
 At half filling, the singlet pair and the charge density are related by the η-pairing
 symmetry, which gives `G₃(s) = G₃(d)/2`. The triplet one vanishes since `c↑c↑ = 0`.
 """
-G₃(::d, at::HubbardAtom, (n, m)::FermiBose) = iszero(m) ? -∂G∂μ(at, n) : -∂G∂ν(at, n, m)
-G₃(::m, at::HubbardAtom, (n, m)::FermiBose) = iszero(m) ? -∂G∂H(at, n) : -∂G∂ν(at, n, m)
+G₃(::d, at::HubbardAtom, (n, m)::FermiBose) = -real(iszero(m) ? ∂G∂μ(at, n) : ∂G∂ν(at, n, m))
+G₃(::m, at::HubbardAtom, (n, m)::FermiBose) = -real(iszero(m) ? ∂G∂H(at, n) : ∂G∂ν(at, n, m))
 G₃(::s, at::HubbardAtom, w::FermiBose) = G₃(d(), at, w) / 2
 G₃(::t, at::HubbardAtom, (n, m)::FermiBose) = zero(at.U)
 
