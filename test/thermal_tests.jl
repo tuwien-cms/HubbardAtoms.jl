@@ -10,9 +10,10 @@ end
     # exp(±βU/2) over- or underflows in Float64 for all of these; BigFloat does not.
     for (U, β) in ((2.0, 800.0), (-2.0, 800.0), (5.0, 1e4), (-5.0, 1e4))
         at = HubbardAtom(U, β)
-        for r in CHANNELS
-            res = results(r, at)
-            ref = results(r, HubbardAtom(big(U), big(β)))
+        # the second point has ω = 0 and ν´ = -ν - ω, where Γ needs the most care
+        for r in CHANNELS, (ν´, ω) in ((FermionicFreq(-3), BosonicFreq(2)), (FermionicFreq(-3), BosonicFreq(0)))
+            res = results(r, at; ν´, ω)
+            ref = results(r, HubbardAtom(big(U), big(β)); ν´, ω)
             @test all(isfinite, res)
             # Entry 9 is `irreducible_vertex`: for β = 1e4, Λ_t ≈ 1e-3 is a sum of Γ's of size up to
             # 45, each of which is only determined to ≈ 6e-12 by a 1-ulp change of U.
