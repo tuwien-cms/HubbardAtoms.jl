@@ -3,7 +3,11 @@
 
     (d, m, s, t) = CHANNELS
 
-    for β in (1e-3, 1e0, 1e-3), U in (-1e0, -1e-3, 1e-3, 1e0)
+    # Tolerance relative to the size of the combined terms, so the check stays
+    # meaningful whether the vertex is tiny (small U) or huge (large β).
+    crossing(F, a, Fd, b, Fm) = isapprox(F, a * Fd + b * Fm; atol=1e-14 * (abs(Fd) + abs(Fm)))
+
+    for β in (1e-3, 1e0, 1e3), U in (-1e0, -1e-3, 1e-3, 1e0)
         at = HubbardAtom(U, β)
 
         for ν in FermionicFreq.(-3:2:3), ν´ in FermionicFreq.(-3:2:3), ω in BosonicFreq.(-4:2:4)
@@ -12,20 +16,20 @@
             freqs_pp = (ν, ν´, -ν - ν´ - ω)
             Fd = full_vertex(d, at, freqs_pp)
             Fm = full_vertex(m, at, freqs_pp)
-            @test isapprox(full_vertex(s, at, freqs), +0.5Fd - 1.5Fm; atol=1e-5, rtol=1e-15)
-            @test isapprox(full_vertex(t, at, freqs), +0.5Fd + 0.5Fm; atol=1e-3, rtol=1e-15)
+            @test crossing(full_vertex(s, at, freqs), 0.5, Fd, -1.5, Fm)
+            @test crossing(full_vertex(t, at, freqs), 0.5, Fd, 0.5, Fm)
 
             freqs_phbar = (ν, ν + ω, ν´ - ν)
             Fd = full_vertex(d, at, freqs_phbar)
             Fm = full_vertex(m, at, freqs_phbar)
-            @test isapprox(full_vertex(d, at, freqs), -0.5Fd - 1.5Fm; atol=1e-8, rtol=1e-14)
-            @test isapprox(full_vertex(m, at, freqs), -0.5Fd + 0.5Fm; atol=1e-9, rtol=1e-13)
+            @test crossing(full_vertex(d, at, freqs), -0.5, Fd, -1.5, Fm)
+            @test crossing(full_vertex(m, at, freqs), -0.5, Fd, 0.5, Fm)
 
             freqs_phbar = (ν, -ν´ - ω, ν´ - ν)
             Fd = full_vertex(d, at, freqs_phbar)
             Fm = full_vertex(m, at, freqs_phbar)
-            @test isapprox(full_vertex(s, at, freqs), +0.5Fd - 1.5Fm; atol=1e-8, rtol=1e-14)
-            @test isapprox(full_vertex(t, at, freqs), -0.5Fd - 0.5Fm; atol=1e-3, rtol=1e-15)
+            @test crossing(full_vertex(s, at, freqs), 0.5, Fd, -1.5, Fm)
+            @test crossing(full_vertex(t, at, freqs), -0.5, Fd, -0.5, Fm)
         end
     end
 end
@@ -86,53 +90,3 @@ end
         @test Φ ≈ Φ_ana rtol = 1e-3
     end
 end
-
-
-# TODO: once OvercompleteIR is public, these can be enabled
-
-# @testitem "Bethe-Salpeter equation" begin
-#     using OvercompleteIR
-
-#     include("_bethe_salpeter_defs.jl")
-
-#     for channel in CHANNELS, conv in (PHConvention(), PHConventionThunstroem())
-#         ϵ = 1e-2
-#         n_conv_frequencies = 120
-#         n_iterations = 6
-#         β = 0.7
-#         U = 0.7
-#         @test bethe_salpeter(n_conv_frequencies, n_iterations; ϵ, channel, β, U, conv) < ϵ
-#     end
-# end
-
-
-#     @testset "Fit vertex $vertex r=$channel" for vertex in (full_vertex,), channel in (d, m, s, t)
-
-#     β = 4.0
-#     U = 2.0
-#     ωmax = 4 * U
-#     ϵ = 1e-3
-
-#     atom = Atom(U, β)
-#     conv = PHConventionThunstroem()
-#     basis_f, basis_b = SparseIR.finite_temp_bases(β, ωmax, ϵ)
-#     basis4 = OvercompleteBasis(DEFAULT_FOURPOINT_SET,
-#         AugmentedBasis(basis_f, MatsubaraConst),
-#         AugmentedBasis(basis_b, MatsubaraConst))
-
-#     eval4_in = OvercompleteIR.MatsubaraEval(basis4)
-#     w_ph_in = to_conv_freq.(conv, eval4_in.wsample)
-#         fw_in = vertex.(channel, atom, w_ph_in)
-#         fl = fit(eval4_in, fw_in; ϵ)
-#         fw_in_rec = evaluate(eval4_in, fl)
-#         score_in = norm(fw_in - fw_in_rec) / norm(fw_in)
-#         @test score_in < ϵ
-
-#         w_ph_out, share = OvercompleteIR.test_box(conv, w_ph_in)
-#         @test 0.5 < share < 1
-#         fw_out = vertex.(channel, atom, w_ph_out)
-#         eval4_out = OvercompleteIR.MatsubaraEval(basis4, to_full_freq.(conv, w_ph_out))
-#         fw_out_rec = evaluate(eval4_out, fl)
-#         score_out = norm(fw_out - fw_out_rec) / norm(fw_out)
-#         @test ϵ / 3 < score_out < 3 * ϵ
-#     end
