@@ -11,7 +11,7 @@ using SparseIR: FermionicFreq, BosonicFreq, value, valueim
 export HubbardAtom, CHANNELS, FermiBose, FermiFermiBose,
     DensityChannel, MagneticChannel, SingletChannel, TripletChannel,
     bare_vertex, gf, chi, chi0, full_vertex, gamma, irreducible_vertex,
-    channel_reducible_vertex, hedin
+    channel_reducible_vertex, hedin, g3
 
 abstract type SpinChannel end
 
