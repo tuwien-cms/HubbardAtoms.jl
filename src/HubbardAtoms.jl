@@ -219,17 +219,29 @@ C(::t, at::HubbardAtom, m::BosonicFreq) = zero(at.U)
     χ(::SpinChannel, atom::HubbardAtom, m::BosonicFreq)
     chi(::SpinChannel, atom::HubbardAtom, m::BosonicFreq)
 
-Physical susceptibility `χᵣ(ω) = -⟨ρᵣ; ρᵣ⟩(ω)` of the charge (`ρ = n↑ + n↓`), spin
-(`ρ = n↑ - n↓`) and singlet pair (`ρ = c↓c↑`) density. All three are conserved by the atom,
-so `χᵣ` vanishes for `ω ≠ 0`. For `r = d, m, s` it equals
-`-2/β^2 * sum(χ(r, atom, (n, n´, m)) for n in -∞:+∞, n´ in -∞:+∞)`.
+Susceptibility `-2/β^2 * sum(χ(r, atom, (n, n´, m)) for n in -∞:+∞, n´ in -∞:+∞)`.
 
-The local triplet pair `c↑c↑` vanishes identically (Pauli principle), so `χ(t, …) = 0`.
+For `r = d, m, s` this is the physical susceptibility `χᵣ(ω) = -⟨ρᵣ; ρᵣ⟩(ω)` of the charge
+(`ρ = n↑ + n↓`), spin (`ρ = n↑ - n↓`) and singlet pair (`ρ = c↓c↑`) density. All three are
+conserved by the atom, so `χᵣ` vanishes for `ω ≠ 0`.
+
+For `r = t` it is not an observable: the local triplet pair density vanishes identically (Pauli
+principle), and the sum is nonzero only because Equation 5d includes a bare particle-particle
+bubble. As `F_t` is antisymmetric under `ν´ → -ν´ - ω`, the vertex part drops out and the sum is
+the bubble `1/β * sum(G(ν) G(-ν - ω) for n in -∞:+∞)`.
 """
 χ(::d, at::HubbardAtom, m::BosonicFreq) = -at.beta * δ(m) * at._p
 χ(::m, at::HubbardAtom, m::BosonicFreq) = -at.beta * δ(m) * at._q
 χ(::s, at::HubbardAtom, m::BosonicFreq) = -at.beta * δ(m) * at._p / 2
-χ(::t, at::HubbardAtom, m::BosonicFreq) = zero(at.U)
+# With G(ν) = (1/(iν - U/2) + 1/(iν + U/2))/2 the bubble is
+# U/2 tanh(βU/4)/(U² + ω²) + δ_ω0 β/(8 cosh²(βU/4)), evaluated without 0/0 at U = 0 for ω = 0.
+function χ(::t, at::HubbardAtom, m::BosonicFreq)
+    β = at.beta
+    U = at.U
+    x = β * U / 4
+    iszero(m) || return U / 2 * tanh(x) / (U^2 + value(m, β)^2)
+    β / 8 * ((iszero(x) ? one(x) : tanh(x) / x) + sech(x)^2)
+end
 
 """
     χ₀(::SpinChannel, at::HubbardAtom, (n, n´, m)::FermiFermiBose)

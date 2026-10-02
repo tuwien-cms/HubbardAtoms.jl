@@ -25,12 +25,24 @@ end
         @test chi(MagneticChannel(), at, BosonicFreq(0)) ≈ -β * 2w₁ / Z   # -β⟨(n↑ - n↓)²⟩
         @test chi(SingletChannel(), at, BosonicFreq(0)) ≈ -β * w₀ / Z     # -β⟨c↓c↑ c↑⁺c↓⁺⟩
 
-        for r in CHANNELS
+        for r in CHANNELS[1:3]
             @test iszero(chi(r, at, BosonicFreq(2)))
-            @test iszero(chi(TripletChannel(), at, BosonicFreq(0)))
         end
 
-        # chi(r, ω) = -2/β² Σ_νν´ χ(r, (ν, ν´, ω)) = 2/β Σ_ν G₃(r, (ν, ω))
+        # Triplet: -2/β² Σ_νν´ χ_t is the bare pp bubble (1/β) Σ_ν G(ν) G(-ν - ω), since with
+        # χ_t = χ₀ - χ₀ F_t χ₀ the vertex part Σ_ν´ χ₀(ν´) F_t(ν, ν´, ω) vanishes
+        t = TripletChannel()
+        for k in (0, 1, -2)
+            ω = BosonicFreq(2k)
+            bubble = sum(real(gf(at, FermionicFreq(2j + 1)) * gf(at, FermionicFreq(-2j - 1 - 2k))) for j in -10^6:10^6-1) / β
+            @test chi(t, at, ω) ≈ bubble rtol = 1e-5 atol = 1e-6
+            for n in -3:2
+                ν = FermionicFreq(2n + 1)
+                @test abs(sum(chi0(t, at, (FermionicFreq(2j + 1), ω)) * full_vertex(t, at, (ν, FermionicFreq(2j + 1), ω)) for j in -100:99)) < 1e-12
+            end
+        end
+
+        # chi(r, ω) = -2/β² Σ_νν´ χ(r, (ν, ν´, ω)) = 2/β Σ_ν G₃(r, (ν, ω)) for r = d, m, s
         for r in CHANNELS[1:3], k in (0, 1)
             S = sum(g3(r, at, (FermionicFreq(2j + 1), BosonicFreq(2k))) for j in -200_000:199_999)
             @test chi(r, at, BosonicFreq(2k)) ≈ 2S / β atol = 1e-4
