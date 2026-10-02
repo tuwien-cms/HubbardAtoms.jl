@@ -96,11 +96,12 @@ end
         r isa TripletChannel || @inferred hedin(r, at, (ν, ω))
     end
 
+    # Behind a function barrier, so that untyped globals of the test item do not count.
+    allocations(f, args...) = (f(args...); @allocated f(args...))
     at = HubbardAtom(1.3, 2.1)
     for r in CHANNELS, w in ((FermionicFreq(3), FermionicFreq(-3), BosonicFreq(2)), (FermionicFreq(1), FermionicFreq(1), BosonicFreq(0)))
-        gamma(r, at, w)
-        @test (@allocated gamma(r, at, w)) == 0
-        @test (@allocated full_vertex(r, at, w)) == 0
+        @test allocations(gamma, r, at, w) == 0
+        @test allocations(full_vertex, r, at, w) == 0
     end
 end
 
