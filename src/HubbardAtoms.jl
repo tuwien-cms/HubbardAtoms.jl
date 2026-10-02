@@ -117,9 +117,7 @@ function a₀(r::SpinChannel, at::HubbardAtom, (n, m)::FermiBose)
     U²₄ = at._uhalf2
     ν = value(n, β)
     ω = value(m, β)
-    Aᵣ = A(r, at)
-
-    𝒜₀(r) * β / 2 * (ν * (ν + ω) - Aᵣ^2) / ((ν^2 + U²₄) * ((ν + ω)^2 + U²₄))
+    𝒜₀(r) * β / 2 * (ν * (ν + ω) - A²(r, at)) / ((ν^2 + U²₄) * ((ν + ω)^2 + U²₄))
 end
 
 "Equation 11b"
@@ -128,9 +126,7 @@ function b₀(r::SpinChannel, at::HubbardAtom, (n, m)::FermiBose)
     U²₄ = at._uhalf2
     ν = value(n, β)
     ω = value(m, β)
-    Bᵣ = B(r, at)
-
-    ℬ₀(r) * β / 2 * (ν * (ν + ω) - Bᵣ^2) / ((ν^2 + U²₄) * ((ν + ω)^2 + U²₄))
+    ℬ₀(r) * β / 2 * (ν * (ν + ω) - B²(r, at)) / ((ν^2 + U²₄) * ((ν + ω)^2 + U²₄))
 end
 
 "Equation 11c"
@@ -168,15 +164,21 @@ end
 
 # Table I
 
-A(::d, at::HubbardAtom) = at.U / 2 * √(3one(at.U))
-A(::m, at::HubbardAtom) = im * at.U / 2
-A(::s, at::HubbardAtom) = zero(at.U)
-A(::t, at::HubbardAtom) = im * at.U / 2
+# Aᵣ and Bᵣ only enter squared, and their squares are real.
+A²(::d, at::HubbardAtom) = 3at._uhalf2
+A²(::m, at::HubbardAtom) = -at._uhalf2
+A²(::s, at::HubbardAtom) = zero(at.U)
+A²(::t, at::HubbardAtom) = -at._uhalf2
 
-B(::d, at::HubbardAtom) = at.U / 2 * √(Complex(3 - 4at._p))
-B(::m, at::HubbardAtom) = -at.U / 2 * √(Complex(4at._p - 1))
-B(::s, at::HubbardAtom) = at.U / 2 * √(Complex(3 - 4at._p))
-B(::t, at::HubbardAtom) = zero(at.U)
+B²(::d, at::HubbardAtom) = at._uhalf2 * (3 - 4at._p)
+B²(::m, at::HubbardAtom) = at._uhalf2 * (4at._p - 1)
+B²(::s, at::HubbardAtom) = at._uhalf2 * (3 - 4at._p)
+B²(::t, at::HubbardAtom) = zero(at.U)
+
+# Bᵣ² + U²/4, without the cancellation of computing it from Bᵣ² when p → 1 (d, s) or p → 0 (m)
+B²U²₄(::d, at::HubbardAtom) = 4at._uhalf2 * at._q
+B²U²₄(::m, at::HubbardAtom) = 4at._uhalf2 * at._p
+B²U²₄(::s, at::HubbardAtom) = 4at._uhalf2 * at._q
 
 C(::d, at::HubbardAtom, m::BosonicFreq) = at.beta * at.U / 2 * δ(m) * at._p
 C(::m, at::HubbardAtom, m::BosonicFreq) = -at.beta * at.U / 2 * δ(m) * at._q
@@ -197,6 +199,12 @@ C(::t, at::HubbardAtom, m::BosonicFreq) = zero(at.U)
 ℬ₁(::m, at::HubbardAtom) = 1
 ℬ₁(::s, at::HubbardAtom) = im / √(2one(at.U))
 ℬ₁(::t, at::HubbardAtom) = 0
+
+# ℬ₁² exactly; note also |ℬ₂|² = ℬ₀ for r = d, m, s
+ℬ₁²(::d) = -1
+ℬ₁²(::m) = 1
+ℬ₁²(::s) = -1 // 2
+ℬ₁²(::t) = 0
 
 ℬ₂(::d, at::HubbardAtom) = 1
 ℬ₂(::m, at::HubbardAtom) = im
@@ -303,6 +311,9 @@ end
     gamma(::SpinChannel, at::HubbardAtom, (n, n´, m)::FermiFermiBose)
 
 Gives channel-irreducible four-point vertex `Γ(ν, ν', ω)`. (Equation 19)
+
+The result is real. The removable singularities at `ν(ν + ω) = Bᵣ²` (Equation 21), where two terms
+of Equation 19 diverge separately, are cancelled analytically, so `Γ` stays accurate there.
 """
 function Γ(r::SpinChannel, at::HubbardAtom, (n, n´, m)::FermiFermiBose)
     β = at.beta
@@ -310,27 +321,154 @@ function Γ(r::SpinChannel, at::HubbardAtom, (n, n´, m)::FermiFermiBose)
     ν = value(n, β)
     ω = value(m, β)
 
-    Aᵣ² = A(r, at)^2
+    Aᵣ² = A²(r, at)
     Γᵣ = β * Aᵣ² / 2𝒜₀(r) * (ν^2 + U²₄) * ((ν + ω)^2 + U²₄) / ((ν * (ν + ω) - Aᵣ²) * ν * (ν + ω)) *
          (δ(n, n´) - δ(n, -n´ - m))
     r isa TripletChannel && return Γᵣ
 
-    Bᵣ² = B(r, at)^2
-    Γᵣ += β * Bᵣ² / 2ℬ₀(r) * (ν^2 + U²₄) * ((ν + ω)^2 + U²₄) / ((ν * (ν + ω) - Bᵣ²) * ν * (ν + ω)) *
-          (δ(n, n´) + δ(n, -n´ - m))
-
-    U = at.U
-    ν´ = value(n´, β)
-    sqrtω = √(4Bᵣ² + ω^2)
-    ± = ifelse(r isa MagneticChannel, -, +)
-
-    Γᵣ -= U * abs2(ℬ₂(r, at)) / ℬ₀(r)^2 * U²₄ * (U²₄ * (Bᵣ² / U²₄ + 1)^2 + ω^2) /
-          ((U * tan(β / 4 * (sqrtω + ω)) / sqrtω ± 1) *
-           (ν * (ν + ω) - Bᵣ²) * (ν´ * (ν´ + ω) - Bᵣ²))
-
-    Γᵣ -= U * ℬ₁(r, at)^2 / ℬ₀(r)^2
+    Γᵣ += Γ_B(r, at, (n, n´, m))
+    Γᵣ -= at.U * ℬ₁²(r) / ℬ₀(r)^2
 
     Γᵣ
+end
+
+#=
+Second and third term of Eq. 19 (r = d, m, s). With
+
+    X(ν) = ν(ν + ω) - B²,   s = √(4B² + ω²),   T = U tan(β(s + ω)/4) / s ± 1,
+    P(ν) = (ν² + U²/4)((ν + ω)² + U²/4) = (X + B² + U²/4)² + U²ω²/4,
+    K = U |ℬ₂|²/ℬ₀² P|_{X=0} = U Q / ℬ₀,   Q = (B² + U²/4)² + U²ω²/4,
+
+they read
+
+    β B² P(ν) / (2ℬ₀ ν(ν + ω) X(ν)) [δ(ν, ν´) + δ(ν, -ν´ - ω)]  -  K / (T X(ν) X(ν´)).
+
+Let z = βs/4 and z_ν = β|2ν + ω|/4. Since 2ν + ω = 2π(2n + 1 + k)/β for ω = 2πk/β, z_ν is
+always a pole of tan(β(s + ω)/4), which hence equals cot(w) with w = z_ν - z. As
+X = (4/β²)(z_ν² - z²), w = β²X / (4(z_ν + z)) can be computed from X without cancellation and
+
+    R(ν) := T X(ν) = ±X + (U/β)(1 + z_ν/z) w cot(w)
+
+is smooth at X(ν) = 0, where T diverges (Eq. 21). For ν´ ∈ {ν, -ν - ω}, X(ν´) = X(ν) and the two
+1/X(ν) poles cancel. With w cot(w) = 1 + w² ψ(w²), ψ(t) = (√t cot √t - 1)/t, the sum becomes
+
+    [±β B² P - 2UQ + 2U B² (P ρ η + 2(B² + U²/4) + X)] / (2ℬ₀ ν(ν + ω) R)
+
+with ρ = w/X = β²/(4(z_ν + z)) and η = (1 + w² ψ)/(2z) + w ψ, which contains no 1/X.
+
+For 2ν + ω = 0 (z_ν = 0, odd k) both deltas hold, X = -s²/4, and the pole of T at s = 0 makes
+R = ±X + (U/β) z cot(z) = ±X + (U/β)(1 + z² ψ(z²)); the sum then becomes
+
+    [±β B² P - UQ + U B² (2(B² + U²/4) + X - β² P ψ/4)] / (ℬ₀ ν(ν + ω) R).
+=#
+function Γ_B(r::SpinChannel, at::HubbardAtom, (n, n´, m)::FermiFermiBose)
+    β = at.beta
+    U = at.U
+    U²₄ = at._uhalf2
+    ν = value(n, β)
+    ν´ = value(n´, β)
+    ω = value(m, β)
+    σ = r isa MagneticChannel ? -1 : 1
+
+    b = B²(r, at)
+    bU = B²U²₄(r, at)
+    Q = bU^2 + U²₄ * ω^2
+    K = U * Q / ℬ₀(r)
+    s² = 4b + ω^2
+    z = β * √(max(s², zero(s²))) / 4
+    T = _T(σ, U, β, s², bU, ω, isodd(Int(m) ÷ 2))
+
+    # T X(ν), evaluated via w if ν is close to the pole of T (if any) that belongs to it
+    function TX(ν)
+        X = ν * (ν + ω) - b
+        zν = β * abs(2ν + ω) / 4
+        if iszero(zν)
+            t = β^2 * s² / 16  # z², the pole is at z = 0
+            if abs(t) <= 1
+                ψ = _ψ(t)
+                return (; X, R=σ * X + U / β * (1 + t * ψ), w=√abs(t), ψ, zν)
+            end
+        elseif s² > 0
+            w = β^2 * X / (4(zν + z))
+            if abs(w) <= 1
+                ψ = _ψ(w^2)
+                return (; X, R=σ * X + U / β * (1 + zν / z) * (1 + w^2 * ψ), w, ψ, zν)
+            end
+        end
+        (; X, R=T * X, w=oftype(z, Inf), ψ=zero(z), zν)
+    end
+
+    a = TX(ν)
+    D = δ(n, n´) + δ(n, -n´ - m)
+    if iszero(D)
+        # Only the third term contributes; use T X of whichever frequency is closer to its pole.
+        a´ = TX(ν´)
+        return abs(a.w) <= abs(a´.w) ? -K / (a.R * a´.X) : -K / (a´.R * a.X)
+    end
+
+    # Both deltas hold (D = 2) only for 2ν + ω = 0, i.e. z_ν = 0.
+    (; X, R, w, ψ, zν) = a
+    P = (X + bU)^2 + U²₄ * ω^2
+    if isfinite(w) && iszero(zν)
+        (σ * β * b * P - U * Q + U * b * (2bU + X - β^2 * P * ψ / 4)) / (ℬ₀(r) * ν * (ν + ω) * R)
+    elseif isfinite(w)
+        ρ = β^2 / (4(zν + z))
+        η = (1 + w^2 * ψ) / (2z) + w * ψ
+        (σ * β * b * P - 2U * Q + 2U * b * (P * ρ * η + 2bU + X)) / (2ℬ₀(r) * ν * (ν + ω) * R)
+    else
+        (D * β * b * P / (2ℬ₀(r) * ν * (ν + ω)) - K / R) / X
+    end
+end
+
+#=
+T = U tan(β(s + ω)/4) / s + σ, evaluated without complex arithmetic. For ω = 2πk/β,
+tan(β(s + ω)/4) is tan(z) for even k and -cot(z) for odd k, with z = βs/4, so T is even in s and
+real. For s² < 0, z = iζ and T = σ + U tanh(ζ)/a or σ + U coth(ζ)/a with a = √(-s²); if U = -σ|U|
+the two terms cancel for βU → ±∞, which is avoided by U² - a² = 4(B² + U²/4) + ω².
+=#
+function _T(σ, U, β, s², bU, ω, kodd)
+    if s² >= 0
+        z = β * √s² / 4
+        f = kodd ? -cot(z) / z : iszero(z) ? one(z) : tan(z) / z
+        return σ + U * β / 4 * f
+    end
+    a = √(-s²)
+    ζ = β * a / 4
+    if sign(U) == -σ
+        w₀ = bU / U^2  # q (d, s) or p (m), 1/(1 + exp(β|U|/2))
+        if iszero(ω) && w₀ < 1 // 8
+            # Here both terms below are ≈ 2|U| w₀ while T ∝ w₀². With ε = 4w₀, c = a/|U| = √(1 - ε)
+            # and |x| = β|U|/2: 1/(1 + exp(|x|c)) = w₀ (1 + g expm1(|x|(1 - c))), g = 1/(1 + exp(-|x|c)).
+            ε = 4w₀
+            c = √(1 - ε)
+            x = β * abs(U) / 2
+            g = 1 / (1 + exp(-x * c))
+            return 2σ * w₀ * (g * expm1(x * ε / (1 + c)) - ε / (1 + c)^2) / c
+        end
+        th1 = kodd ? 2 / expm1(2ζ) : -2 / (exp(2ζ) + 1)  # coth(ζ) - 1 or tanh(ζ) - 1
+        (-σ * (4bU + ω^2) / (a + abs(U)) + U * th1) / a
+    else
+        σ + U * (kodd ? coth(ζ) : tanh(ζ)) / a
+    end
+end
+
+#=
+ψ(t) = (√t cot √t - 1)/t for real |t| ≤ 1 (analytic, ψ(0) = -1/3), without cancellation: from
+cot(z) = (cot(z/2) - tan(z/2))/2 follows ψ(t) = ψ(t/4)/4 - tanc(t/4)/4 with tanc(t) = tan(√t)/√t
+(= tanh(√-t)/√-t for t < 0). Iterating gives a sum of terms of equal sign; the remainder is
+4⁻ʲ ψ(t/4ʲ) ≈ -4⁻ʲ/3.
+=#
+function _ψ(t)
+    tanc(t) = t > 0 ? tan(√t) / √t : t < 0 ? tanh(√-t) / √-t : one(t)
+    ψ = zero(t)
+    c = one(t)
+    while true
+        t /= 4
+        c /= 4
+        ψ -= c * tanc(t)
+        c * abs(t) < eps(typeof(t)) && break
+    end
+    ψ - c / 3
 end
 
 const gamma = Γ
