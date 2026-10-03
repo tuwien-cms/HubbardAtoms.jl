@@ -7,7 +7,7 @@ authors = ["Samuel Badr <samuel.badr@tuwien.ac.at>"]
 SparseIR = "4fe2279e-80f0-4adb-8463-ee114ff56b7d"
 
 [compat]
-Aqua = "0.8.7"
+Aqua = "0.8.18"
 LinearAlgebra = "<0.0.1, 1"
 ReTestItems = "1.24.0"
 SparseIR = "1.0.18,2"
