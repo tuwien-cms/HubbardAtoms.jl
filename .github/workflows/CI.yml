@@ -8,6 +8,9 @@ on:
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: ${{ startsWith(github.ref, 'refs/pull/') }}
+permissions:
+  actions: write  # julia-actions/cache deletes old caches
+  contents: read
 jobs:
   test:
     name: Julia ${{ matrix.version }}${{ matrix.downgrade && ' (downgraded deps)' || '' }}
@@ -21,14 +24,18 @@ jobs:
           - version: '1.10'
             downgrade: true
     steps:
-      - uses: actions/checkout@v4
-      - uses: julia-actions/setup-julia@v2
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: julia-actions/setup-julia@v3
         with:
           version: ${{ matrix.version }}
-      - uses: julia-actions/cache@v2
-      - uses: julia-actions/julia-downgrade-compat@v1
+      - uses: julia-actions/cache@v3
+      - uses: julia-actions/julia-downgrade-compat@v2
         if: matrix.downgrade
-        with:
-          skip: Test
       - uses: julia-actions/julia-buildpkg@v1
       - uses: julia-actions/julia-runtest@v1
+        with:
+          # keep the minimal versions resolved by julia-downgrade-compat
+          allow_reresolve: ${{ !matrix.downgrade }}
+          force_latest_compatible_version: ${{ matrix.downgrade && 'false' || 'auto' }}
