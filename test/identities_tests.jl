@@ -108,8 +108,7 @@ end
 end
 
 @testitem "README example" begin
-    using SparseIR
-
+    # without `using SparseIR`: the frequency types are re-exported
     U = 2.0
     beta = 10.0
     at = HubbardAtom(U, beta)

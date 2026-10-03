@@ -77,8 +77,8 @@ end
         Χ₀ = chi0.(channel, atom, ν₁ω)
         F = full_vertex.(channel, atom, ν₁ν´ω)
 
-        Φ = Array{ComplexF64}(undef, size(νν´ω))
-        @inbounds for I in CartesianIndices(Φ)
+        Φ = Array{Float64}(undef, size(νν´ω))
+        for I in CartesianIndices(Φ)
             (ν, ν´, ω) = Tuple(I)
             Φ[I] = sum(Γ[ν, ν₁, ω] * Χ₀[ν₁, ω] * F[ν₁, ν´, ω] for ν₁ in eachindex(ν₁))
         end
