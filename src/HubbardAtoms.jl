@@ -1,8 +1,8 @@
 """
-Analytic expressions for vertices in the half-filled Hubbard atom. All quantities except the
-Green's function `gf` are real.
+Analytic expressions for vertices in the Hubbard atom. For the half-filled `HubbardAtom` all
+quantities except the Green's function `gf` are real; for the `DopedHubbardAtom` they are complex.
 
-All equation numbers refer to Phys. Rev. B 98, 235107 (2018) by Thunström et al.:
+Equation numbers refer to Phys. Rev. B 98, 235107 (2018) by Thunström et al.:
 https://journals.aps.org/prb/abstract/10.1103/PhysRevB.98.235107
 """
 module HubbardAtoms
@@ -10,7 +10,7 @@ module HubbardAtoms
 using SparseIR: FermionicFreq, BosonicFreq, value, valueim
 
 export FermionicFreq, BosonicFreq  # re-exported from SparseIR to construct frequency arguments
-export HubbardAtom, CHANNELS, FermiBose, FermiFermiBose,
+export HubbardAtom, DopedHubbardAtom, CHANNELS, FermiBose, FermiFermiBose,
     DensityChannel, MagneticChannel, SingletChannel, TripletChannel,
     bare_vertex, gf, chi, chi0, full_vertex, gamma, irreducible_vertex,
     channel_reducible_vertex, hedin, g3
@@ -38,6 +38,11 @@ const CHANNELS = (d(), m(), s(), t())
 const FermiBose = Tuple{FermionicFreq,BosonicFreq}
 const FermiFermiBose = Tuple{FermionicFreq,FermionicFreq,BosonicFreq}
 
+"Supertype of `HubbardAtom` (half filling) and `DopedHubbardAtom`."
+abstract type AbstractHubbardAtom end
+
+Base.broadcastable(atom::AbstractHubbardAtom) = Ref(atom)
+
 
 """
 Represents a half-filled Hubbard atom. Its Hamiltonian is:
@@ -51,7 +56,7 @@ connected to a large heat bath with temperature `1/β`. (Equation 1)
 floating-point type `T`, which is used for all results, e.g.
 `HubbardAtom(big"2.0", big"10.0")` evaluates everything in `BigFloat`.
 """
-struct HubbardAtom{T<:AbstractFloat}
+struct HubbardAtom{T<:AbstractFloat} <: AbstractHubbardAtom
     U::T              # Hubbard interaction
     beta::T           # inverse temperature
 
@@ -71,8 +76,6 @@ struct HubbardAtom{T<:AbstractFloat}
     end
 end
 
-Base.broadcastable(atom::HubbardAtom) = Ref(atom)
-
 """
     bare_vertex(::SpinChannel, atom::HubbardAtom)
 
@@ -80,10 +83,10 @@ Bare vertex entering diagrammatic equations in the different spin channels.
 Note that due to the rotations and multiplicities, these are not always equal
 to `U`.
 """
-bare_vertex(::d, at::HubbardAtom) = at.U
-bare_vertex(::m, at::HubbardAtom) = -at.U
-bare_vertex(::s, at::HubbardAtom) = 2 * at.U
-bare_vertex(::t, at::HubbardAtom) = zero(at.U)
+bare_vertex(::d, at::AbstractHubbardAtom) = at.U
+bare_vertex(::m, at::AbstractHubbardAtom) = -at.U
+bare_vertex(::s, at::AbstractHubbardAtom) = 2 * at.U
+bare_vertex(::t, at::AbstractHubbardAtom) = zero(at.U)
 
 """
     G(atom::HubbardAtom, n::FermionicFreq)
@@ -518,7 +521,7 @@ Fully irreducible four-point vertex `Λ(ν, ν', ω)`. (Equation 26)
 the `Γ` and `F` in it; where `Λ` is much smaller than these (e.g. in the triplet channel at large
 frequencies), its relative accuracy is correspondingly lower.
 """
-function Λ(::d, at::HubbardAtom, (ν, ν´, ω)::FermiFermiBose)
+function Λ(::d, at::AbstractHubbardAtom, (ν, ν´, ω)::FermiFermiBose)
     w = (ν, ν´, ω)
     w_phbar = (ν, ν + ω, ν´ - ν)
     w_pp = (ν, ν´, -ν - ν´ - ω)
@@ -526,7 +529,7 @@ function Λ(::d, at::HubbardAtom, (ν, ν´, ω)::FermiFermiBose)
     (Γ(d(), at, w) - Γ(d(), at, w_phbar) / 2 - 3Γ(m(), at, w_phbar) / 2
      + Γ(s(), at, w_pp) / 2 + 3Γ(t(), at, w_pp) / 2 - 2F(d(), at, w))
 end
-function Λ(::m, at::HubbardAtom, (ν, ν´, ω)::FermiFermiBose)
+function Λ(::m, at::AbstractHubbardAtom, (ν, ν´, ω)::FermiFermiBose)
     w = (ν, ν´, ω)
     w_phbar = (ν, ν + ω, ν´ - ν)
     w_pp = (ν, ν´, -ν - ν´ - ω)
@@ -534,7 +537,7 @@ function Λ(::m, at::HubbardAtom, (ν, ν´, ω)::FermiFermiBose)
     (Γ(m(), at, w) - Γ(d(), at, w_phbar) / 2 + Γ(m(), at, w_phbar) / 2
      - Γ(s(), at, w_pp) / 2 + Γ(t(), at, w_pp) / 2 - 2F(m(), at, w))
 end
-function Λ(::s, at::HubbardAtom, (ν, ν´, ω)::FermiFermiBose)
+function Λ(::s, at::AbstractHubbardAtom, (ν, ν´, ω)::FermiFermiBose)
     w = (ν, ν´, ω)
     w_phbar = (ν, -ν´ - ω, ν´ - ν)
     w_pp = (ν, ν´, -ν - ν´ - ω)
@@ -542,7 +545,7 @@ function Λ(::s, at::HubbardAtom, (ν, ν´, ω)::FermiFermiBose)
     (Γ(s(), at, w) + Γ(d(), at, w_pp) / 2 - 3Γ(m(), at, w_pp) / 2 +
      Γ(d(), at, w_phbar) / 2 - 3Γ(m(), at, w_phbar) / 2 - 2F(s(), at, w))
 end
-function Λ(::t, at::HubbardAtom, (ν, ν´, ω)::FermiFermiBose)
+function Λ(::t, at::AbstractHubbardAtom, (ν, ν´, ω)::FermiFermiBose)
     w = (ν, ν´, ω)
     w_phbar = (ν, -ν´ - ω, ν´ - ν)
     w_pp = (ν, ν´, -ν - ν´ - ω)
@@ -560,7 +563,7 @@ const irreducible_vertex = Λ
 Channel reducible four-point vertex in channel `r` `Φʳ(ν, ν', ω)`, evaluated as `F - Γ`; its
 relative accuracy is lower where it is much smaller than `F`.
 """
-Φ(r::SpinChannel, at::HubbardAtom, w::FermiFermiBose) = F(r, at, w) - Γ(r, at, w)
+Φ(r::SpinChannel, at::AbstractHubbardAtom, w::FermiFermiBose) = F(r, at, w) - Γ(r, at, w)
 
 const channel_reducible_vertex = Φ
 
@@ -628,13 +631,15 @@ Eqs. (8) and (15): `λ` tends to `1` for `d, m` and to `-1` for `s`, both for `U
 
 There is no Hedin vertex in the triplet channel, where the bare interaction vanishes.
 """
-hedin(r::SpinChannel, at::HubbardAtom, (n, k)::FermiBose) =
+hedin(r::SpinChannel, at::AbstractHubbardAtom, (n, k)::FermiBose) =
     -G₃(r, at, (n, k)) / (χ₀(r, at, (n, k)) * (1 + bare_vertex(r, at) * χ(r, at, k) / 2))
-hedin(::t, at::HubbardAtom, w::FermiBose) =
+hedin(::t, at::AbstractHubbardAtom, w::FermiBose) =
     throw(ArgumentError("there is no Hedin vertex in the triplet channel, where the bare interaction vanishes"))
 
 "Kronecker delta"
 δ(a) = δ(a, zero(a))
 δ(a, b) = Int(a == b)
+
+include("doped.jl")
 
 end

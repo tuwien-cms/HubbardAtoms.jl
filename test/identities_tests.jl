@@ -114,4 +114,6 @@ end
     at = HubbardAtom(U, beta)
     w = (FermionicFreq(11), FermionicFreq(-3), BosonicFreq(8))
     @test full_vertex(MagneticChannel(), at, w) isa Real
+    doped = DopedHubbardAtom(U, beta, 0.3)
+    @test gamma(DensityChannel(), doped, w) isa Complex
 end
