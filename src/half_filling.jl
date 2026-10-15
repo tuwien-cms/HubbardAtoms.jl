@@ -42,7 +42,7 @@ Base.show(io::IO, a::HubbardAtom) = print(io, "HubbardAtom(", a.U, ", ", a.beta,
 # Equation 2
 function G(at::HubbardAtom, n::FermionicFreq)
     U²₄ = at._uhalf2
-    iν = valueim(n, at.beta)
+    iν = im * _freq(n, at.beta)
 
     1 / (iν - U²₄ / iν)
 end
@@ -51,8 +51,8 @@ end
 function χ(r::SpinChannel, at::HubbardAtom, (n, n′, k)::FermiFermiBose)
     β = at.beta
     U²₄ = at._uhalf2
-    ν = value(n, β)
-    νω = value(n + k, β)  # ν + ω from the indices: value(n, β) + ω cancels for ν ≈ -ω
+    ν = _freq(n, β)
+    νω = _freq(n + k, β)  # from the indices, as adding ν and ω cancels for ν ≈ -ω
     δ₁, δ₂ = δ(n, n′), δ(n, -n′ - k)
 
     # a₀ (δ₁ - δ₂) + b₀ (δ₁ + δ₂) with a₀, b₀ from Equations 11a, b and 𝒜₀ = ℬ₀; both deltas hold
@@ -71,8 +71,8 @@ function b₁(r::SpinChannel, at::HubbardAtom, (n, k)::FermiBose)
     β = at.beta
     U²₄ = at._uhalf2
     U = at.U
-    ν = value(n, β)
-    νω = value(n + k, β)
+    ν = _freq(n, β)
+    νω = _freq(n + k, β)
     Cᵣʷ = C(r, at, k)
     Dᵣʷ = D(r, at, k)
 
@@ -84,9 +84,9 @@ function b₂(r::SpinChannel, at::HubbardAtom, (n, k)::FermiBose)
     β = at.beta
     U²₄ = at._uhalf2
     U = at.U
-    ν = value(n, β)
-    ω = value(k, β)
-    νω = value(n + k, β)
+    ν = _freq(n, β)
+    ω = _freq(k, β)
+    νω = _freq(n + k, β)
     Cᵣʷ = C(r, at, k)
 
     ℬ₂(r, at) * √(Complex(U * U²₄)) * √(U^2 / (1 - Cᵣʷ) + ω^2) /
@@ -165,7 +165,7 @@ function χ(::t, at::HubbardAtom, k::BosonicFreq)
     β = at.beta
     U = at.U
     x = β * U / 4
-    iszero(k) || return U / 2 * tanh(x) / (U^2 + value(k, β)^2)
+    iszero(k) || return U / 2 * tanh(x) / (U^2 + _freq(k, β)^2)
     β / 8 * ((iszero(x) ? one(x) : tanh(x) / x) + sech(x)^2)
 end
 
@@ -201,8 +201,8 @@ function F_up_up(at::HubbardAtom, w::FermiFermiBose)
     deltas = δ(n, n′) - δ(k)
 
     if !iszero(deltas)
-        ν = value(n, β)
-        ν′ω = value(n′ + k, β)
+        ν = _freq(n, β)
+        ν′ω = _freq(n′ + k, β)
 
         res += β * U²₄ * (ν^2 + U²₄) * (ν′ω^2 + U²₄) / (ν^2 * ν′ω^2) * deltas
     end
@@ -216,10 +216,10 @@ function F_up_down(at::HubbardAtom, w::FermiFermiBose)
     U = at.U
     U²₄ = at._uhalf2
 
-    ν = value(n, β)
-    ν′ = value(n′, β)
-    νω = value(n + k, β)
-    ν′ω = value(n′ + k, β)
+    ν = _freq(n, β)
+    ν′ = _freq(n′, β)
+    νω = _freq(n + k, β)
+    ν′ω = _freq(n′ + k, β)
 
     res = U - U^3 / 8 * (ν^2 + νω^2 + ν′ω^2 + ν′^2) / (ν * νω * ν′ω * ν′) -
           3U^5 / (16 * ν * νω * ν′ω * ν′)
@@ -242,8 +242,8 @@ end
 function Γ(r::SpinChannel, at::HubbardAtom, (n, n′, k)::FermiFermiBose)
     β = at.beta
     U²₄ = at._uhalf2
-    ν = value(n, β)
-    νω = value(n + k, β)
+    ν = _freq(n, β)
+    νω = _freq(n + k, β)
 
     Aᵣ² = A²(r, at)
     Γᵣ = β * Aᵣ² / 2𝒜₀(r) * (ν^2 + U²₄) * (νω^2 + U²₄) / ((ν * νω - Aᵣ²) * ν * νω) *
@@ -294,11 +294,11 @@ function Γ_B(r::SpinChannel, at::HubbardAtom, (n, n′, k)::FermiFermiBose, ΓA
     β = at.beta
     U = at.U
     U²₄ = at._uhalf2
-    ν = value(n, β)
-    ν′ = value(n′, β)
-    ω = value(k, β)
-    νω = value(n + k, β)
-    ν′ω = value(n′ + k, β)
+    ν = _freq(n, β)
+    ν′ = _freq(n′, β)
+    ω = _freq(k, β)
+    νω = _freq(n + k, β)
+    ν′ω = _freq(n′ + k, β)
     σ = r isa MagneticChannel ? -1 : 1
 
     b = B²(r, at)
@@ -310,11 +310,11 @@ function Γ_B(r::SpinChannel, at::HubbardAtom, (n, n′, k)::FermiFermiBose, ΓA
     # If `scaled`, T and K are divided by w₀² (see _T); only K/T enters then.
     K = scaled ? U^5 / ℬ₀(r) : U * Q / ℬ₀(r)
 
-    a = _TX(ν, νω, value(n + (n + k), β), β, U, σ, b, s², z, T)
+    a = _TX(ν, νω, _freq(n + (n + k), β), β, U, σ, b, s², z, T)
     D = δ(n, n′) + δ(n, -n′ - k)
     if iszero(D)
         # Only the third term contributes; use T X of whichever frequency is closer to its pole.
-        a′ = _TX(ν′, ν′ω, value(n′ + (n′ + k), β), β, U, σ, b, s², z, T)
+        a′ = _TX(ν′, ν′ω, _freq(n′ + (n′ + k), β), β, U, σ, b, s², z, T)
         return ΓA + (abs(a.w) <= abs(a′.w) ? -K / (a.R * a′.X) : -K / (a′.R * a.X))
     end
 
@@ -426,7 +426,7 @@ G₃(::t, at::HubbardAtom, (n, k)::FermiBose) = zero(at.U)
 "Finite difference of Green's function with respect to frequency"
 function ∂G∂ν(at::HubbardAtom, n::FermionicFreq, k::BosonicFreq)
     β = at.beta
-    iω = valueim(k, β)
+    iω = im * _freq(k, β)
 
     (G(at, n + k) - G(at, n)) / iω
 end
@@ -435,7 +435,7 @@ end
 function ∂G∂μ(at::HubbardAtom, n::FermionicFreq)
     U = at.U
     β = at.beta
-    iν = valueim(n, β)
+    iν = im * _freq(n, β)
 
     # dgdμ enters the charge channel, while dgdh enters the spin channel.
     # The "Curie-like" term ∝ β is weighted by p here and by q = 1 - p in the
@@ -450,7 +450,7 @@ end
 function ∂G∂H(at::HubbardAtom, n::FermionicFreq)
     U = at.U
     β = at.beta
-    iν = valueim(n, β)
+    iν = im * _freq(n, β)
 
     r = β * U * at._q / (iν^2 - at._uhalf2)
     r += 1 / (iν + U / 2)^2

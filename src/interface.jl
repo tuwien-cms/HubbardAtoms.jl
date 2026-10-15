@@ -5,7 +5,7 @@ all functions of the package take. For `HubbardAtom{T}` all quantities except `g
 """
 abstract type AbstractHubbardAtom end
 
-Base.broadcastable(atom::AbstractHubbardAtom) = Ref(atom)
+Base.Broadcast.broadcastable(atom::AbstractHubbardAtom) = Ref(atom)
 
 "Frequency argument `(ν, ω)` of three-point quantities."
 const FermiBose = Tuple{FermionicFreq,BosonicFreq}
@@ -178,6 +178,10 @@ end
 function hedin(::t, at::AbstractHubbardAtom, w::FermiBose)
     throw(ArgumentError("there is no Hedin vertex in the triplet channel, where the bare interaction vanishes"))
 end
+
+# Matsubara frequency nπ/β for an index n or a frequency (SparseIR's `value`, which is not public)
+_freq(i::Integer, β) = i * (π / β)
+_freq(x::Union{FermionicFreq,BosonicFreq}, β) = _freq(Int(x), β)
 
 "Kronecker delta"
 δ(a) = δ(a, zero(a))

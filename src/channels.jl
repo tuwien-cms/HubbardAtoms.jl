@@ -5,7 +5,7 @@ Supertype of the four channels, `PHChannel` (`DensityChannel`, `MagneticChannel`
 """
 abstract type SpinChannel end
 
-Base.broadcastable(ch::SpinChannel) = Ref(ch)
+Base.Broadcast.broadcastable(ch::SpinChannel) = Ref(ch)
 
 "Particle-hole channels: `DensityChannel`, `MagneticChannel`."
 abstract type PHChannel <: SpinChannel end

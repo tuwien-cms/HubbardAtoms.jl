@@ -39,3 +39,22 @@ jobs:
           # keep the minimal versions resolved by julia-downgrade-compat
           allow_reresolve: ${{ !matrix.downgrade }}
           force_latest_compatible_version: ${{ matrix.downgrade && 'false' || 'auto' }}
+  jet:
+    name: JET
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: julia-actions/setup-julia@v3
+        with:
+          version: '1'
+      - uses: julia-actions/cache@v3
+      - name: Static analysis
+        shell: julia --color=yes {0}
+        run: |
+          using Pkg
+          Pkg.activate(; temp=true)
+          Pkg.develop(; path=".")
+          Pkg.add("JET")
+          include("test/jet.jl")

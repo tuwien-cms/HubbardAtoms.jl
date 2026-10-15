@@ -7,7 +7,7 @@ derived in `derivation/doped-gamma-derivation.pdf` of the package repository.
 """
 module HubbardAtoms
 
-using SparseIR: FermionicFreq, BosonicFreq, value, valueim
+using SparseIR: FermionicFreq, BosonicFreq
 
 # re-exported from SparseIR to construct frequency arguments
 export FermionicFreq, BosonicFreq

@@ -93,9 +93,6 @@ function Base.show(io::IO, a::DopedHubbardAtom)
     print(io, "DopedHubbardAtom(", a.U, ", ", a.beta, ", ", a.mu, ")")
 end
 
-# Matsubara frequency from an integer index i: πi/β (as SparseIR.value)
-_freq(i::Integer, β) = i * (π / β)
-
 # expm1(x)/x, = 1 at x = 0
 _expm1x(x) = iszero(x) ? one(x) : expm1(x) / x
 
@@ -485,7 +482,7 @@ function _ph_setup_raw(at::DopedHubbardAtom{T}, k::BosonicFreq, ε::Int) where {
         M = 4a * β * u * X + λ^2 * β^2 * ρ / 4
         Su = _S(at, kodd, u)
         λα = λ * _α(at, kodd, u)
-        loss = lossP + _cancel(M, 4a * β * u * X, λ^2 * β^2 * ρ / 4)
+        lY = lossP + _cancel(M, 4a * β * u * X, λ^2 * β^2 * ρ / 4)
         # K = X + λα and N = X - λα, each either directly or from the identity (whichever cancels less)
         # B = -ρM/A is small: Y = uPρN/K with N = B - λρS = ρ(-M/A - λS)
         if abs(A) >= abs(B)
@@ -494,7 +491,7 @@ function _ph_setup_raw(at::DopedHubbardAtom{T}, k::BosonicFreq, ε::Int) where {
             Nρ = -M / A - λ * Su
             N, lN = _better((ρ * Nρ, _cancel(Nρ, M / A, λ * Su)),
                             (X - λα, _cancel(X - λα, X, λα)))
-            return u * Pu * (N / K) * ρ, loss + lK + lN
+            return u * Pu * (N / K) * ρ, lY + lK + lN
         else                 # A = -ρM/B is small: Y = uPN/κ with κ = K/ρ = -M/B + λS
             κ, lκ = -M / B + λ * Su, _cancel(-M / B + λ * Su, M / B, λ * Su)
             if !iszero(ρ)
@@ -503,7 +500,7 @@ function _ph_setup_raw(at::DopedHubbardAtom{T}, k::BosonicFreq, ε::Int) where {
             end
             N, lN = _better((B - λ * ρ * Su, _cancel(B - λ * ρ * Su, B, λ * ρ * Su)),
                             (X - λα, _cancel(X - λα, X, λα)))
-            return u * Pu * (N / κ), loss + lκ + lN
+            return u * Pu * (N / κ), lY + lκ + lN
         end
     end
     if ε == -1 && iszero(k)
