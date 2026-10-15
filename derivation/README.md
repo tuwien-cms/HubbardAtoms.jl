@@ -23,6 +23,8 @@ linear solve, independently of the closed forms; `ed_doped.jl` is the exact diag
 `figures/` holds the figures, their data (`figure_data.jl`) and the plotting script
 (`make_figures.py`).
 
+The note and its figures are licensed under CC BY 4.0, the scripts under MIT; see `LICENSE`.
+
 ## Reproducing
 
 From `doped-gamma/`, with this repository as the Julia project:

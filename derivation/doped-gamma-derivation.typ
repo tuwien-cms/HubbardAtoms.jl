@@ -54,6 +54,8 @@
   #text(11pt)[Samuel Badr]
   #v(0.2em)
   #text(10pt, style: "italic")[TU Wien, October 2026]
+  #v(0.2em)
+  #text(8.5pt)[Licensed under #link("https://creativecommons.org/licenses/by/4.0/")[CC BY 4.0].]
 ]
 #v(0.6em)
 
