@@ -292,15 +292,16 @@ end
 
     at = DopedHubbardAtom(2.0, 3.0, 0.3)
     w = (F(1), F(-2), B(1))
+    # Behind a function barrier, so that the test item's globals do not count.
+    allocs(f, r, at, w) = (f(r, at, w); @allocated f(r, at, w))
     for r in CHANNELS
         for f in (chi, chi0, full_vertex, gamma, irreducible_vertex, channel_reducible_vertex)
             @test @inferred(f(r, at, w)) isa ComplexF64
         end
         @test @inferred(chi(r, at, B(1))) isa ComplexF64
         @test @inferred(g3(r, at, (F(1), B(1)))) isa ComplexF64
-        gamma(r, at, w)  # setup cached
-        @test (@allocated gamma(r, at, w)) == 0
-        @test (@allocated full_vertex(r, at, w)) == 0
+        @test allocs(gamma, r, at, w) == 0  # after the first call, which caches the setup
+        @test allocs(full_vertex, r, at, w) == 0
     end
     @test @inferred(gf(at, F(1))) isa ComplexF64
 

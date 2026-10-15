@@ -1,7 +1,7 @@
 #=
-The Hubbard atom away from half filling. The formulas for Γ are derived in the (private) note
-"The channel-irreducible vertex of the Hubbard atom away from half filling"; the theorem, lemma
-and proposition names below refer to it. The susceptibility is the Lehmann representation of Eßl et al., Phys. Rev. Research
+The Hubbard atom away from half filling. The formulas for Γ are derived in the note
+derivation/doped-gamma-derivation.pdf of this repository (source: derivation/doped-gamma-derivation.typ);
+the theorem, lemma and proposition names below refer to it. The susceptibility is the Lehmann representation of Eßl et al., Phys. Rev. Research
 6, 033061 (2024), Eq. (D3), in the compact form of that note.
 
 Notation: a = U/2, ε = +1 (d) or -1 (m), x = μ + iν, w = iω, z = x + w/2 (the centered lattice),
@@ -302,7 +302,7 @@ affected, at isolated parameters.
 =#
 function _Γbig(r, at::DopedHubbardAtom{T}, w, loss) where {T}
     prec = min(precision(T) + 32 + _bits(3loss), 1 << 14)
-    val = setprecision(BigFloat, prec) do
+    val = _withprecision(prec) do
         _Γraw(r, DopedHubbardAtom(BigFloat(at.U), BigFloat(at.beta), BigFloat(at.mu)), w)[1]
     end
     Complex{T}(val)
@@ -315,9 +315,7 @@ function _Γraw(::SingletChannel, at::DopedHubbardAtom, (n, n´, k)::FermiFermiB
     fn, fm = _pp_factors(at, n, k), _pp_factors(at, n´, k)
     Ds = _Ds(at)
     tAn, tAm = fn.𝒢 - Ds, fm.𝒢 - Ds  # t + Aₛ
-    c = _cached(at, at._pp_setups, Int(k)) do
-        _adaptive(at, (bat, _) -> _pp_setup_raw(bat, k), x -> x.loss, x -> Complex{T}(x.c))
-    end::Complex{T}
+    c = _pp_setup(at, k)
     res = 4a - 4a * c / (tAn * tAm)
     D = δ(n, n´) + δ(n, -n´ - k)
     iszero(D) || (res += β * Ds * fn.𝒫 / (fn.𝒢 * tAn) * D)
@@ -334,6 +332,12 @@ with 1 - tanh y = 2/(1 + e^{2y}) (or (ξ + a) + 2a/expm1(2y) for coth), and ξ +
 O(βp₁²), as is 𝒫(-Aₛ); `loss` estimates the cancellation, and `_adaptive` repeats the setup in high
 precision if needed.
 =#
+function _pp_setup(at::DopedHubbardAtom{T}, k::BosonicFreq) where {T}
+    _cached(at, at._pp_setups, Int(k)) do
+        _adaptive(at, (bat, _) -> _pp_setup_raw(bat, k), x -> x.loss, x -> Complex{T}(x.c))
+    end::Complex{T}
+end
+
 function _pp_setup_raw(at::DopedHubbardAtom{T}, k::BosonicFreq) where {T}
     β, a, ρ, p1 = at.beta, at._a, at._rho, at._p1
     b = Complex(2at.mu, -_freq(Int(k), β))
@@ -355,6 +359,18 @@ function _pp_setup_raw(at::DopedHubbardAtom{T}, k::BosonicFreq) where {T}
         loss += _cancel(Ks, 1, τ)
     end
     (; c=𝒫A / Ks, loss)
+end
+
+#=
+`f()` with the BigFloat precision set to `prec`. From Julia 1.11 on, `setprecision` with a function is
+task-local; before, it sets a global value, so concurrent calls are serialized (they still change the
+precision seen by other code running concurrently).
+=#
+const _PRECISION_LOCK = ReentrantLock()
+if VERSION >= v"1.11"
+    _withprecision(f, prec) = setprecision(f, BigFloat, prec)
+else
+    _withprecision(f, prec) = lock(() -> setprecision(f, BigFloat, prec), _PRECISION_LOCK)
 end
 
 # Value cached in `dict[key]`, computed by `f()` if absent (thread-safe).
@@ -388,7 +404,7 @@ function _adaptive(at::DopedHubbardAtom{T}, raw, loss, result) where {T}
     l <= 4 && return result(x)
     prec = precision(T) + 48 + min(_bits(5l / 4), 1024)
     while true
-        y = setprecision(BigFloat, prec) do
+        y = _withprecision(prec) do
             raw(DopedHubbardAtom(BigFloat(at.U), BigFloat(at.beta), BigFloat(at.mu)), BigFloat)
         end
         ly = loss(y)
@@ -454,7 +470,8 @@ end
 _better(x, y) = x[2] <= y[2] ? x : y
 
 # log2 of the cancellation in a sum: |terms|/|result| (≥ 0, Inf if the result vanishes)
-_cancel(result, terms...) = log2(max(1, sum(abs, terms) / abs(result)))
+# Vararg{Any,N} forces specialization: Julia 1.10 does not specialize `terms...` here for mixed types, and allocates
+_cancel(result, terms::Vararg{Any,N}) where {N} = log2(max(1, sum(abs, terms) / abs(result)))
 
 function _ph_setup_raw(at::DopedHubbardAtom{T}, k::BosonicFreq, ε::Int) where {T}
     β, a, ρ = at.beta, at._a, at._rho
