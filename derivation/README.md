@@ -23,6 +23,11 @@ linear solve, independently of the closed forms; `ed_doped.jl` is the exact diag
 `figures/` holds the figures, their data (`figure_data.jl`) and the plotting script
 (`make_figures.py`).
 
+`mathematica/doped_gamma.nb` replays the derivation in Mathematica 15: it derives the susceptibility from
+the Lehmann representation of the atom, checks every step of the proofs symbolically, and compares all theorems
+with brute-force inversion on finite boxes (62 checks, about 20 s). It is built from `mathematica/src/*.wl` with
+`wolframscript -file build.wl nb=doped_gamma.nb src/*.wl`; `replay.wl` re-evaluates the notebook's input cells.
+
 The note and its figures are licensed under CC BY 4.0, the scripts under MIT; see `LICENSE`.
 
 ## Reproducing
