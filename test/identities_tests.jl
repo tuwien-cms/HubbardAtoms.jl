@@ -5,10 +5,10 @@
     for (U, β) in ((1.3, 2.1), (-0.7, 3.0), (5.0, 2.0), (2.0, 400.0)), r in CHANNELS
         at = HubbardAtom(U, β)
         κ = r isa SingletChannel ? -1 : 1
-        for n in -3:2, n´ in -3:2, k in -2:2
-            ν, ν´, ω = FermionicFreq(2n + 1), FermionicFreq(2n´ + 1), BosonicFreq(2k)
-            χ₀χ₀F = chi0(r, at, (ν, ω)) * full_vertex(r, at, (ν, ν´, ω)) * chi0(r, at, (ν´, ω))
-            @test chi(r, at, (ν, ν´, ω)) ≈ κ * chi0(r, at, (ν, ν´, ω)) - χ₀χ₀F rtol = 1e-12 atol = 1e-12 * abs(χ₀χ₀F)
+        for n in -3:2, n′ in -3:2, k in -2:2
+            ν, ν′, ω = FermionicFreq(2n + 1), FermionicFreq(2n′ + 1), BosonicFreq(2k)
+            χ₀χ₀F = chi0(r, at, (ν, ω)) * full_vertex(r, at, (ν, ν′, ω)) * chi0(r, at, (ν′, ω))
+            @test chi(r, at, (ν, ν′, ω)) ≈ κ * chi0(r, at, (ν, ν′, ω)) - χ₀χ₀F rtol = 1e-12 atol = 1e-12 * abs(χ₀χ₀F)
         end
     end
 end
@@ -21,16 +21,16 @@ end
     for (U, β) in ((1.3, 2.1), (-0.7, 3.0), (5.0, 2.0))
         at = HubbardAtom(U, β)
         L(r, w) = irreducible_vertex(r, at, w)
-        for n in -2:1, n´ in -2:1, k in -2:2
-            ν, ν´, ω = FermionicFreq(2n + 1), FermionicFreq(2n´ + 1), BosonicFreq(2k)
-            w = (ν, ν´, ω)
-            pp = (ν, ν´, -ν - ν´ - ω)
+        for n in -2:1, n′ in -2:1, k in -2:2
+            ν, ν′, ω = FermionicFreq(2n + 1), FermionicFreq(2n′ + 1), BosonicFreq(2k)
+            w = (ν, ν′, ω)
+            pp = (ν, ν′, -ν - ν′ - ω)
             @test crossing(L(s, w), 1 / 2, L(d, pp), -3 / 2, L(m, pp))
             @test crossing(L(t, w), 1 / 2, L(d, pp), 1 / 2, L(m, pp))
-            ph = (ν, ν + ω, ν´ - ν)
+            ph = (ν, ν + ω, ν′ - ν)
             @test crossing(L(d, w), -1 / 2, L(d, ph), -3 / 2, L(m, ph))
             @test crossing(L(m, w), -1 / 2, L(d, ph), 1 / 2, L(m, ph))
-            ph = (ν, -ν´ - ω, ν´ - ν)
+            ph = (ν, -ν′ - ω, ν′ - ν)
             @test crossing(L(s, w), 1 / 2, L(d, ph), -3 / 2, L(m, ph))
             @test crossing(L(t, w), -1 / 2, L(d, ph), -1 / 2, L(m, ph))
         end
@@ -80,8 +80,8 @@ end
 
     for T in (Float64, Float32, BigFloat), r in CHANNELS
         at = HubbardAtom(T(1.3), T(2.1))
-        ν, ν´, ω = FermionicFreq(3), FermionicFreq(-3), BosonicFreq(2)
-        w = (ν, ν´, ω)
+        ν, ν′, ω = FermionicFreq(3), FermionicFreq(-3), BosonicFreq(2)
+        w = (ν, ν′, ω)
         # all quantities except the Green's function are real
         @test (@inferred gf(at, ν)) isa Complex{T}
         @test (@inferred bare_vertex(r, at)) isa T
@@ -109,11 +109,9 @@ end
 
 @testitem "README example" begin
     # without `using SparseIR`: the frequency types are re-exported
-    U = 2.0
-    beta = 10.0
-    at = HubbardAtom(U, beta)
-    w = (FermionicFreq(11), FermionicFreq(-3), BosonicFreq(8))
-    @test full_vertex(MagneticChannel(), at, w) isa Real
-    doped = DopedHubbardAtom(U, beta, 0.3)
-    @test gamma(DensityChannel(), doped, w) isa Complex
+    U, beta = 2.0, 10.0
+    w = (FermionicFreq(11), FermionicFreq(-3), BosonicFreq(8))   # (ν, ν′, ω)
+
+    @test full_vertex(MagneticChannel(), HubbardAtom(U, beta), w) isa Real
+    @test gamma(DensityChannel(), DopedHubbardAtom(U, beta, 0.3), w) isa Complex
 end

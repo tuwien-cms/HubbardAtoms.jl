@@ -57,7 +57,6 @@ check["D_v = -H(-v) P(v)/(beta e(v)), E_v = -lambda rho F(v)/beta^2, F = P/e", T
 (* ::Input:: *)
 Wx[eps_, st_] := Wx[eps, st] = Module[{e = ef[eps, st]},
    Expand[Simplify[Together[(beta e[v] step1[eps, st]["rest"] + e[v] N2f[eps, st][z] - lamf[eps] rho z (Pf[st][v] - e[v]))/lamf[eps]] /. norm]]];
-AbsoluteTiming[Table[Wx @@ c;, {c, cases}];]
 check["W is a polynomial, even in v, W0 + z^2 W2, degree one in v^2", Table[With[{W = Wx @@ c}, {PolynomialQ[W, {z, v}], Expand[W - (W /. v -> -v)] === 0, Exponent[W, z] == 2, Coefficient[W, z, 1] === 0, Exponent[W, v] == 2}], {c, cases}]]
 Wf[eps_, st_][zz_, s_] := Wx[eps, st] /. {z -> zz, v -> Sqrt[s]};
 
@@ -88,7 +87,7 @@ step3[eps_, st_] := Module[{H = Hf[eps, st], l = lamf[eps], fp, fm, I, img, clai
   (* m, k = 0: only the non-atomic roots, e(u)/(u^2 - a^2) = 0 *)
   If[{eps, st} == {-1, 1}, den = PolynomialQuotient[den, u^2 - a^2, u]];
   PolynomialRemainder[num, den, u]];
-AbsoluteTiming[r3 = Table[Simplify[step3 @@ c], {c, cases}];]
+r3 = Table[Simplify[step3 @@ c], {c, cases}];
 check["Step 3, Eq. (mode-image)", r3 === {0, 0, 0, 0}]
 
 (* ::Subsection:: *)

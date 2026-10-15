@@ -156,8 +156,8 @@ end
 χ₀(::PHChannel, at::DopedHubbardAtom, (n, k)::FermiBose) = -G(at, n) * G(at, n + k)
 χ₀(::PPChannel, at::DopedHubbardAtom, (n, k)::FermiBose) = -G(at, n) * G(at, -n - k) / 2
 
-function χ₀(r::SpinChannel, at::DopedHubbardAtom, (n, n´, k)::FermiFermiBose)
-    at.beta * δ(n, n´) * χ₀(r, at, (n, k))
+function χ₀(r::SpinChannel, at::DopedHubbardAtom, (n, n′, k)::FermiFermiBose)
+    at.beta * δ(n, n′) * χ₀(r, at, (n, k))
 end
 
 #=
@@ -175,15 +175,15 @@ end
 _ε(::DensityChannel) = 1
 _ε(::MagneticChannel) = -1
 
-# Connected part χ - B δₙₙ´ of χ_d, χ_m (Proposition "structure" of the note), B the bubble.
-function _χconn(r::PHChannel, at::DopedHubbardAtom, (n, n´, k)::FermiFermiBose)
+# Connected part χ - B δₙₙ′ of χ_d, χ_m (Proposition "structure" of the note), B the bubble.
+function _χconn(r::PHChannel, at::DopedHubbardAtom, (n, n′, k)::FermiFermiBose)
     T = typeof(at.U)
     β, a, ρ = at.beta, at._a, at._rho
     ε = _ε(r)
-    fn, fm = _ph_factors(at, n, k), _ph_factors(at, n´, k)
+    fn, fm = _ph_factors(at, n, k), _ph_factors(at, n′, k)
     z, v = fn.z, fm.z
     q0 = a^2 + _freq(Int(k), β)^2 / 4
-    C = _pair(at, Int(n) + Int(n´) + Int(k))
+    C = _pair(at, Int(n) + Int(n′) + Int(k))
     # ε𝒩 (Lemma "compact input"), with 4a²(1 - ρ) = 8a²q₋
     res = ε * ((4a^2 * C - 2a) / (fn.Qm * fm.Qm) + 8a^2 * at._qm * (z + v + 2a) * (z * v + q0) / (fn.P * fm.P))
     if iszero(k)
@@ -191,7 +191,7 @@ function _χconn(r::PHChannel, at::DopedHubbardAtom, (n, n´, k)::FermiFermiBose
         ζ = β * a^2 * 4 * (at._qp * at._qm - ε * at._w11)
         res += ζ / ((z^2 - a^2) * (v^2 - a^2))
     end
-    if n == n´
+    if n == n′
         # χ - B on the diagonal: -β(H - G₂)/P with H - G₂ = Δᵣ = a²(1 - ρ² + 4εp₁)
         res -= β * _Δ(r, at) / fn.P
     end
@@ -203,8 +203,8 @@ _Δ(::DensityChannel, at::DopedHubbardAtom) = 4at._a^2 * (2at._p1 - at._w11)
 _Δ(::MagneticChannel, at::DopedHubbardAtom) = -4at._a^2 * at._w11
 
 """
-    χ(::SpinChannel, at::DopedHubbardAtom, (n, n´, k)::FermiFermiBose)
-    chi(::SpinChannel, atom::DopedHubbardAtom, (n, n´, k)::FermiFermiBose)
+    χ(::SpinChannel, at::DopedHubbardAtom, (n, n′, k)::FermiFermiBose)
+    chi(::SpinChannel, atom::DopedHubbardAtom, (n, n′, k)::FermiFermiBose)
 
 Generalized susceptibility of the doped atom (Eßl et al., Eq. D3, combined into channels as in
 Equations 5a-d).
@@ -215,16 +215,16 @@ _η(::SpinChannel) = 1
 _η(::SingletChannel) = -1
 
 """
-    F(::SpinChannel, at::DopedHubbardAtom, (n, n´, k)::FermiFermiBose)
-    full_vertex(::SpinChannel, at::DopedHubbardAtom, (n, n´, k)::FermiFermiBose)
+    F(::SpinChannel, at::DopedHubbardAtom, (n, n′, k)::FermiFermiBose)
+    full_vertex(::SpinChannel, at::DopedHubbardAtom, (n, n′, k)::FermiFermiBose)
 
 Full vertex, from `χ = χ₀ ∓ χ₀ F χ₀ / β²` (`-` for `d, m, t`, `+` for `s`), evaluated from the connected
 part of χ directly.
 """
-function F(r::SpinChannel, at::DopedHubbardAtom, (n, n´, k)::FermiFermiBose)
+function F(r::SpinChannel, at::DopedHubbardAtom, (n, n′, k)::FermiFermiBose)
     β = at.beta
-    B, B´ = β * χ₀(r, at, (n, k)), β * χ₀(r, at, (n´, k))
-    -β^2 * _χconn(r, at, (n, n´, k)) / (B * B´)
+    B, B′ = β * χ₀(r, at, (n, k)), β * χ₀(r, at, (n′, k))
+    -β^2 * _χconn(r, at, (n, n′, k)) / (B * B′)
 end
 
 #=
@@ -241,33 +241,33 @@ end
 # Dₛ = a²(ρ² - 1 + 8p₁) = 4a²(p₁ + w₁₁), so that t + Aₛ = 𝒢(t) - Dₛ
 _Ds(at::DopedHubbardAtom) = 4at._a^2 * (at._p1 + at._w11)
 
-function _χconn(::TripletChannel, at::DopedHubbardAtom, (n, n´, k)::FermiFermiBose)
+function _χconn(::TripletChannel, at::DopedHubbardAtom, (n, n′, k)::FermiFermiBose)
     T = typeof(at.U)
-    D = δ(n, n´) - δ(n, -n´ - k)
+    D = δ(n, n′) - δ(n, -n′ - k)
     iszero(D) && return zero(Complex{T})
     f = _pp_factors(at, n, k)
     # (L_t - B)(δ - δ̄)/2 with L_t - B = -βa²(1 - ρ²)/(2𝒫)
     Complex{T}(-at.beta * at._a^2 * at._qp * at._qm * D / f.𝒫)
 end
 
-function _χconn(::SingletChannel, at::DopedHubbardAtom, (n, n´, k)::FermiFermiBose)
+function _χconn(::SingletChannel, at::DopedHubbardAtom, (n, n′, k)::FermiFermiBose)
     T = typeof(at.U)
     a = at._a
-    fn, fm = _pp_factors(at, n, k), _pp_factors(at, n´, k)
+    fn, fm = _pp_factors(at, n, k), _pp_factors(at, n′, k)
     b = Complex(2at.mu, -_freq(Int(k), at.beta))
     c = _pair(at, -Int(k))  # ρ/b
     # χ_s,reg, with t - t₋ = (x + a)(x̄ + a) and 1 - ρ = 2q₋
     res = (a * (2a * c - 1) * (fn.x + a) * (fn.x̄ + a) * (fm.x + a) * (fm.x̄ + a) +
            2a^2 * at._qm * (b + 2a) * (fn.t + fm.t + 2a^2)) / (fn.𝒫 * fm.𝒫)
-    D = δ(n, n´) + δ(n, -n´ - k)
+    D = δ(n, n′) + δ(n, -n′ - k)
     # (L_s + B)(δ + δ̄)/2 with L_s + B = -βDₛ/(2𝒫)
     iszero(D) || (res -= at.beta * _Ds(at) * D / (4fn.𝒫))
     Complex{T}(res)
 end
 
 """
-    Γ(::SpinChannel, at::DopedHubbardAtom, (n, n´, k)::FermiFermiBose)
-    gamma(::SpinChannel, at::DopedHubbardAtom, (n, n´, k)::FermiFermiBose)
+    Γ(::SpinChannel, at::DopedHubbardAtom, (n, n′, k)::FermiFermiBose)
+    gamma(::SpinChannel, at::DopedHubbardAtom, (n, n′, k)::FermiFermiBose)
 
 Channel-irreducible vertex of the doped atom, `Γ = β²(χ⁻¹ - η χ₀⁻¹)` (η = -1 for `s`, else 1), from
 the closed forms of the note: triplet (Theorem 2), singlet (Theorem 3), density and magnetic
@@ -278,9 +278,9 @@ At the isolated parameters where a denominator of the closed form vanishes but `
 evaluated in higher precision, as are a few cached scalars per transfer where the closed form
 cancels (e.g. at low temperatures). At genuine divergences `Γ` is infinite or large.
 """
-function Γ(::TripletChannel, at::DopedHubbardAtom, (n, n´, k)::FermiFermiBose)
+function Γ(::TripletChannel, at::DopedHubbardAtom, (n, n′, k)::FermiFermiBose)
     T = typeof(at.U)
-    D = δ(n, n´) - δ(n, -n´ - k)
+    D = δ(n, n′) - δ(n, -n′ - k)
     iszero(D) && return zero(Complex{T})
     a = at._a
     f = _pp_factors(at, n, k)
@@ -308,16 +308,16 @@ function _Γbig(r, at::DopedHubbardAtom{T}, w, loss) where {T}
     Complex{T}(val)
 end
 
-function _Γraw(::SingletChannel, at::DopedHubbardAtom, (n, n´, k)::FermiFermiBose)
+function _Γraw(::SingletChannel, at::DopedHubbardAtom, (n, n′, k)::FermiFermiBose)
     T = typeof(at.U)
     β, a, ρ = at.beta, at._a, at._rho
     iszero(a) && return zero(Complex{T}), zero(T)
-    fn, fm = _pp_factors(at, n, k), _pp_factors(at, n´, k)
+    fn, fm = _pp_factors(at, n, k), _pp_factors(at, n′, k)
     Ds = _Ds(at)
     tAn, tAm = fn.𝒢 - Ds, fm.𝒢 - Ds  # t + Aₛ
     c = _pp_setup(at, k)
     res = 4a - 4a * c / (tAn * tAm)
-    D = δ(n, n´) + δ(n, -n´ - k)
+    D = δ(n, n′) + δ(n, -n′ - k)
     iszero(D) || (res += β * Ds * fn.𝒫 / (fn.𝒢 * tAn) * D)
     loss = max(_cancel(tAn, fn.𝒢, Ds), _cancel(tAm, fm.𝒢, Ds))
     Complex{T}(res), loss
@@ -579,7 +579,7 @@ function _Y_atomic(at::DopedHubbardAtom)
     Y2, d2, _cancel(κ, κ1, κ2) + _cancel(N, X, λα) + _cancel(X, d2, 4a^2 * p0, 2a * ρ * δu)
 end
 
-function _Γraw(r::PHChannel, at::DopedHubbardAtom, (n, n´, k)::FermiFermiBose)
+function _Γraw(r::PHChannel, at::DopedHubbardAtom, (n, n′, k)::FermiFermiBose)
     T = typeof(at.U)
     β, a, ρ = at.beta, at._a, at._rho
     iszero(a) && return zero(Complex{T}), zero(T)
@@ -587,7 +587,7 @@ function _Γraw(r::PHChannel, at::DopedHubbardAtom, (n, n´, k)::FermiFermiBose)
     λ = 4ε * a^2
     st = _ph_setup(at, k, ε)
     fn = _ph_factors(at, n, k)
-    z, v = fn.z, _z(at, n´, k)
+    z, v = fn.z, _z(at, n′, k)
     z², v² = z^2, v^2
     ez, ev = (z² - st.s1) * (z² - st.s2), (v² - st.s1) * (v² - st.s2)
 
@@ -595,9 +595,9 @@ function _Γraw(r::PHChannel, at::DopedHubbardAtom, (n, n´, k)::FermiFermiBose)
     # separable part
     res += λ * (st.Y1 * (z² + v² - st.s1 - st.s2) / (ez * ev) + st.Yd / ((z² - st.s2) * (v² - st.s2)))
     # dense part -λρ𝔻(z, v) = -λ C(z, v) Q(z, v), C = ρ/(z + v)
-    C = _pair(at, Int(n) + Int(n´) + Int(k))
-    iszero(C) || (res -= λ * C * _Q(at, st, k, ε, z, v, n == n´))
-    if n == n´
+    C = _pair(at, Int(n) + Int(n′) + Int(k))
+    iszero(C) || (res -= λ * C * _Q(at, st, k, ε, z, v, n == n′))
+    if n == n′
         # βP[1/G₂ - H(-z)/e] = βP(Δᵣ H(-z) - 16a⁴p₀p₂)/(G₂ e)
         H = z² - 2a * ρ * z + st.q1
         res += β * fn.P * (_Δ(r, at) * H - 16a^4 * at._p0 * at._p2) / (fn.G2 * ez)
@@ -610,7 +610,7 @@ function _Γraw(r::PHChannel, at::DopedHubbardAtom, (n, n´, k)::FermiFermiBose)
 end
 
 #=
-Q(z, v) = (zF(z) - vF(v))/(z - v), F = P/e, and F(z) + zF´(z) for z = v. With φ(z) = z(F(z) - 1) =
+Q(z, v) = (zF(z) - vF(v))/(z - v), F = P/e, and F(z) + zF′(z) for z = v. With φ(z) = z(F(z) - 1) =
 zR(z²)/e(z), R = P - e = r₁z² + r₀, Q = 1 + (φ(z) - φ(v))/(z - v), which avoids the cancellation of
 zF(z) - vF(v) for large, nearby frequencies.
 =#
@@ -636,7 +636,7 @@ end
     χ(::SpinChannel, atom::DopedHubbardAtom, k::BosonicFreq)
     chi(::SpinChannel, atom::DopedHubbardAtom, k::BosonicFreq)
 
-Susceptibility `-2/β^2 * sum(χ(r, atom, (n, n´, k)) for n in -∞:+∞, n´ in -∞:+∞)`. For `r = d, m` this is
+Susceptibility `-2/β^2 * sum(χ(r, atom, (n, n′, k)) for n in -∞:+∞, n′ in -∞:+∞)`. For `r = d, m` this is
 the physical susceptibility `-⟨ρᵣ; ρᵣ⟩(ω)` of the charge and spin density, which are conserved and
 vanish for `ω ≠ 0`. For `r = s` it is `-⟨ρ; ρ⁺⟩(-ω) = -ρ/(2μ - iω)` with the pair density `ρ = c↓c↑`,
 which is not conserved off half filling. For `r = t` it is the bare bubble
@@ -664,7 +664,7 @@ end
     G₃(::SpinChannel, atom::DopedHubbardAtom, (n, k)::Tuple{FermionicFreq, BosonicFreq})
     g3(::SpinChannel, atom::DopedHubbardAtom, (n, k)::Tuple{FermionicFreq, BosonicFreq})
 
-Three-point Green's function `-1/β * sum(χ(r, atom, (n, n´, k)) for n´ in -∞:+∞)` (`r = d, m, s`);
+Three-point Green's function `-1/β * sum(χ(r, atom, (n, n′, k)) for n′ in -∞:+∞)` (`r = d, m, s`);
 zero for `r = t`.
 """
 function G₃(r::PHChannel, at::DopedHubbardAtom, (n, k)::FermiBose)

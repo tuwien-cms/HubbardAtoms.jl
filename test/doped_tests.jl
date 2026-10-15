@@ -52,16 +52,16 @@ end
 
     # At μ = 0 every function agrees with the half-filled atom.
     for (U, β) in ((1.3, 2.1), (-0.7, 3.0), (5.0, 2.0), (4.0, 20.0), (-6.0, 30.0)), r in CHANNELS
-        for (ν, ν´, ω) in ((FermionicFreq(3), FermionicFreq(-3), BosonicFreq(2)), (FermionicFreq(1), FermionicFreq(-1), BosonicFreq(0)),
+        for (ν, ν′, ω) in ((FermionicFreq(3), FermionicFreq(-3), BosonicFreq(2)), (FermionicFreq(1), FermionicFreq(-1), BosonicFreq(0)),
             (FermionicFreq(-1), FermionicFreq(5), BosonicFreq(-4)))
-            ref = results(r, HubbardAtom(U, β); ν, ν´, ω)
-            res = results(r, DopedHubbardAtom(U, β, 0.0); ν, ν´, ω)
+            ref = results(r, HubbardAtom(U, β); ν, ν′, ω)
+            res = results(r, DopedHubbardAtom(U, β, 0.0); ν, ν′, ω)
             # entry 9 (Λ) is a sum of much larger terms
             scale = maximum(abs, ref)
             @test all(isapprox(res[i], ref[i]; rtol=1e-12, atol=(i == 9 ? 1e-12 : 1e-13) * scale) for i in eachindex(ref))
             # and continuously so (at low temperature, the dependence on μ is genuinely strong)
             β <= 3 || continue
-            res = results(r, DopedHubbardAtom(U, β, 1e-12); ν, ν´, ω)
+            res = results(r, DopedHubbardAtom(U, β, 1e-12); ν, ν′, ω)
             @test all(isapprox(res[i], ref[i]; rtol=1e-10, atol=1e-11 * scale) for i in eachindex(ref))
         end
     end
@@ -83,12 +83,12 @@ end
             @test chi(s, at, B(k)) ≈ χpair_ed(U, β, -k; μ) atol = 1e-12
         end
         U == 0 && continue  # the connected parts vanish
-        for n in -2:1, n´ in -2:1, k in -1:1
-            χ_uu, χ_ud = χph_ed(U, β, true, n, n´, k; μ), χph_ed(U, β, false, n, n´, k; μ)
-            kpp = -k - (n + n´ + 1)
-            χpp_uu, χpp_ud = χph_ed(U, β, true, n, n´, kpp; μ), χph_ed(U, β, false, n, n´, kpp; μ)
-            χ0pp = n == n´ ? -β / 2 * G_ed(U, β, n; μ) * G_ed(U, β, -n - k - 1; μ) : 0
-            w = (F(n), F(n´), B(k))
+        for n in -2:1, n′ in -2:1, k in -1:1
+            χ_uu, χ_ud = χph_ed(U, β, true, n, n′, k; μ), χph_ed(U, β, false, n, n′, k; μ)
+            kpp = -k - (n + n′ + 1)
+            χpp_uu, χpp_ud = χph_ed(U, β, true, n, n′, kpp; μ), χph_ed(U, β, false, n, n′, kpp; μ)
+            χ0pp = n == n′ ? -β / 2 * G_ed(U, β, n; μ) * G_ed(U, β, -n - k - 1; μ) : 0
+            w = (F(n), F(n′), B(k))
             scale = max(abs(χ_uu), abs(χ_ud), abs(χpp_uu), abs(χpp_ud), abs(χ0pp))
             @test chi(d, at, w) ≈ χ_uu + χ_ud atol = 1e-12 * scale
             @test chi(m, at, w) ≈ χ_uu - χ_ud atol = 1e-12 * scale
@@ -148,9 +148,9 @@ end
     # The thermal weights over- or underflow in Float64 without care
     for (U, β, μ) in ((2.0, 800.0, 0.3), (-2.0, 800.0, 0.3), (5.0, 1e4, -1.0), (2.0, 800.0, 3.0))
         at = DopedHubbardAtom(U, β, μ)
-        for r in CHANNELS, (ν´, ω) in ((FermionicFreq(-3), BosonicFreq(2)), (FermionicFreq(-3), BosonicFreq(0)))
-            res = results(r, at; ν´, ω)
-            ref = setprecision(() -> results(r, DopedHubbardAtom(big(U), big(β), big(μ)); ν´, ω), BigFloat, 256)
+        for r in CHANNELS, (ν′, ω) in ((FermionicFreq(-3), BosonicFreq(2)), (FermionicFreq(-3), BosonicFreq(0)))
+            res = results(r, at; ν′, ω)
+            ref = setprecision(() -> results(r, DopedHubbardAtom(big(U), big(β), big(μ)); ν′, ω), BigFloat, 256)
             @test all(isfinite, res)
             # entries 9 (Λ) and 10 (Φ = F - Γ) are sums of much larger terms (Λ contains Γ of all channels)
             scale = maximum(abs, ref)
@@ -210,16 +210,16 @@ end
     for (U, β, μ) in ((1.3, 2.1, 0.4), (-0.7, 3.0, -0.2), (5.0, 2.0, 1.5)), f in (full_vertex, irreducible_vertex)
         at = DopedHubbardAtom(U, β, μ)
         X(r, w) = f(r, at, w)
-        for n in -2:1, n´ in -2:1, k in -2:2
-            ν, ν´, ω = F(n), F(n´), B(k)
-            w = (ν, ν´, ω)
-            pp = (ν, ν´, -ν - ν´ - ω)
+        for n in -2:1, n′ in -2:1, k in -2:2
+            ν, ν′, ω = F(n), F(n′), B(k)
+            w = (ν, ν′, ω)
+            pp = (ν, ν′, -ν - ν′ - ω)
             @test crossing(X(s, w), 1 / 2, X(d, pp), -3 / 2, X(m, pp))
             @test crossing(X(t, w), 1 / 2, X(d, pp), 1 / 2, X(m, pp))
-            ph = (ν, ν + ω, ν´ - ν)
+            ph = (ν, ν + ω, ν′ - ν)
             @test crossing(X(d, w), -1 / 2, X(d, ph), -3 / 2, X(m, ph))
             @test crossing(X(m, w), -1 / 2, X(d, ph), 1 / 2, X(m, ph))
-            ph = (ν, -ν´ - ω, ν´ - ν)
+            ph = (ν, -ν′ - ω, ν′ - ν)
             @test crossing(X(s, w), 1 / 2, X(d, ph), -3 / 2, X(m, ph))
             @test crossing(X(t, w), -1 / 2, X(d, ph), -1 / 2, X(m, ph))
         end
@@ -236,22 +236,22 @@ end
     for (U, β, μ) in ((1.3, 2.1, 0.4), (-0.7, 3.0, -0.2)), r in CHANNELS
         at = DopedHubbardAtom(U, β, μ)
         κ = r isa SingletChannel ? -1 : 1
-        for n in -3:2, n´ in -3:2, k in -2:2
-            ν, ν´, ω = F(n), F(n´), B(k)
-            χ₀χ₀F = chi0(r, at, (ν, ω)) * full_vertex(r, at, (ν, ν´, ω)) * chi0(r, at, (ν´, ω))
-            @test chi(r, at, (ν, ν´, ω)) ≈ κ * chi0(r, at, (ν, ν´, ω)) - χ₀χ₀F rtol = 1e-12 atol = 1e-12 * abs(χ₀χ₀F)
+        for n in -3:2, n′ in -3:2, k in -2:2
+            ν, ν′, ω = F(n), F(n′), B(k)
+            χ₀χ₀F = chi0(r, at, (ν, ω)) * full_vertex(r, at, (ν, ν′, ω)) * chi0(r, at, (ν′, ω))
+            @test chi(r, at, (ν, ν′, ω)) ≈ κ * chi0(r, at, (ν, ν′, ω)) - χ₀χ₀F rtol = 1e-12 atol = 1e-12 * abs(χ₀χ₀F)
         end
         # Φ = F - Γ = ∓(1/β) Σ Γ χ₀ F (BSE); the truncated sum converges like 1/N, so extrapolate
-        for (n, n´, k) in ((0, 1, 0), (-2, 1, 1))
-            ν, ν´, ω = F(n), F(n´), B(k)
-            S(N) = sum(gamma(r, at, (ν, F(j), ω)) * chi0(r, at, (F(j), ω)) * full_vertex(r, at, (F(j), ν´, ω)) for j in -N-k:N-1)
-            @test channel_reducible_vertex(r, at, (ν, ν´, ω)) ≈ -κ * (2S(4000) - S(2000)) / β rtol = 1e-6
+        for (n, n′, k) in ((0, 1, 0), (-2, 1, 1))
+            ν, ν′, ω = F(n), F(n′), B(k)
+            S(N) = sum(gamma(r, at, (ν, F(j), ω)) * chi0(r, at, (F(j), ω)) * full_vertex(r, at, (F(j), ν′, ω)) for j in -N-k:N-1)
+            @test channel_reducible_vertex(r, at, (ν, ν′, ω)) ≈ -κ * (2S(4000) - S(2000)) / β rtol = 1e-6
         end
     end
 end
 
 @testitem "Doped atom: G₃ and χ(ω) from sums of χ" setup = [Doped] begin
-    # G₃(r) = -1/β Σ_ν´ χ(r, (ν, ν´, ω)) and χ(r, ω) = 2/β Σ_ν G₃(r, (ν, ω)) for r = d, m, s;
+    # G₃(r) = -1/β Σ_ν′ χ(r, (ν, ν′, ω)) and χ(r, ω) = 2/β Σ_ν G₃(r, (ν, ω)) for r = d, m, s;
     # the truncated sums over symmetric boxes converge like 1/N.
     N = 20_000
     for (U, β, μ) in ((1.3, 2.1, 0.4), (-0.7, 3.0, -0.2), (0.0, 1.0, 0.5)), r in CHANNELS[1:3], (n, k) in ((0, 0), (0, 1), (-2, 2), (2, -1))

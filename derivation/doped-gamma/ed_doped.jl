@@ -62,16 +62,16 @@ end
 χ₊₋(U, β, k) = -correlator(U, β, (cdn * cup, cup⁺ * cdn⁺), (ω(k, β),), (false,))  # -⟨ρ⁻; ρ⁺⟩, ρ⁻ = c↓c↑
 
 #=
-Eq. 3: χ_ph,σσ´(ν, ν´, ω) = ∫ e^{-iντ₁} e^{i(ν+ω)τ₂} e^{-i(ν´+ω)τ₃}
-[⟨T cσ⁺(τ₁) cσ(τ₂) cσ´⁺(τ₃) cσ´(0)⟩ - ⟨T cσ⁺(τ₁) cσ(τ₂)⟩⟨T cσ´⁺(τ₃) cσ´(0)⟩]
+Eq. 3: χ_ph,σσ′(ν, ν′, ω) = ∫ e^{-iντ₁} e^{i(ν+ω)τ₂} e^{-i(ν′+ω)τ₃}
+[⟨T cσ⁺(τ₁) cσ(τ₂) cσ′⁺(τ₃) cσ′(0)⟩ - ⟨T cσ⁺(τ₁) cσ(τ₂)⟩⟨T cσ′⁺(τ₃) cσ′(0)⟩]
 =#
-function χph(U, β, σσ´, n, n´, k)
-    c⁺1, c1 = σσ´[1] == :up ? (cup⁺, cup) : (cdn⁺, cdn)
-    c⁺2, c2 = σσ´[2] == :up ? (cup⁺, cup) : (cdn⁺, cdn)
-    v, v´, w = ν(n, β), ν(n´, β), ω(k, β)
-    full = correlator(U, β, (c⁺1, c1, c⁺2, c2), (-v, v + w, -(v´ + w)), (true, true, true))
-    # disconnected: β δ_ω0 ∫ e^{-iντ} ⟨T cσ⁺(τ) cσ(0)⟩ ∫ e^{-iν´τ} ⟨T cσ´⁺(τ) cσ´(0)⟩
-    disc = k == 0 ? β * correlator(U, β, (c⁺1, c1), (-v,), (true,)) * correlator(U, β, (c⁺2, c2), (-v´,), (true,)) : 0
+function χph(U, β, σσ′, n, n′, k)
+    c⁺1, c1 = σσ′[1] == :up ? (cup⁺, cup) : (cdn⁺, cdn)
+    c⁺2, c2 = σσ′[2] == :up ? (cup⁺, cup) : (cdn⁺, cdn)
+    v, v′, w = ν(n, β), ν(n′, β), ω(k, β)
+    full = correlator(U, β, (c⁺1, c1, c⁺2, c2), (-v, v + w, -(v′ + w)), (true, true, true))
+    # disconnected: β δ_ω0 ∫ e^{-iντ} ⟨T cσ⁺(τ) cσ(0)⟩ ∫ e^{-iν′τ} ⟨T cσ′⁺(τ) cσ′(0)⟩
+    disc = k == 0 ? β * correlator(U, β, (c⁺1, c1), (-v,), (true,)) * correlator(U, β, (c⁺2, c2), (-v′,), (true,)) : 0
     full - disc
 end
 end

@@ -7,7 +7,14 @@ implements. Its source is `doped-gamma-derivation.typ` (Typst), with the bibliog
 
 The note takes the generalized susceptibility of Eßl et al., Phys. Rev. Research 6, 033061
 (2024), Eq. (D3), as input, and checks every rational identity it uses by computer algebra
-and every result numerically. The scripts in `doped-gamma/` are cited in its appendices:
+and every result numerically.
+
+`mathematica/doped_gamma.nb` replays the derivation in Mathematica 15: it derives the
+susceptibility from the Lehmann representation of the atom, checks the steps of the proofs
+symbolically, and compares all theorems with brute-force inversion on finite boxes (62 checks,
+about 20 s). It is generated from `mathematica/src/*.wl`.
+
+The scripts in `doped-gamma/` are cited in the note's appendices:
 
 | Script | Checks |
 |---|---|
@@ -23,11 +30,6 @@ linear solve, independently of the closed forms; `ed_doped.jl` is the exact diag
 `figures/` holds the figures, their data (`figure_data.jl`) and the plotting script
 (`make_figures.py`).
 
-`mathematica/doped_gamma.nb` replays the derivation in Mathematica 15: it derives the susceptibility from
-the Lehmann representation of the atom, checks every step of the proofs symbolically, and compares all theorems
-with brute-force inversion on finite boxes (62 checks, about 20 s). It is built from `mathematica/src/*.wl` with
-`wolframscript -file build.wl nb=doped_gamma.nb src/*.wl`; `replay.wl` re-evaluates the notebook's input cells.
-
 The note and its figures are licensed under CC BY 4.0, the scripts under MIT; see `LICENSE`.
 
 ## Reproducing
@@ -41,6 +43,13 @@ julia --project=../.. check_formulas.jl
 julia --project=../.. check_dm.jl
 julia --project=../.. check_exceptional.jl
 julia --project=../.. indep_check.jl                 # several minutes
+```
+
+From `mathematica/`:
+
+```sh
+wolframscript -file replay.wl                              # evaluate the notebook, report the checks
+wolframscript -file build.wl nb=doped_gamma.nb src/*.wl    # regenerate it from the sources
 ```
 
 The note compiles with `typst compile doped-gamma-derivation.typ` (Typst 0.15). To redraw

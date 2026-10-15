@@ -15,16 +15,33 @@ export HubbardAtom, DopedHubbardAtom, CHANNELS, FermiBose, FermiFermiBose,
     bare_vertex, gf, chi, chi0, full_vertex, gamma, irreducible_vertex,
     channel_reducible_vertex, hedin, g3
 
+# Documented but unexported: the supertypes and the Unicode names of the paper.
+@static if VERSION >= v"1.11"
+    eval(Expr(:public, :AbstractHubbardAtom, :SpinChannel, :PHChannel, :PPChannel,
+        :G, :χ, :χ₀, :F, :Γ, :Λ, :Φ, :G₃))
+end
+
+"""
+Supertype of the four channels, `PHChannel` (`DensityChannel`, `MagneticChannel`) and
+`PPChannel` (`SingletChannel`, `TripletChannel`). The channels are singleton types; `CHANNELS`
+holds one instance of each.
+"""
 abstract type SpinChannel end
 
 Base.broadcastable(ch::SpinChannel) = Ref(ch)
 
+"Particle-hole channels: `DensityChannel`, `MagneticChannel`."
 abstract type PHChannel <: SpinChannel end
+"Particle-particle channels: `SingletChannel`, `TripletChannel`."
 abstract type PPChannel <: SpinChannel end
 
+"Density (charge) channel, `χ_d = χ_↑↑ + χ_↑↓` (Equation 5a)."
 struct DensityChannel <: PHChannel end
+"Magnetic (spin) channel, `χ_m = χ_↑↑ - χ_↑↓` (Equation 5b)."
 struct MagneticChannel <: PHChannel end
+"Singlet particle-particle channel (Equation 5c); frequencies in pp notation (Equation 4)."
 struct SingletChannel <: PPChannel end
+"Triplet particle-particle channel (Equation 5d); frequencies in pp notation (Equation 4)."
 struct TripletChannel <: PPChannel end
 
 # Convenient shorthands
@@ -33,9 +50,12 @@ const m = MagneticChannel
 const s = SingletChannel
 const t = TripletChannel
 
+"`(DensityChannel(), MagneticChannel(), SingletChannel(), TripletChannel())`"
 const CHANNELS = (d(), m(), s(), t())
 
+"Frequency argument `(ν, ω)` of three-point quantities."
 const FermiBose = Tuple{FermionicFreq,BosonicFreq}
+"Frequency argument `(ν, ν′, ω)` of four-point quantities."
 const FermiFermiBose = Tuple{FermionicFreq,FermionicFreq,BosonicFreq}
 
 "Supertype of `HubbardAtom` (half filling) and `DopedHubbardAtom`."
@@ -48,7 +68,7 @@ Base.broadcastable(atom::AbstractHubbardAtom) = Ref(atom)
 Represents a half-filled Hubbard atom. Its Hamiltonian is:
 
     H = U * (c'[↑] * c[↑] - 1/2) * (c'[↓] * c[↓] - 1/2)
- 
+
 where `c[σ]` annihilates a spin-σ electron. We assume that the atom is
 connected to a large heat bath with temperature `1/β`. (Equation 1)
 
@@ -77,7 +97,7 @@ struct HubbardAtom{T<:AbstractFloat} <: AbstractHubbardAtom
 end
 
 """
-    bare_vertex(::SpinChannel, atom::HubbardAtom)
+    bare_vertex(::SpinChannel, atom::AbstractHubbardAtom)
 
 Bare vertex entering diagrammatic equations in the different spin channels.
 Note that due to the rotations and multiplicities, these are not always equal
@@ -104,27 +124,27 @@ end
 const gf = G
 
 """
-    χ(::SpinChannel, at::HubbardAtom, (n, n´, k)::FermiFermiBose)
-    chi(::SpinChannel, atom::HubbardAtom, (n, n´, k)::FermiFermiBose)
+    χ(::SpinChannel, at::HubbardAtom, (n, n′, k)::FermiFermiBose)
+    chi(::SpinChannel, atom::HubbardAtom, (n, n′, k)::FermiFermiBose)
 
-Generalized (two-particle) susceptibility `χᵣ(ν, ν´, ω)` in channel `r`, defined in Equations 3-5.
+Generalized (two-particle) susceptibility `χᵣ(ν, ν′, ω)` in channel `r`, defined in Equations 3-5.
 (Equation 10)
 """
-function χ(r::SpinChannel, at::HubbardAtom, (n, n´, k)::FermiFermiBose)
+function χ(r::SpinChannel, at::HubbardAtom, (n, n′, k)::FermiFermiBose)
     β = at.beta
     U²₄ = at._uhalf2
     ν = value(n, β)
     νω = value(n + k, β)  # ν + ω from the indices: value(n, β) + ω cancels for ν ≈ -ω
-    δ₁, δ₂ = δ(n, n´), δ(n, -n´ - k)
+    δ₁, δ₂ = δ(n, n′), δ(n, -n′ - k)
 
     # a₀ (δ₁ - δ₂) + b₀ (δ₁ + δ₂) with a₀, b₀ from Equations 11a, b and 𝒜₀ = ℬ₀; both deltas hold
-    # only for 2ν + ω = 0. For ν´ = -ν - ω ≠ ν only b₀ - a₀ ∝ Bᵣ² - Aᵣ² remains, which is small
+    # only for 2ν + ω = 0. For ν′ = -ν - ω ≠ ν only b₀ - a₀ ∝ Bᵣ² - Aᵣ² remains, which is small
     # compared to a₀ and b₀ for |ν(ν + ω)| ≫ U² and hence evaluated directly.
     ab = δ₂ == 0 ? δ₁ * (2ν * νω - A²(r, at) - B²(r, at)) :
          δ₁ == 0 ? -B²mA²(r, at) : 2(ν * νω - B²(r, at))
     χ_ab = ℬ₀(r) * β / 2 * ab / ((ν^2 + U²₄) * (νω^2 + U²₄))
     # each bᵢ is purely real or purely imaginary, so these products are real
-    χ_ab + real(b₁(r, at, (n, k)) * b₁(r, at, (n´, k)) + b₂(r, at, (n, k)) * b₂(r, at, (n´, k)))
+    χ_ab + real(b₁(r, at, (n, k)) * b₁(r, at, (n′, k)) + b₂(r, at, (n, k)) * b₂(r, at, (n′, k)))
 end
 
 const chi = χ
@@ -223,7 +243,7 @@ C(::t, at::HubbardAtom, k::BosonicFreq) = zero(at.U)
     χ(::SpinChannel, atom::HubbardAtom, k::BosonicFreq)
     chi(::SpinChannel, atom::HubbardAtom, k::BosonicFreq)
 
-Susceptibility `-2/β^2 * sum(χ(r, atom, (n, n´, k)) for n in -∞:+∞, n´ in -∞:+∞)`.
+Susceptibility `-2/β^2 * sum(χ(r, atom, (n, n′, k)) for n in -∞:+∞, n′ in -∞:+∞)`.
 
 For `r = d, m, s` this is the physical susceptibility `χᵣ(ω) = -⟨ρᵣ; ρᵣ⟩(ω)` of the charge
 (`ρ = n↑ + n↓`), spin (`ρ = n↑ - n↓`) and singlet pair (`ρ = c↓c↑`) density. All three are
@@ -231,7 +251,7 @@ conserved by the atom, so `χᵣ` vanishes for `ω ≠ 0`.
 
 For `r = t` it is not an observable: the local triplet pair density vanishes identically (Pauli
 principle), and the sum is nonzero only because Equation 5d includes a bare particle-particle
-bubble. As `F_t` is antisymmetric under `ν´ → -ν´ - ω`, the vertex part drops out and the sum is
+bubble. As `F_t` is antisymmetric under `ν′ → -ν′ - ω`, the vertex part drops out and the sum is
 the bubble `1/β * sum(G(ν) G(-ν - ω) for n in -∞:+∞)`.
 """
 χ(::d, at::HubbardAtom, k::BosonicFreq) = -at.beta * δ(k) * at._p
@@ -248,18 +268,18 @@ function χ(::t, at::HubbardAtom, k::BosonicFreq)
 end
 
 """
-    χ₀(::SpinChannel, at::HubbardAtom, (n, n´, k)::FermiFermiBose)
+    χ₀(::SpinChannel, at::HubbardAtom, (n, n′, k)::FermiFermiBose)
     χ₀(::SpinChannel, at::HubbardAtom, (n, k)::Tuple{FermionicFreq, BosonicFreq})
-    chi0(::SpinChannel, at::HubbardAtom, (n, n´, k)::FermiFermiBose)
+    chi0(::SpinChannel, at::HubbardAtom, (n, n′, k)::FermiFermiBose)
     chi0(::SpinChannel, at::HubbardAtom, (n, k)::Tuple{FermionicFreq, BosonicFreq})
 
 Bare generalized susceptibility. The 2- and 3-frequency versions are related by
-`β * χ₀(r, at, (n, k)) = sum(χ₀(r, at, (n, n´, k)) for n´ in -∞:+∞)`. (Equation 6)
+`β * χ₀(r, at, (n, k)) = sum(χ₀(r, at, (n, n′, k)) for n′ in -∞:+∞)`. (Equation 6)
 """
-function χ₀(r::SpinChannel, at::HubbardAtom, (n, n´, k)::FermiFermiBose)
+function χ₀(r::SpinChannel, at::HubbardAtom, (n, n′, k)::FermiFermiBose)
     β = at.beta
 
-    β * δ(n, n´) * χ₀(r, at, (n, k))
+    β * δ(n, n′) * χ₀(r, at, (n, k))
 end
 
 # G is purely imaginary, so these products are real
@@ -269,10 +289,10 @@ end
 const chi0 = χ₀
 
 """
-    F(::SpinChannel, at::HubbardAtom, (n, n´, k)::FermiFermiBose)
-    full_vertex(::SpinChannel, at::HubbardAtom, (n, n´, k)::FermiFermiBose)
+    F(::SpinChannel, at::HubbardAtom, (n, n′, k)::FermiFermiBose)
+    full_vertex(::SpinChannel, at::HubbardAtom, (n, n′, k)::FermiFermiBose)
 
-Full two-particle scattering amplitude `F(ν, ν´, ω)`. (Equation 27)
+Full two-particle scattering amplitude `F(ν, ν′, ω)`. (Equation 27)
 """
 F(::DensityChannel, at::HubbardAtom, w::FermiFermiBose) = F_up_up(at, w) + F_up_down(at, w)
 F(::MagneticChannel, at::HubbardAtom, w::FermiFermiBose) = F_up_up(at, w) - F_up_down(at, w)
@@ -281,64 +301,64 @@ F(::TripletChannel, at::HubbardAtom, w::FermiFermiBose) = F_up_up(at, _to_pp(w))
 
 const full_vertex = F
 
-_to_pp((n, n´, k)::FermiFermiBose) = (n, n´, -n - n´ - k)
+_to_pp((n, n′, k)::FermiFermiBose) = (n, n′, -n - n′ - k)
 
 # These formulas can be found in Fully_irreducible_vertex.nb from the paper's supplementary material
 function F_up_up(at::HubbardAtom, w::FermiFermiBose)
-    (n, n´, k) = w
+    (n, n′, k) = w
     β = at.beta
     U²₄ = at._uhalf2
 
     res = zero(β)
 
-    deltas = δ(n, n´) - δ(k)
+    deltas = δ(n, n′) - δ(k)
 
     if !iszero(deltas)
         ν = value(n, β)
-        ν´ω = value(n´ + k, β)
+        ν′ω = value(n′ + k, β)
 
-        res += β * U²₄ * (ν^2 + U²₄) * (ν´ω^2 + U²₄) / (ν^2 * ν´ω^2) * deltas
+        res += β * U²₄ * (ν^2 + U²₄) * (ν′ω^2 + U²₄) / (ν^2 * ν′ω^2) * deltas
     end
 
     res
 end
 
 function F_up_down(at::HubbardAtom, w::FermiFermiBose)
-    (n, n´, k) = w
+    (n, n′, k) = w
     β = at.beta
     U = at.U
     U²₄ = at._uhalf2
 
     ν = value(n, β)
-    ν´ = value(n´, β)
+    ν′ = value(n′, β)
     νω = value(n + k, β)
-    ν´ω = value(n´ + k, β)
+    ν′ω = value(n′ + k, β)
 
-    res = U - U^3 / 8 * (ν^2 + νω^2 + ν´ω^2 + ν´^2) / (ν * νω * ν´ω * ν´) - 3U^5 / (16 * ν * νω * ν´ω * ν´)
+    res = U - U^3 / 8 * (ν^2 + νω^2 + ν′ω^2 + ν′^2) / (ν * νω * ν′ω * ν′) - 3U^5 / (16 * ν * νω * ν′ω * ν′)
 
-    deltas1 = 2 * δ(n, -(n´ + k)) + δ(k)
+    deltas1 = 2 * δ(n, -(n′ + k)) + δ(k)
     if !iszero(deltas1)
-        res -= β * U²₄ * at._p * (νω^2 + U²₄) * (ν´ω^2 + U²₄) / (νω^2 * ν´ω^2) * deltas1
+        res -= β * U²₄ * at._p * (νω^2 + U²₄) * (ν′ω^2 + U²₄) / (νω^2 * ν′ω^2) * deltas1
     end
 
-    deltas2 = 2 * δ(n, n´) + δ(k)
+    deltas2 = 2 * δ(n, n′) + δ(k)
     if !iszero(deltas2)
-        res += β * U²₄ * at._q * (ν^2 + U²₄) * (ν´ω^2 + U²₄) / (ν^2 * ν´ω^2) * deltas2
+        res += β * U²₄ * at._q * (ν^2 + U²₄) * (ν′ω^2 + U²₄) / (ν^2 * ν′ω^2) * deltas2
     end
 
     res
 end
 
 """
-    Γ(::SpinChannel, at::HubbardAtom, (n, n´, k)::FermiFermiBose)
-    gamma(::SpinChannel, at::HubbardAtom, (n, n´, k)::FermiFermiBose)
+    Γ(::SpinChannel, at::HubbardAtom, (n, n′, k)::FermiFermiBose)
+    gamma(::SpinChannel, at::HubbardAtom, (n, n′, k)::FermiFermiBose)
 
-Gives channel-irreducible four-point vertex `Γ(ν, ν', ω)`. (Equation 19)
+Gives channel-irreducible four-point vertex `Γ(ν, ν′, ω)`. (Equation 19)
 
 The result is real. The removable singularities at `ν(ν + ω) = Bᵣ²` (Equation 21), where two terms
 of Equation 19 diverge separately, are cancelled analytically, so `Γ` stays accurate there.
 """
-function Γ(r::SpinChannel, at::HubbardAtom, (n, n´, k)::FermiFermiBose)
+function Γ(r::SpinChannel, at::HubbardAtom, (n, n′, k)::FermiFermiBose)
     β = at.beta
     U²₄ = at._uhalf2
     ν = value(n, β)
@@ -346,10 +366,10 @@ function Γ(r::SpinChannel, at::HubbardAtom, (n, n´, k)::FermiFermiBose)
 
     Aᵣ² = A²(r, at)
     Γᵣ = β * Aᵣ² / 2𝒜₀(r) * (ν^2 + U²₄) * (νω^2 + U²₄) / ((ν * νω - Aᵣ²) * ν * νω) *
-         (δ(n, n´) - δ(n, -n´ - k))
+         (δ(n, n′) - δ(n, -n′ - k))
     r isa TripletChannel && return Γᵣ
 
-    Γᵣ = Γ_B(r, at, (n, n´, k), Γᵣ)
+    Γᵣ = Γ_B(r, at, (n, n′, k), Γᵣ)
     Γᵣ -= at.U * ℬ₁²(r) / ℬ₀(r)^2
 
     Γᵣ
@@ -364,7 +384,7 @@ Second and third term of Eq. 19 (r = d, m, s). With
 
 they read
 
-    β B² P(ν) / (2ℬ₀ ν(ν + ω) X(ν)) [δ(ν, ν´) + δ(ν, -ν´ - ω)]  -  K / (T X(ν) X(ν´)).
+    β B² P(ν) / (2ℬ₀ ν(ν + ω) X(ν)) [δ(ν, ν′) + δ(ν, -ν′ - ω)]  -  K / (T X(ν) X(ν′)).
 
 Let z = βs/4 and z_ν = β|2ν + ω|/4. Since 2ν + ω = 2π(2j + 1 + l)/β for ν = (2j + 1)π/β, ω = 2πl/β, z_ν is
 always a pole of tan(β(s + ω)/4), which hence equals cot(w) with w = z_ν - z. As
@@ -372,7 +392,7 @@ X = (4/β²)(z_ν² - z²), w = β²X / (4(z_ν + z)) can be computed from X wit
 
     R(ν) := T X(ν) = ±X + (U/β)(1 + z_ν/z) w cot(w)
 
-is smooth at X(ν) = 0, where T diverges (Eq. 21). For ν´ ∈ {ν, -ν - ω}, X(ν´) = X(ν) and the two
+is smooth at X(ν) = 0, where T diverges (Eq. 21). For ν′ ∈ {ν, -ν - ω}, X(ν′) = X(ν) and the two
 1/X(ν) poles cancel. With w cot(w) = 1 + w² ψ(w²), ψ(t) = (√t cot √t - 1)/t, the sum becomes
 
     [±β B² P - 2UQ + 2U B² (P ρ η + 2(B² + U²/4) + X)] / (2ℬ₀ ν(ν + ω) R)
@@ -384,20 +404,20 @@ R = ±X + (U/β) z cot(z) = ±X + (U/β)(1 + z² ψ(z²)); the sum then becomes
 
     [±β B² P - UQ + U B² (2(B² + U²/4) + X - β² P ψ/4)] / (ℬ₀ ν(ν + ω) R).
 
-Γ_B returns ΓA plus these terms, where ΓA is the first term of Eq. 19. For ν´ = -ν - ω, ΓA is
+Γ_B returns ΓA plus these terms, where ΓA is the first term of Eq. 19. For ν′ = -ν - ω, ΓA is
 -β A² P / (2ℬ₀ ν(ν + ω) X_A) with X_A = ν(ν + ω) - A² (𝒜₀ = ℬ₀), which cancels the second term
 for A² ≈ B², i.e. r = d, m for βU ≫ 1; both are ∝ β/ν², large for β ≫ 1. Their sum is
 β P (B² - A²) / (2ℬ₀ X_A X), with B² - A² = ∓U² p for r = d, m.
 =#
-function Γ_B(r::SpinChannel, at::HubbardAtom, (n, n´, k)::FermiFermiBose, ΓA)
+function Γ_B(r::SpinChannel, at::HubbardAtom, (n, n′, k)::FermiFermiBose, ΓA)
     β = at.beta
     U = at.U
     U²₄ = at._uhalf2
     ν = value(n, β)
-    ν´ = value(n´, β)
+    ν′ = value(n′, β)
     ω = value(k, β)
     νω = value(n + k, β)
-    ν´ω = value(n´ + k, β)
+    ν′ω = value(n′ + k, β)
     σ = r isa MagneticChannel ? -1 : 1
 
     b = B²(r, at)
@@ -410,11 +430,11 @@ function Γ_B(r::SpinChannel, at::HubbardAtom, (n, n´, k)::FermiFermiBose, ΓA)
     K = scaled ? U^5 / ℬ₀(r) : U * Q / ℬ₀(r)
 
     a = _TX(ν, νω, value(n + (n + k), β), β, U, σ, b, s², z, T)
-    D = δ(n, n´) + δ(n, -n´ - k)
+    D = δ(n, n′) + δ(n, -n′ - k)
     if iszero(D)
         # Only the third term contributes; use T X of whichever frequency is closer to its pole.
-        a´ = _TX(ν´, ν´ω, value(n´ + (n´ + k), β), β, U, σ, b, s², z, T)
-        return ΓA + (abs(a.w) <= abs(a´.w) ? -K / (a.R * a´.X) : -K / (a´.R * a.X))
+        a′ = _TX(ν′, ν′ω, value(n′ + (n′ + k), β), β, U, σ, b, s², z, T)
+        return ΓA + (abs(a.w) <= abs(a′.w) ? -K / (a.R * a′.X) : -K / (a′.R * a.X))
     end
 
     # Both deltas hold (D = 2) only for 2ν + ω = 0, i.e. z_ν = 0.
@@ -426,7 +446,7 @@ function Γ_B(r::SpinChannel, at::HubbardAtom, (n, n´, k)::FermiFermiBose, ΓA)
         ρ = β^2 / (4(zν + z))
         η = (1 + w^2 * ψ) / (2z) + w * ψ
         ΓA + (σ * β * b * P - 2U * Q + 2U * b * (P * ρ * η + 2bU + X)) / (2ℬ₀(r) * ν * νω * R)
-    elseif D == 1 && iszero(δ(n, n´))  # ν´ = -ν - ω
+    elseif D == 1 && iszero(δ(n, n′))  # ν′ = -ν - ω
         β * P * B²mA²(r, at) / (2ℬ₀(r) * (ν * νω - A²(r, at)) * X) - K / (R * X)
     else
         ΓA + (D * β * b * P / (2ℬ₀(r) * ν * νω) - K / R) / X
@@ -512,43 +532,43 @@ end
 const gamma = Γ
 
 """
-    Λ(::SpinChannel, at::HubbardAtom, (n, n´, k)::FermiFermiBose)
-    irreducible_vertex(::SpinChannel, at::HubbardAtom, (n, n´, k)::FermiFermiBose)
+    Λ(::SpinChannel, at::AbstractHubbardAtom, (n, n′, k)::FermiFermiBose)
+    irreducible_vertex(::SpinChannel, at::AbstractHubbardAtom, (n, n′, k)::FermiFermiBose)
 
-Fully irreducible four-point vertex `Λ(ν, ν', ω)`. (Equation 26)
+Fully irreducible four-point vertex `Λ(ν, ν′, ω)`. (Equation 26)
 
 `Λ` is evaluated as the sum in Equation 26, so its absolute accuracy is that of the largest of
 the `Γ` and `F` in it; where `Λ` is much smaller than these (e.g. in the triplet channel at large
 frequencies), its relative accuracy is correspondingly lower.
 """
-function Λ(::d, at::AbstractHubbardAtom, (ν, ν´, ω)::FermiFermiBose)
-    w = (ν, ν´, ω)
-    w_phbar = (ν, ν + ω, ν´ - ν)
-    w_pp = (ν, ν´, -ν - ν´ - ω)
+function Λ(::d, at::AbstractHubbardAtom, (ν, ν′, ω)::FermiFermiBose)
+    w = (ν, ν′, ω)
+    w_phbar = (ν, ν + ω, ν′ - ν)
+    w_pp = (ν, ν′, -ν - ν′ - ω)
 
     (Γ(d(), at, w) - Γ(d(), at, w_phbar) / 2 - 3Γ(m(), at, w_phbar) / 2
      + Γ(s(), at, w_pp) / 2 + 3Γ(t(), at, w_pp) / 2 - 2F(d(), at, w))
 end
-function Λ(::m, at::AbstractHubbardAtom, (ν, ν´, ω)::FermiFermiBose)
-    w = (ν, ν´, ω)
-    w_phbar = (ν, ν + ω, ν´ - ν)
-    w_pp = (ν, ν´, -ν - ν´ - ω)
+function Λ(::m, at::AbstractHubbardAtom, (ν, ν′, ω)::FermiFermiBose)
+    w = (ν, ν′, ω)
+    w_phbar = (ν, ν + ω, ν′ - ν)
+    w_pp = (ν, ν′, -ν - ν′ - ω)
 
     (Γ(m(), at, w) - Γ(d(), at, w_phbar) / 2 + Γ(m(), at, w_phbar) / 2
      - Γ(s(), at, w_pp) / 2 + Γ(t(), at, w_pp) / 2 - 2F(m(), at, w))
 end
-function Λ(::s, at::AbstractHubbardAtom, (ν, ν´, ω)::FermiFermiBose)
-    w = (ν, ν´, ω)
-    w_phbar = (ν, -ν´ - ω, ν´ - ν)
-    w_pp = (ν, ν´, -ν - ν´ - ω)
+function Λ(::s, at::AbstractHubbardAtom, (ν, ν′, ω)::FermiFermiBose)
+    w = (ν, ν′, ω)
+    w_phbar = (ν, -ν′ - ω, ν′ - ν)
+    w_pp = (ν, ν′, -ν - ν′ - ω)
 
     (Γ(s(), at, w) + Γ(d(), at, w_pp) / 2 - 3Γ(m(), at, w_pp) / 2 +
      Γ(d(), at, w_phbar) / 2 - 3Γ(m(), at, w_phbar) / 2 - 2F(s(), at, w))
 end
-function Λ(::t, at::AbstractHubbardAtom, (ν, ν´, ω)::FermiFermiBose)
-    w = (ν, ν´, ω)
-    w_phbar = (ν, -ν´ - ω, ν´ - ν)
-    w_pp = (ν, ν´, -ν - ν´ - ω)
+function Λ(::t, at::AbstractHubbardAtom, (ν, ν′, ω)::FermiFermiBose)
+    w = (ν, ν′, ω)
+    w_phbar = (ν, -ν′ - ω, ν′ - ν)
+    w_pp = (ν, ν′, -ν - ν′ - ω)
 
     (Γ(t(), at, w) + Γ(d(), at, w_pp) / 2 + Γ(m(), at, w_pp) / 2 -
      Γ(d(), at, w_phbar) / 2 - Γ(m(), at, w_phbar) / 2 - 2F(t(), at, w))
@@ -557,10 +577,10 @@ end
 const irreducible_vertex = Λ
 
 """
-    Φ(r::SpinChannel, at::HubbardAtom, (n, n´, k)::FermiFermiBose)
-    channel_reducible_vertex(r::SpinChannel, at::HubbardAtom, (n, n´, k)::FermiFermiBose)
+    Φ(r::SpinChannel, at::AbstractHubbardAtom, (n, n′, k)::FermiFermiBose)
+    channel_reducible_vertex(r::SpinChannel, at::AbstractHubbardAtom, (n, n′, k)::FermiFermiBose)
 
-Channel reducible four-point vertex in channel `r` `Φʳ(ν, ν', ω)`, evaluated as `F - Γ`; its
+Channel reducible four-point vertex in channel `r` `Φʳ(ν, ν′, ω)`, evaluated as `F - Γ`; its
 relative accuracy is lower where it is much smaller than `F`.
 """
 Φ(r::SpinChannel, at::AbstractHubbardAtom, w::FermiFermiBose) = F(r, at, w) - Γ(r, at, w)
@@ -572,7 +592,7 @@ const channel_reducible_vertex = Φ
     g3(::SpinChannel, atom::HubbardAtom, (n, k)::Tuple{FermionicFreq, BosonicFreq})
 
 Three-point (fermion-boson) Green's function. For `r = d, m, s` it equals
-`-1/β * sum(χ(r, atom, (n, n´, k)) for n´ in -∞:+∞)`; for `r = d, m` these are the Ward
+`-1/β * sum(χ(r, atom, (n, n′, k)) for n′ in -∞:+∞)`; for `r = d, m` these are the Ward
 identities of Krien and Valli, Phys. Rev. B 100, 245147 (2019), Eqs. (C1)-(C3).
 
 At half filling, the singlet pair and the charge density are related by the η-pairing
@@ -621,7 +641,7 @@ function ∂G∂H(at::HubbardAtom, n::FermionicFreq)
 end
 
 """
-    hedin(::SpinChannel, atom::HubbardAtom, (n, k)::Tuple{FermionicFreq, BosonicFreq})
+    hedin(::SpinChannel, atom::AbstractHubbardAtom, (n, k)::Tuple{FermionicFreq, BosonicFreq})
 
 Hedin vertex `λ(ν, ω)`, i.e. the interaction-irreducible three-point vertex,
 `λ = -G₃ / (χ₀ (1 + Uᵣ χᵣ(ω) / 2))` with the bare vertex `Uᵣ` and susceptibility `χᵣ` of the

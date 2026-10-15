@@ -2185,11 +2185,7 @@ one in s = v^2:", "Text"],
                           "v", "]"}]}], ")"}]}]}], ")"}], "/", RowBox[
                           {"lamf", "[", "eps", "]"}]}], "]"}], " ", "/.", 
                      " ", "norm"}], "]"}], "]"}]}], "]"}]}]}], ";"}], "\n", 
-     RowBox[{"AbsoluteTiming", "[", 
-       RowBox[{RowBox[{"Table", "[", RowBox[{RowBox[{RowBox[{"Wx", " ", "@@", 
-                 " ", "c"}], ";"}], ",", " ", RowBox[{"{", RowBox[
-                {"c", ",", " ", "cases"}], "}"}]}], "]"}], ";"}], "]"}], 
-     "\n", RowBox[{"check", "[", RowBox[
+     RowBox[{"check", "[", RowBox[
         {"\"W is a polynomial, even in v, W0 + z^2 W2, degree one in v^2\"", 
          ",", " ", RowBox[{"Table", "[", RowBox[
             {RowBox[{"With", "[", RowBox[{RowBox[{"{", RowBox[{"W", " ", "=", 
@@ -2216,8 +2212,7 @@ one in s = v^2:", "Text"],
              "]"}], " ", "/.", " ", RowBox[{"{", RowBox[{RowBox[{"z", " ", 
                  "->", " ", "zz"}], ",", " ", RowBox[{"v", " ", "->", " ", 
                  RowBox[{"Sqrt", "[", "s", "]"}]}]}], "}"}]}]}], ";"}]}], 
-   "Input"], Cell[BoxData[RowBox[{"{", RowBox[{"0.256022`", ",", "Null"}], 
-      "}"}]], "Output"], 
+   "Input"], 
   Cell[BoxData[RowBox[
      {"\"W is a polynomial, even in v, W0 + z^2 W2, degree one in v^2\"", 
       "\[Rule]", "True"}]], "Output"], 
@@ -2367,18 +2362,16 @@ polynomial in u.", "Text"],
                        "]"}]}]}], "]"}], ";", "\n", "  ", RowBox[
                 {"PolynomialRemainder", "[", RowBox[{"num", ",", " ", "den", 
                    ",", " ", "u"}], "]"}]}]}], "]"}]}], ";"}], "\n", 
-     RowBox[{"AbsoluteTiming", "[", 
-       RowBox[{RowBox[{"r3", " ", "=", " ", RowBox[{"Table", "[", 
-             RowBox[{RowBox[{"Simplify", "[", RowBox[{"step3", " ", "@@", 
-                   " ", "c"}], "]"}], ",", " ", RowBox[{"{", RowBox[
-                  {"c", ",", " ", "cases"}], "}"}]}], "]"}]}], ";"}], "]"}], 
-     "\n", RowBox[{"check", "[", RowBox[{"\"Step 3, Eq. (mode-image)\"", ",", 
-         " ", RowBox[{"r3", " ", "===", " ", RowBox[
+     RowBox[{RowBox[{"r3", " ", "=", " ", RowBox[{"Table", "[", 
+           RowBox[{RowBox[{"Simplify", "[", RowBox[{"step3", " ", "@@", " ", 
+                 "c"}], "]"}], ",", " ", RowBox[{"{", RowBox[{"c", ",", " ", 
+                 "cases"}], "}"}]}], "]"}]}], ";"}], "\n", 
+     RowBox[{"check", "[", RowBox[{"\"Step 3, Eq. (mode-image)\"", ",", " ", 
+         RowBox[{"r3", " ", "===", " ", RowBox[
             {"{", RowBox[{"0", ",", " ", "0", ",", " ", "0", ",", " ", "0"}], 
              "}"}]}]}], "]"}]}], "Input"], 
-  Cell[BoxData[RowBox[{"{", RowBox[{"0.501469`", ",", "Null"}], "}"}]], 
-   "Output"], Cell[BoxData[RowBox[{"\"Step 3, Eq. (mode-image)\"", "\[Rule]", 
-      "True"}]], "Output"], Cell["6.5 Step 4: solving and reading off Gamma", 
+  Cell[BoxData[RowBox[{"\"Step 3, Eq. (mode-image)\"", "\[Rule]", "True"}]], 
+   "Output"], Cell["6.5 Step 4: solving and reading off Gamma", 
    "Subsection"], Cell["By Steps 1-3, P(z) chi_r maps D_v delta + E_v/(z + v) \
 to P(v) delta_(z v) + (1/beta)[-N2(z) + lambda rho z (F(v) - 1) + lambda W(z; \
 v^2)/e(v)], the constant 2 eps a/beta^2 to N2(z)/beta (Step 2), and phi_j/K_j \
