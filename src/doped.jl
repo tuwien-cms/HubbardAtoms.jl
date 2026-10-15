@@ -11,9 +11,8 @@ q₋ = p₀ + p₁, ρ = p₂ - p₀ = ⟨n⟩ - 1, w₁₁ = p₁² - p₀p₂,
 
 # Precomputed scalars of Theorem 4 for one transfer and channel (see `_ph_setup`)
 struct PHSetup{T<:AbstractFloat}
-    q1::T             # q₁ = a² + ω²/4 + 4εa²p₁
-    s1::Complex{T}    # roots of the quartic e in z²
-    s2::Complex{T}
+    δ1::Complex{T}    # roots s = u² of the quartic e in z², as δ = u - w/2:
+    δ2::Complex{T}    # z² - s = (x - δ)(x + w + δ) with x = z - w/2
     Y1::Complex{T}    # separable coefficients Y₁ and Y_d
     Yd::Complex{T}
 end
@@ -46,7 +45,6 @@ struct DopedHubbardAtom{T<:AbstractFloat} <: AbstractHubbardAtom
     _qm::T            # p₀ + p₁ = 1 - ⟨n↑⟩
     _rho::T           # p₂ - p₀ = ⟨n↑ + n↓⟩ - 1
     _w11::T           # p₁² - p₀p₂
-    _logh::T          # log(h), h = β√(p₀p₂)
 
     _setups::Dict{Tuple{Int,Int},PHSetup{T}}  # (Int(k), ε) => setup of Theorem 4
     _pp_setups::Dict{Int,Complex{T}}          # Int(k) => 𝒫(-Aₛ)/Kₛ of Theorem 3
@@ -76,9 +74,8 @@ struct DopedHubbardAtom{T<:AbstractFloat} <: AbstractHubbardAtom
         # without cancellation for small βμ or βa and without overflow.
         rho = mu >= 0 ? -p2 * expm1(-2beta * mu) : p0 * expm1(2beta * mu)
         w11 = a >= 0 ? -p1^2 * expm1(-2beta * a) : p0 * p2 * expm1(2beta * a)
-        logh = log(beta) + (l0 + l2) / 2 - log(Z)
         T = typeof(U)
-        new{T}(U, beta, mu, a, p0, p1, p2, (w1 + w2) / Z, (w0 + w1) / Z, rho, w11, logh,
+        new{T}(U, beta, mu, a, p0, p1, p2, (w1 + w2) / Z, (w0 + w1) / Z, rho, w11,
                Dict{Tuple{Int,Int},PHSetup{T}}(), Dict{Int,Complex{T}}(), ReentrantLock())
     end
 end
@@ -111,12 +108,6 @@ function _pair(at::DopedHubbardAtom, j::Integer)
     at._rho / Complex(2μ, _freq(j, β))
 end
 
-"Matsubara sum S_k(x) = PV Σₙ 1/(zₙ - x) on the lattice zₙ of transfer `k` (Lemma \"basic sum\")."
-function _S(at::DopedHubbardAtom, kodd::Bool, x)
-    y = at.beta * (x - at.mu) / 2
-    -at.beta / 2 * (kodd ? coth(y) : tanh(y))
-end
-
 _kodd(k::BosonicFreq) = isodd(Int(k) ÷ 2)
 
 #=
@@ -124,13 +115,15 @@ Thermal function αₖ(x) = ρSₖ(x) - c̄, from its closed form (Lemma "therma
     αₖ(x) = -h cosh(y₊)/cosh(y₋) (even k), -h sinh(y₊)/sinh(y₋) (odd k), y± = β(x ± μ)/2,
 which avoids the cancellation of ρS and c̄ at low temperature. With σ± = sign(Re y±),
 cosh(y) = e^{σy}(1 + e^{-2σy})/2 and sinh(y) = σe^{σy}(1 - e^{-2σy})/2, and the prefactor
-h e^{σ₊y₊ - σ₋y₋} is one of βp₂, βp₀, h e^{±βx}, evaluated from log h.
+h e^{σ₊y₊ - σ₋y₋} is βp₂ or βp₀ (σ₊ = σ₋ = ±1) or h e^{±βx}, with |Re x| < |μ|. It is taken from
+the weights, so that α cancels against them as it should, e.g. in Kⱼ = X + λα. (Where p₀p₂ is not a
+normal number, Γ is evaluated in BigFloat; see `_adaptive`.)
 =#
 function _α(at::DopedHubbardAtom, kodd::Bool, x)
     β, μ = at.beta, at.mu
     y₊, y₋ = β * (x + μ) / 2, β * (x - μ) / 2
     σ₊, σ₋ = real(y₊) >= 0 ? 1 : -1, real(y₋) >= 0 ? 1 : -1
-    pre = exp(at._logh + σ₊ * y₊ - σ₋ * y₋)
+    pre = β * (σ₊ == σ₋ ? (σ₊ > 0 ? at._p2 : at._p0) : √(at._p0 * at._p2) * exp(σ₊ * β * x))
     if kodd
         -σ₊ * σ₋ * pre * expm1(-2σ₊ * y₊) / expm1(-2σ₋ * y₋)
     else
@@ -271,14 +264,15 @@ function Γ(::TripletChannel, at::DopedHubbardAtom, (n, n′, k)::FermiFermiBose
 end
 
 function Γ(r::Union{PHChannel,SingletChannel}, at::DopedHubbardAtom, w::FermiFermiBose)
-    val, loss = _Γraw(r, at, w)
-    loss <= 8 ? val : _Γbig(r, at, w, loss)
+    val, amp = _Γraw(r, at, w)
+    amp <= 2^16 ? val : _Γbig(r, at, w, log2(amp) / 2)
 end
 
 #=
 Near the removable singularities of the closed forms (Theorem 3 at t + Aₛ = 0, Theorem 4 at lattice zeros
-of e, see the note), single entries are sums of large terms that cancel; `_Γraw` returns the bits this
-costs, and such entries are re-evaluated in high precision. Only the entries of one mirror orbit are
+of e, see the note), single entries are sums of large terms that cancel; `_Γraw` returns the squared
+factor by which this amplifies rounding errors, and entries that would lose more than 8 bits are
+re-evaluated in high precision. Only the entries of one mirror orbit are
 affected, at isolated parameters.
 =#
 function _Γbig(r, at::DopedHubbardAtom{T}, w, loss) where {T}
@@ -300,8 +294,8 @@ function _Γraw(::SingletChannel, at::DopedHubbardAtom, (n, n′, k)::FermiFermi
     res = 4a - 4a * (c / tAn) / tAm
     D = δ(n, n′) + δ(n, -n′ - k)
     iszero(D) || (res += β * Ds * (fn.𝒫 / fn.𝒢) / tAn * D)
-    loss = max(_cancel(tAn, fn.𝒢, Ds), _cancel(tAm, fm.𝒢, Ds))
-    Complex{T}(res), loss
+    # c/(tAn tAm) has a double pole where n′ ∈ {n, n̄}
+    Complex{T}(res), _amp(tAn, fn.𝒢, Ds) * _amp(tAm, fm.𝒢, Ds)
 end
 
 #=
@@ -309,9 +303,11 @@ Setup of Theorem 3 for one transfer: c = 𝒫(-Aₛ)/Kₛ, with 𝒫(-Aₛ) = 4a
 Kₛ = 1 + (2a/β)𝒯ₖ(-Aₛ), 𝒯ₖ(-Aₛ) = (β/2ξ) tanh(βξ/2) (coth for odd k), ξ² = b²/4 + Aₛ. Thus
 ξKₛ = ξ + a tanh(y), y = βξ/2, which cancels if ξ ≈ -a and tanh y ≈ 1. There ξKₛ = (ξ + a) - a(1 - tanh y)
 with 1 - tanh y = 2/(1 + e^{2y}) (or (ξ + a) + 2a/expm1(2y) for coth), and ξ + a = (ξ² - a²)/(ξ - a),
-ξ² - a² = b²/4 + aρb - 8a²p₁. For U < 0 at low temperature both terms are still ≈ 2|a|e^{-β|a|} and Kₛ is
-O(βp₁²), as is 𝒫(-Aₛ); `loss` estimates the cancellation, and `_adaptive` repeats the setup in high
-precision if needed.
+ξ² - a² = b²/4 + aρb - 8a²p₁. For U < 0 at low temperature both terms are still ≈ 2|a|e^{-β|a|};
+`loss` estimates the cancellation, and `_adaptive` repeats the setup in high precision if needed.
+At large |k|, ξ ≈ ±b/2 and y ≈ ±βb/4 = ±(βμ - iπk)/2 is large: its rounding would cost log₂|y| bits. Then
+tanh y (coth y) = tanh Y with Y = y ± iπk/2 = β(ξ ∓ b/2 ± μ)/2 and ξ ∓ b/2 = Aₛ/(ξ ± b/2).
+A small 𝒫(-Aₛ) costs no accuracy in Γ, as it multiplies c.
 =#
 function _pp_setup(at::DopedHubbardAtom{T}, k::BosonicFreq) where {T}
     _cached(at, at._pp_setups, Int(k)) do
@@ -325,21 +321,22 @@ function _pp_setup_raw(at::DopedHubbardAtom{T}, k::BosonicFreq) where {T}
     b = Complex(2at.mu, -_freq(Int(k), β))
     As = a * ρ * b + a^2 * (1 - 8p1)
     𝒫A = 4a^2 * (4a * p1 - b * at._qp) * (4a * p1 + b * at._qm)
-    loss = _cancel(4a * p1 - b * at._qp, 4a * p1, b * at._qp) +
-           _cancel(4a * p1 + b * at._qm, 4a * p1, b * at._qm)
     ξ = sqrt(b^2 / 4 + As)  # Re ξ ≥ 0
     y = β * ξ / 2
     kodd = _kodd(k)
+    sg = real(ξ * conj(b)) >= 0 ? 1 : -1  # ξ ≈ sg b/2 at large |k|
+    Y = β * (As / (ξ + sg * b / 2) + sg * at.mu) / 2
+    red = abs(Y) < abs(y)                 # then tanh Y replaces tanh y (coth y)
     if !iszero(ξ) && abs(ξ + a) < abs(ξ - a)
         num = b^2 / 4 + a * ρ * b - 8a^2 * p1
         ξa = num / (ξ - a)  # ξ + a
-        corr = kodd ? 2a / expm1(2y) : -2a / (1 + exp(2y))
+        corr = red ? -2a / (1 + exp(2Y)) : kodd ? 2a / expm1(2y) : -2a / (1 + exp(2y))
         Ks = (ξa + corr) / ξ
-        loss += _cancel(num, b^2 / 4, a * ρ * b, 8a^2 * p1) + _cancel(ξa + corr, ξa, corr)
+        loss = _cancel(num, b^2 / 4, a * ρ * b, 8a^2 * p1) + _cancel(ξa + corr, ξa, corr)
     else
-        τ = a * β / 2 * (kodd ? inv(y * tanh(y)) : _tanhc(y))
+        τ = red ? a / ξ * tanh(Y) : a * β / 2 * (kodd ? inv(y * tanh(y)) : _tanhc(y))
         Ks = 1 + τ
-        loss += _cancel(Ks, 1, τ)
+        loss = _cancel(Ks, 1, τ)
     end
     (; c=𝒫A / Ks, loss)
 end
@@ -377,14 +374,17 @@ end
 
 #=
 `raw(at, T)` computes a setup in the precision of `at`, `loss(x)` its estimated loss in bits, and
-`result(x)` the converted value. If the loss exceeds 4 bits, the setup is repeated in `BigFloat`
-at a precision covering it; the estimate is a heuristic that can be off by ~20 bits either way,
-hence the generous margins.
+`result(x)` the converted value. If the loss exceeds 6 bits, the setup is repeated in `BigFloat`
+at a precision covering it; the estimate is a heuristic that can be off by several bits, hence the
+generous margins. With `float = false` it is computed in `BigFloat` right away.
 =#
-function _adaptive(at::DopedHubbardAtom{T}, raw, loss, result) where {T}
-    x = raw(at, T)
-    l = loss(x)
-    l <= 4 && return result(x)
+function _adaptive(at::DopedHubbardAtom{T}, raw, loss, result; float=true) where {T}
+    l = zero(T)
+    if float
+        x = raw(at, T)
+        l = loss(x)
+        l <= 6 && return result(x)
+    end
     prec = precision(T) + 48 + min(_bits(5l / 4), 1024)
     while true
         y = _withprecision(prec) do
@@ -404,23 +404,34 @@ separable coefficients. With G(s) = 1/((z² - s)(v² - s)), the separable part �
 Yⱼ = ρZⱼ, Y_d = (Y₁ - Y₂)/(s₁ - s₂) and G[s₁, s₂] = (z² + v² - s₁ - s₂)/(e(z) e(v)). Thus nearly
 coinciding roots only affect the scalar Y_d.
 
+The naive formulas cancel in several places, mostly at low temperature, where p₁ or p₀p₂ is
+small. The discriminant of e and s₁ - s₂ are taken from the weights. P(u) = (s - t₊²)(s - t₋²) and
+δ = u - w/2 follow from the offsets d = s - t² of the roots from t² = t₊², t₋², a², w²/4 (t± = ±a + w/2
+the zeros of P): d² + 2(t² + m)d + e(t²) = 0, with t² + m and e(t²) from the weights without
+cancellation. Sums like tanh then take the small δ instead of u: Sₖ(u) = S₀(δ), αₖ(u) = α₀(δ).
+
 Each Yⱼ avoids the cancellations of Kⱼ = A + λρS and Nⱼ = B - λρS (S = Sₖ(uⱼ)) at small ρ: with
 X = βH(-u), A = X - λc̄ and B = X + λc̄ satisfy AB = -ρM, M = 4aβuX + λ²β²ρ/4, at a root (proof of
 Corollary "half filling" of the note), so the smaller of A, B is computed as -ρM over the larger
-one. Kⱼ and Nⱼ are also evaluated as X ± λα with the closed form of α (better at low temperature),
-and the form that cancels less is used.
+one. Kⱼ and Nⱼ are also evaluated as X ± λα with the closed form of α, Kⱼ/ρ also from the offset
+of uⱼ from ±εa (small ρ at low temperature), and for k = 0, r = d from the offset from the double
+zero ±a of P (U < 0 at low temperature, where Kⱼ and P(uⱼ) are O(p₁²)). The form that cancels
+least is used.
 
-Some cancellations remain, e.g. in Kⱼ for the cold magnetic static case, where uⱼ approaches the
-atomic pole a and the leading thermal terms of Kⱼ cancel identically, and in Y_d for nearly
-coinciding roots. `_ph_setup_raw` estimates the bits they cost (`loss`); if this exceeds 4 bits,
+Some cancellations remain, e.g. in Y_d for nearly coinciding roots and in the magnetic static case
+(`_Y_atomic`). `_ph_setup_raw` estimates the bits they cost (`loss`); if this exceeds 6 bits,
 the setup is repeated in `BigFloat` at a precision covering the loss. Only these few scalars are
 computed in higher precision (once per transfer, as they are cached); the evaluation of each
 element is not.
 =#
 function _ph_setup(at::DopedHubbardAtom{T}, k::BosonicFreq, ε::Int) where {T}
+    # If a weight is so small that products of two weights are not normal numbers in T (e.g. p₀p₂
+    # for βU/2 ≳ 350 in Float64), terms of that order decide quotients; the exponent range of
+    # BigFloat keeps them.
+    float = min(at._p0, at._p1, at._p2) >= sqrt(floatmin(T)) * T(2)^32
     _cached(at, at._setups, (Int(k), ε)) do
         _adaptive(at, (bat, _) -> _ph_setup_exact(bat, k, ε), x -> x.loss,
-                  x -> PHSetup{T}(x.q1, x.s1, x.s2, x.Y1, x.Yd))
+                  x -> PHSetup{T}(x.δ1, x.δ2, x.Y1, x.Yd); float)
     end::PHSetup{T}
 end
 
@@ -450,91 +461,157 @@ function _tanhdiff(B, Δ)
     tΔ * (1 - tB^2) / (1 + tB * tΔ)
 end
 
-# the (value, loss) pair with the smaller loss
-_better(x, y) = x[2] <= y[2] ? x : y
+# the (value, loss) pair with the smaller loss; non-finite values never win
+_better(x, y) = !isfinite(y[1]) || (isfinite(x[1]) && x[2] <= y[2]) ? x : y
 
-# log2 of the cancellation in a sum: |terms|/|result| (≥ 0, Inf if the result vanishes)
-_cancel(result, terms...) = log2(max(1, sum(abs, terms) / abs(result)))
+# log2 of the cancellation in a sum: |terms|/|result| (≥ 0, Inf if only the result vanishes)
+function _cancel(result, terms...)
+    s = sum(abs, terms)
+    iszero(s) ? zero(s) : log2(max(1, s / abs(result)))
+end
+
+# the roots -f ± ζ of d² + 2fd + R = 0, the smaller one from the product R
+function _offsets(f, R, ζ)
+    d1, d2 = -f + ζ, -f - ζ
+    abs(d1) >= abs(d2) ? (iszero(d1) || (d2 = R / d1)) : (d1 = R / d2)
+    d1, d2
+end
 
 function _ph_setup_raw(at::DopedHubbardAtom{T}, k::BosonicFreq, ε::Int) where {T}
-    β, a, ρ = at.beta, at._a, at._rho
-    p0, p1, p2 = at._p0, at._p1, at._p2
+    β, a, ρ, μ = at.beta, at._a, at._rho, at.mu
+    p0, p1, p2, qp, qm = at._p0, at._p1, at._p2, at._qp, at._qm
+    if ε == -1 && iszero(k)
+        # magnetic, ω = 0: s₁ = a² is atomic (P(a) = 0), so Y₁ = 0 and only s₂ enters
+        Y2, d2, u2, loss = _Y_atomic(at)
+        return (; s1=complex(a^2), s2=complex(a^2 + d2), δ1=complex(a), δ2=u2, Y1=zero(Y2),
+                Yd=Y2 / d2, loss, Δs=complex(-d2))
+    end
     λ = 4ε * a^2
     c̄ = β * (p0 + p2) / 2
     ω = _freq(Int(k), β)
-    q0 = a^2 + ω^2 / 4
-    q1 = q0 + 4ε * a^2 * p1
-    e0 = (q1 - 4a^2 * √(p0 * p2)) * (q1 + 4a^2 * √(p0 * p2))  # q₁² - 16a⁴p₀p₂
-    kodd = _kodd(k)
-    # Y at the root s = u², given σ = s + q₁ accurately; P(u) = Q₊(u)Q₋(u) as a product of four linear
-    # factors u ± a ± iω/2. X = βH(-u) = β(σ - 2aρu) and X₊ = βH(u) = β(σ + 2aρu) satisfy
-    # XX₊ = λ²h² = 16a⁴β²p₀p₂, so the smaller one is computed from the larger.
-    # Returns (Y, estimated loss in bits).
-    function Y(s, σ)
-        u = sqrt(complex(s))
-        iω2 = Complex(zero(ω), ω / 2)
-        f = (u + a + iω2, u + a - iω2, u - a + iω2, u - a - iω2)
-        Pu = prod(f)
-        lossP = sum(_cancel(fi, u, a, ω / 2) for fi in f)
+    w = Complex(zero(ω), ω)
+    q1 = a^2 + ω^2 / 4 + 4ε * a^2 * p1
+    Q = qp * qm
+    κε = ε == 1 ? p1 : p0 * p1 + 2p0 * p2 + p1 * p2  # q₊q₋ + εw₁₁
+    # e(s) = s² + 2ms + e₀, with discriminant m² - e₀ = 4a²D and D from the weights (as
+    # p₀ + 2p₁ + p₂ = 1), without the cancellation of m² - e₀ at small p₁ or p₀p₂. The roots are
+    # s = -m ± ζ and σ = s + q₁ = 2a²ρ² ± ζ; for real ζ the smaller ones follow from the products
+    # s₁s₂ = e₀ and σ₁σ₂ = 4a²(ρ²q₁ - 4a²p₀p₂), which can cancel: l1, l2 are the bits lost.
+    m = q1 - 2a^2 * ρ^2
+    h4 = 4a^2 * √(p0 * p2)
+    e0 = (q1 - h4) * (q1 + h4)
+    D = 4a^2 * (4p0 * p2 * Q + ρ^2 * p1 * (p1 - 1 - ε)) - (ρ * ω)^2 / 4
+    ζ = D >= 0 ? complex(2abs(a) * √D) : Complex(zero(D), 2abs(a) * √(-D))
+    s1, s2 = -m + ζ, -m - ζ
+    σ1, σ2 = 2a^2 * ρ^2 + ζ, 2a^2 * ρ^2 - ζ
+    l1 = l2 = zero(D)
+    if D >= 0
+        le = _cancel(q1 - h4, q1, h4) + _cancel(q1 + h4, q1, h4)
+        if abs(s1) < abs(s2)
+            s1, l1 = e0 / s2, l1 + le
+        elseif !iszero(s1)
+            s2, l2 = e0 / s1, l2 + le
+        end
+        σp = 4a^2 * (ρ^2 * q1 - 4a^2 * p0 * p2)
+        lp = _cancel(σp, 4a^2 * ρ^2 * q1, 16a^4 * p0 * p2)
+        if abs(σ1) < abs(σ2)
+            σ1, l1 = σp / σ2, l1 + lp
+        elseif !iszero(σ1)
+            σ2, l2 = σp / σ1, l2 + lp
+        end
+    end
+    # offsets d = s - t² of both roots from t² = t₊², t₋², a², w²/4, with t² + m = h ± aw, h + ω²/4,
+    # a²(1 + 4εp₁ - 2ρ²) and e(t₊²) = 8a²(w + c)(aκε + q₊q₋w/2), e(t₋²) = 8a²(w - c)(q₊q₋w/2 - aκε),
+    # c = 2(1 + ε)a, e(a²) = (ω²/4 + 4(1 + ε)a²p₁)(ω²/4 + 4a²(1 - (1 - ε)p₁)),
+    # e(w²/4) = a⁴(1 + 4εp₁)² - 16a⁴p₀p₂ + a²ρ²ω²
+    tp, tm = a + w / 2, -a + w / 2
+    h = 4a^2 * (ε == 1 ? 2Q + p1 : κε)  # 4a²(2q₊q₋ + εp₁)
+    c = 2(1 + ε) * a
+    dp1, dp2 = _offsets(h + a * w, 8a^2 * (w + c) * (a * κε + Q * w / 2), ζ)
+    dm1, dm2 = _offsets(h - a * w, 8a^2 * (w - c) * (Q * w / 2 - a * κε), ζ)
+    da1, da2 = _offsets(h + ω^2 / 4,
+                        (ω^2 / 4 + 2c * a * p1) *
+                        (ω^2 / 4 + 4a^2 * (ε == 1 ? one(p1) : p0 + p2)), ζ)
+    Rw1, Rw2 = 1 + 4ε * p1 - 4√(p0 * p2), 1 + 4ε * p1 + 4√(p0 * p2)
+    Rw = a^4 * Rw1 * Rw2 + (a * ρ * ω)^2
+    dw1, dw2 = _offsets(a^2 * (1 + 4ε * p1 - 2ρ^2), Rw, ζ)
+    lw = _cancel(Rw, a^4 * Rw1 * Rw2, (a * ρ * ω)^2) +
+         _cancel(Rw1, 1 + 4ε * p1, 4√(p0 * p2)) +
+         _cancel(Rw2, 1 + 4ε * p1, 4√(p0 * p2))
+    # Y = ρuPN/K at the root s = u² (σ = s + q₁, offsets dp, dm, da, dw, l bits lost in s and σ),
+    # its loss, and δ = u - w/2.
+    # P = Q₊Q₋ is the product of the offsets from t₊², t₋². X = βH(-u) = β(σ - 2aρu) and
+    # X₊ = βH(u) = β(σ + 2aρu) satisfy XX₊ = λ²h² = 16a⁴β²p₀p₂, so the smaller one is computed from
+    # the larger.
+    function Y(s, σ, dp, dm, da, dw, l)
+        u = sqrt(s)
+        (iszero(ω) ? real(u) < 0 : ω * imag(u) < 0) && (u = -u)  # u near t₊ or t₋
+        # u - t = d/(u + t) for t = t±, and δ = ±a + (u - t±) from the nearer zero or, at large |ω|
+        # where δ can be ≪ a, δ = (s - w²/4)/(u + w/2); with the bits lost in δ
+        ηp = abs(u + tp) >= abs(u - tp) ? dp / (u + tp) : u - tp
+        ηm = abs(u + tm) >= abs(u - tm) ? dm / (u + tm) : u - tm
+        σt, η = abs(ηp) <= abs(ηm) ? (1, ηp) : (-1, ηm)  # the nearer t = σt a + w/2
+        if abs(ω) > 4abs(a)
+            δu = dw / (u + w / 2)
+            l += lw
+        else
+            δu = σt * a + η
+            l += _cancel(δu, a, η)
+        end
+        P = dp * dm
+        y = β * (δu - μ) / 2
+        Su = -β / 2 * tanh(y)  # Sₖ(u) = S₀(δu), the Matsubara sum PV Σₙ 1/(zₙ - u)
+        λα = λ * _α(at, false, δu)
         X, X₊ = β * (σ - 2a * ρ * u), β * (σ + 2a * ρ * u)
         abs(X) < abs(X₊) && (X = 16a^4 * β^2 * p0 * p2 / X₊)
         A, B = X - λ * c̄, X + λ * c̄
         M = 4a * β * u * X + λ^2 * β^2 * ρ / 4
-        Su = _S(at, kodd, u)
-        λα = λ * _α(at, kodd, u)
-        lY = lossP + _cancel(M, 4a * β * u * X, λ^2 * β^2 * ρ / 4)
-        # K = X + λα and N = X - λα, each either directly or from the identity (whichever cancels less)
-        # B = -ρM/A is small: Y = uPρN/K with N = B - λρS = ρ(-M/A - λS)
-        if abs(A) >= abs(B)
-            K, lK = _better((A + λ * ρ * Su, _cancel(A + λ * ρ * Su, A, λ * ρ * Su)),
-                            (X + λα, _cancel(X + λα, X, λα)))
-            Nρ = -M / A - λ * Su
-            N, lN = _better((ρ * Nρ, _cancel(Nρ, M / A, λ * Su)),
-                            (X - λα, _cancel(X - λα, X, λα)))
-            return u * Pu * (N / K) * ρ, lY + lK + lN
-        else                 # A = -ρM/B is small: Y = uPN/κ with κ = K/ρ = -M/B + λS
-            κ, lκ = -M / B + λ * Su, _cancel(-M / B + λ * Su, M / B, λ * Su)
-            if !iszero(ρ)
-                K = X + λα
-                κ, lκ = _better((κ, lκ), (K / ρ, _cancel(K, X, λα)))
-            end
-            N, lN = _better((B - λ * ρ * Su, _cancel(B - λ * ρ * Su, B, λ * ρ * Su)),
-                            (X - λα, _cancel(X - λα, X, λα)))
-            return u * Pu * (N / κ), lY + lκ + lN
+        lM = _cancel(M, 4a * β * u * X, λ^2 * β^2 * ρ / 4)
+        # K/ρ = λS - M/B = -2aβ(u + εaτ) + 4a²β²ρ(s - a²)/(B + 2aβρu), τ = tanh y. With the nearer
+        # u★ = ∓εa, u + εaτ = (u - u★) + εa(τ ∓ 1) and u - u★ = (s - a²)/(u + u★), so nothing cancels
+        # as τ → ±1, at low temperature.
+        u★ = abs(u + ε * a) <= abs(u - ε * a) ? -ε * a : ε * a
+        th = u★ == -ε * a ? 2ε * a^2 * β * 2 / (1 + exp(2y)) :
+             -2ε * a^2 * β * 2 / (1 + exp(-2y))
+        Bs = B - 2a * β * ρ * u★
+        Bu = B + 2a * β * ρ * u
+        t1 = -2a * β * da / (u + u★) * (Bs / Bu)
+        κa = (t1 + th,
+              _cancel(t1 + th, t1, th) + _cancel(Bs, B, 2a * β * ρ * u★) +
+              _cancel(Bu, B, 2a * β * ρ * u))
+        if ε == 1 && iszero(ω)
+            # P has double zeros t = σt a. With Y = (u - t)/t, from e(u²) = 0 and the weights,
+            # K - λρ(S(u) - S(t)) = βa²σtρY²(Y² + 4q₋Y + 4)/(2q(Y² + 2Y + 4)), q = q₊ for t = a, q₋ for
+            # t = -a: both terms are O(p₁²) as p₁ → 0 (U < 0), like P(u).
+            qt, qo = σt == 1 ? (qp, qm) : (qm, qp)
+            Yt = η / (σt * a)
+            f1, f2 = Yt^2 + 4qo * Yt + 4, Yt^2 + 2Yt + 4
+            g = β * a^2 * σt * Yt^2 * f1 / (2qt * f2)
+            ΔS = -β / 2 * _tanhdiff(complex(β * (σt * a - μ) / 2), β * η / 2)
+            κg = (g + λ * ΔS,
+                  _cancel(g + λ * ΔS, g, λ * ΔS) + _cancel(f1, Yt^2, 4qo * Yt, 4) +
+                  _cancel(f2, Yt^2, 2Yt, 4))
+            κa = _better(κa, κg)
         end
+        if abs(A) >= abs(B)
+            K, lK = _better((X + λα, _cancel(X + λα, X, λα)), (ρ * κa[1], κa[2]))
+            Nρ = -M / A - λ * Su
+            N, lN = _better((ρ * Nρ, _cancel(Nρ, M / A, λ * Su) + lM),
+                            (X - λα, _cancel(X - λα, X, λα)))
+            return u * P * (N / K) * ρ, lK + lN + l, δu
+        end
+        # A = -ρM/B is small: Y = uPN/κ with κ = K/ρ = -M/B + λS
+        κ, lκ = _better((-M / B + λ * Su, _cancel(-M / B + λ * Su, M / B, λ * Su) + lM), κa)
+        iszero(ρ) || ((κ, lκ) = _better((κ, lκ), ((X + λα) / ρ, _cancel(X + λα, X, λα))))
+        N, lN = _better((B - λ * ρ * Su, _cancel(B - λ * ρ * Su, B, λ * ρ * Su)),
+                        (X - λα, _cancel(X - λα, X, λα)))
+        u * P * (N / κ), lκ + lN + l, δu
     end
-    if ε == -1 && iszero(k)
-        # magnetic, ω = 0: s₁ = a² is atomic (P(a) = 0), so Y₁ = 0 and only s₂ enters
-        Y2, d2, loss = _Y_atomic(at)
-        s1, s2 = complex(a^2), complex(a^2 + d2)
-        return (; q1, s1, s2, Y1=zero(Y2), Yd=Y2 / d2, loss, Δs=s1 - s2)
-    end
-    # s² + 2m s + e₀ = 0, m = q₁ - 2a²ρ², with discriminant m² - e₀ = 4a²D; the roots are
-    # s = -m ± r and σ = s + q₁ = 2a²ρ² ± r, r = 2|a|√D. For real r, the smaller root and the smaller σ
-    # follow from the products s₁s₂ = e₀ and σ₁σ₂ = 4a²(ρ²q₁ - 4a²p₀p₂).
-    m = q1 - 2a^2 * ρ^2
-    D = a^2 * ρ^4 - ρ^2 * q1 + 4a^2 * p0 * p2
-    if D >= 0
-        r = 2abs(a) * √D
-        sg = m >= 0 ? -1 : 1          # s₁ = -m + sg r is the larger root in magnitude
-        s1 = complex(-m + sg * r)
-        s2 = iszero(s1) ? s1 : e0 / s1
-        σa, σb = 2a^2 * ρ^2 + r, 2a^2 * ρ^2 - r
-        σp = 4a^2 * (ρ^2 * q1 - 4a^2 * p0 * p2)
-        abs(σa) >= abs(σb) ? (σb = iszero(σa) ? σb : σp / σa) : (σa = σp / σb)
-        σ1, σ2 = complex(sg > 0 ? σa : σb), complex(sg > 0 ? σb : σa)
-        Δs = complex(2sg * r)
-    else
-        r = 2abs(a) * √(-D)
-        s1, s2 = Complex(-m, r), Complex(-m, -r)
-        σ1, σ2 = Complex(2a^2 * ρ^2, r), Complex(2a^2 * ρ^2, -r)
-        Δs = Complex(zero(r), 2r)
-    end
-    (Y1, l1), (Y2, l2) = Y(s1, σ1), Y(s2, σ2)
-    # D carries the error of the roots, Y₁ - Y₂ that of the divided difference
-    loss = max(l1, l2) + _cancel(D, a^2 * ρ^4, ρ^2 * q1, 4a^2 * p0 * p2) / 2 +
-           _cancel(Y1 - Y2, Y1, Y2)
-    (; q1, s1, s2, Y1, Yd=(Y1 - Y2) / Δs, loss, Δs)
+    (Y1, l1, δ1), (Y2, l2, δ2) = Y(s1, σ1, dp1, dm1, da1, dw1, l1),
+                                 Y(s2, σ2, dp2, dm2, da2, dw2, l2)
+    # nearly coinciding roots cancel in Y₁ - Y₂
+    (; s1, s2, δ1, δ2, Y1, Yd=(Y1 - Y2) / 2ζ, loss=max(l1, l2) + _cancel(Y1 - Y2, Y1, Y2),
+     Δs=2ζ)
 end
 
 #=
@@ -545,7 +622,7 @@ u₂ = a√(1 + x), η = β(u₂ - a)/2 and t = tanh(β(a - μ)/2) = (p₁ - p�
     K₂/ρ = 2a²β[ρ(p₀ + p₂ - ρ²)/q₊ + x²/(2(1 + √(1 + x))²)] - 4a²(S(u₂) - S(a)),
     S(u₂) - S(a) = -(β/2)[tanh(y + η) - tanh(y)],   y = β(a - μ)/2,
 in which nothing cancels (p₀ + p₂ - ρ² = Var(n), and the tanh difference is taken by `_tanhdiff`).
-Returns (Y₂, d₂, loss).
+Returns (Y₂, d₂, u₂, loss).
 =#
 function _Y_atomic(at::DopedHubbardAtom)
     β, a, ρ, μ = at.beta, at._a, at._rho, at.mu
@@ -564,7 +641,21 @@ function _Y_atomic(at::DopedHubbardAtom)
     X = β * (d2 + 4a^2 * p0 - 2a * ρ * δu)       # βH(-u₂)
     N = X - λα
     Y2 = u * d2^2 * (N / κ)
-    Y2, d2, _cancel(κ, κ1, κ2) + _cancel(N, X, λα) + _cancel(X, d2, 4a^2 * p0, 2a * ρ * δu)
+    loss = _cancel(κ, κ1, κ2) + _cancel(N, X, λα) + _cancel(X, d2, 4a^2 * p0, 2a * ρ * δu)
+    Y2, d2, u, loss
+end
+
+# (|a|² + |b|²)/|r|² for r = a ± b: the squared factor by which r amplifies the rounding errors of a, b
+_amp(r, a, b) = (abs2(a) + abs2(b)) / abs2(r)
+
+# For z = zₙ: x = z - w/2 and x + w (= μ + iνₙ₊ₖ), the factors z² - sⱼ = (x - δⱼ)(x + w + δⱼ) and their
+# (squared) error amplification near a lattice zero of e, where the poles cancel in Γ
+function _efactors(at::DopedHubbardAtom, st::PHSetup, n::FermionicFreq, k::BosonicFreq)
+    x, xw = _x(at, n), _x(at, n + k)
+    x1, x2, xw1, xw2 = x - st.δ1, x - st.δ2, xw + st.δ1, xw + st.δ2
+    amp = max(_amp(x1, x, st.δ1) * _amp(xw1, xw, st.δ1),
+              _amp(x2, x, st.δ2) * _amp(xw2, xw, st.δ2))
+    (; x, xw, e1=x1 * xw1, e2=x2 * xw2, amp)
 end
 
 function _Γraw(r::PHChannel, at::DopedHubbardAtom, (n, n′, k)::FermiFermiBose)
@@ -576,50 +667,41 @@ function _Γraw(r::PHChannel, at::DopedHubbardAtom, (n, n′, k)::FermiFermiBose
     st = _ph_setup(at, k, ε)
     fn = _ph_factors(at, n, k)
     z, v = fn.z, _z(at, n′, k)
-    z², v² = z^2, v^2
-    ez, ev = (z² - st.s1) * (z² - st.s2), (v² - st.s1) * (v² - st.s2)
+    fz, fv = _efactors(at, st, n, k), _efactors(at, st, n′, k)
+    ez, ev = fz.e1 * fz.e2, fv.e1 * fv.e2
 
     res = complex(2ε * a)
-    # separable part
-    res += λ * ((st.Y1 / ez) * ((z² + v² - st.s1 - st.s2) / ev) +
-                st.Yd / (z² - st.s2) / (v² - st.s2))
+    # separable part, with z² + v² - s₁ - s₂ = (z² - s₁) + (v² - s₂)
+    res += λ * ((st.Y1 / ez) * ((fz.e1 + fv.e2) / ev) + st.Yd / fz.e2 / fv.e2)
     # dense part -λρ𝔻(z, v) = -λ C(z, v) Q(z, v), C = ρ/(z + v)
     C = _pair(at, Int(n) + Int(n′) + Int(k))
-    iszero(C) || (res -= λ * C * _Q(at, st, k, ε, z, v, n == n′))
+    iszero(C) || (res -= λ * C * _Q(at, ε, z, v, fz, fv))
     if n == n′
-        # βP[1/G₂ - H(-z)/e] = βP(Δᵣ H(-z) - 16a⁴p₀p₂)/(G₂ e)
-        H = z² - 2a * ρ * z + st.q1
+        # βP[1/G₂ - H(-z)/e] = βP(Δᵣ H(-z) - 16a⁴p₀p₂)/(G₂ e), H(-z) = x(x + w) + a²(1 + 4εp₁) - 2aρz
+        H = fz.x * fz.xw + a^2 * (1 + 4ε * at._p1) - 2a * ρ * z
         res += β * (fn.P / ez) * ((_Δ(r, at) * H - 16a^4 * at._p0 * at._p2) / fn.G2)
     end
-    # lattice zeros of e (removable): terms ∝ 1/e(z), 1/e(v) cancel
-    R = abs(st.s1) + abs(st.s2) + a^2
-    loss = max(_cancel(min(abs(z² - st.s1), abs(z² - st.s2)), abs(z²), R),
-               _cancel(min(abs(v² - st.s1), abs(v² - st.s2)), abs(v²), R))
-    Complex{T}(res), loss
+    # lattice zeros of e (removable): terms ∝ 1/e(z), 1/e(v) cancel, doubly so on the diagonal
+    Complex{T}(res), fz.amp * fv.amp
 end
 
 #=
 Q(z, v) = (zF(z) - vF(v))/(z - v), F = P/e, and F(z) + zF′(z) for z = v. With φ(z) = z(F(z) - 1) =
 zR(z²)/e(z), R = P - e = r₁z² + r₀, Q = 1 + (φ(z) - φ(v))/(z - v), which avoids the cancellation of
-zF(z) - vF(v) for large, nearby frequencies.
+zF(z) - vF(v) for large frequencies. For nearby z, v (and z = v), φ = zg(z²), g = R/e, gives
+Q = 1 + g(z²) + v(z + v) g[z², v²], with the divided difference g[s, t] = (r₁e(t) - R(t)e[s, t])/(e(s)e(t)),
+e[s, t] = (s - s₁) + (t - s₂), so that φ(z) - φ(v) does not cancel. `fz`, `fv` are the `_efactors` of
+z, v; R uses z² + q₀ = x(x + w) + a², q₀ = a² + ω²/4.
 =#
-function _Q(at::DopedHubbardAtom, st, k::BosonicFreq, ε::Int, z, v, diagonal::Bool)
+function _Q(at::DopedHubbardAtom, ε::Int, z, v, fz, fv)
     a = at._a
-    q0 = a^2 + _freq(Int(k), at.beta)^2 / 4
     r1 = -4a^2 * (4at._qp * at._qm + 2ε * at._p1)
-    r0 = -8ε * a^2 * at._p1 * q0 - 16a^4 * at._w11
-    s1, s2 = st.s1, st.s2
-    # z == v also for distinct frequencies that round to the same value
-    if diagonal || z == v
-        s = z^2
-        es = (s - s1) * (s - s2)
-        Rs = r1 * s + r0
-        return 1 + (Rs + 2s * r1) / es - 2s * (Rs / es) * ((2s - s1 - s2) / es)
-    end
-    z², v² = z^2, v^2
-    φz = z / (z² - s1) * ((r1 * z² + r0) / (z² - s2))
-    φv = v / (v² - s1) * ((r1 * v² + r0) / (v² - s2))
-    1 + (φz - φv) / (z - v)
+    R(z, f) = -4a^2 *
+              (4at._qp * at._qm * z^2 + 2ε * at._p1 * (f.x * f.xw + a^2) + 4a^2 * at._w11)
+    # divided early: no intermediate exceeds degree four in the energies (Float32 range)
+    gz, gv = R(z, fz) / fz.e1 / fz.e2, R(v, fv) / fv.e1 / fv.e2
+    abs(z - v) > abs(z + v) / 2 && return 1 + (z * gz - v * gv) / (z - v)
+    1 + gz + v / fz.e1 * ((z + v) / fz.e2) * (r1 - gv * (fz.e1 + fv.e2))
 end
 
 function χ(::DensityChannel, at::DopedHubbardAtom, k::BosonicFreq)
