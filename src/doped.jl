@@ -141,12 +141,6 @@ _x(at::DopedHubbardAtom, n::FermionicFreq) = Complex(at.mu, _freq(Int(n), at.bet
 _z(at::DopedHubbardAtom, n::FermionicFreq, k::BosonicFreq) =
     Complex(at.mu, _freq(Int(n) + Int(k) ÷ 2, at.beta))
 
-"""
-    G(atom::DopedHubbardAtom, n::FermionicFreq)
-    gf(atom::DopedHubbardAtom, n::FermionicFreq)
-
-Two-point propagator `G(ν) = q₋/(iν + μ + U/2) + q₊/(iν + μ - U/2)` with `q₊ = ⟨n↑⟩`, `q₋ = 1 - q₊`.
-"""
 function G(at::DopedHubbardAtom, n::FermionicFreq)
     x = _x(at, n)
     a = at._a
@@ -203,25 +197,13 @@ end
 _Δ(::DensityChannel, at::DopedHubbardAtom) = 4at._a^2 * (2at._p1 - at._w11)
 _Δ(::MagneticChannel, at::DopedHubbardAtom) = -4at._a^2 * at._w11
 
-"""
-    χ(::SpinChannel, at::DopedHubbardAtom, (n, n′, k)::FermiFermiBose)
-    chi(::SpinChannel, atom::DopedHubbardAtom, (n, n′, k)::FermiFermiBose)
-
-Generalized susceptibility of the doped atom (Eßl et al., Eq. D3, combined into channels as in
-Equations 5a-d).
-"""
+# Eßl et al., Eq. (D3), in the compact form of the note
 χ(r::SpinChannel, at::DopedHubbardAtom, w::FermiFermiBose) = _χconn(r, at, w) + _η(r) * χ₀(r, at, w)
 
 _η(::SpinChannel) = 1
 _η(::SingletChannel) = -1
 
-"""
-    F(::SpinChannel, at::DopedHubbardAtom, (n, n′, k)::FermiFermiBose)
-    full_vertex(::SpinChannel, at::DopedHubbardAtom, (n, n′, k)::FermiFermiBose)
-
-Full vertex, from `χ = χ₀ ∓ χ₀ F χ₀ / β²` (`-` for `d, m, t`, `+` for `s`), evaluated from the connected
-part of χ directly.
-"""
+# from the connected part of χ directly
 function F(r::SpinChannel, at::DopedHubbardAtom, (n, n′, k)::FermiFermiBose)
     β = at.beta
     B, B′ = β * χ₀(r, at, (n, k)), β * χ₀(r, at, (n′, k))
@@ -266,19 +248,8 @@ function _χconn(::SingletChannel, at::DopedHubbardAtom, (n, n′, k)::FermiFerm
     Complex{T}(res)
 end
 
-"""
-    Γ(::SpinChannel, at::DopedHubbardAtom, (n, n′, k)::FermiFermiBose)
-    gamma(::SpinChannel, at::DopedHubbardAtom, (n, n′, k)::FermiFermiBose)
-
-Channel-irreducible vertex of the doped atom, `Γ = β²(χ⁻¹ - η χ₀⁻¹)` (η = -1 for `s`, else 1), from
-the closed forms of the note: triplet (Theorem 2), singlet (Theorem 3), density and magnetic
-(Theorem 4; at `mu = 0` its limit, Corollary 5, which reproduces `gamma` of `HubbardAtom`).
-
-At the isolated parameters where a denominator of the closed form vanishes but `Γ` is finite
-(removable singularities, e.g. coinciding roots of the quartic e), the cancelling terms are
-evaluated in higher precision, as are a few cached scalars per transfer where the closed form
-cancels (e.g. at low temperatures). At genuine divergences `Γ` is infinite or large.
-"""
+# Γ from the closed forms of the note: triplet (Theorem 2), singlet (Theorem 3), density and
+# magnetic (Theorem 4, and its limit at mu = 0, Corollary 5)
 function Γ(::TripletChannel, at::DopedHubbardAtom, (n, n′, k)::FermiFermiBose)
     T = typeof(at.U)
     D = δ(n, n′) - δ(n, -n′ - k)
@@ -471,8 +442,7 @@ end
 _better(x, y) = x[2] <= y[2] ? x : y
 
 # log2 of the cancellation in a sum: |terms|/|result| (≥ 0, Inf if the result vanishes)
-# Vararg{Any,N} forces specialization: Julia 1.10 does not specialize `terms...` here for mixed types, and allocates
-_cancel(result, terms::Vararg{Any,N}) where {N} = log2(max(1, sum(abs, terms) / abs(result)))
+_cancel(result, terms...) = log2(max(1, sum(abs, terms) / abs(result)))
 
 function _ph_setup_raw(at::DopedHubbardAtom{T}, k::BosonicFreq, ε::Int) where {T}
     β, a, ρ = at.beta, at._a, at._rho
@@ -634,16 +604,6 @@ function _Q(at::DopedHubbardAtom, st, k::BosonicFreq, ε::Int, z, v, diagonal::B
     1 + (φz - φv) / (z - v)
 end
 
-"""
-    χ(::SpinChannel, atom::DopedHubbardAtom, k::BosonicFreq)
-    chi(::SpinChannel, atom::DopedHubbardAtom, k::BosonicFreq)
-
-Susceptibility `-2/β^2 * sum(χ(r, atom, (n, n′, k)) for n in -∞:+∞, n′ in -∞:+∞)`. For `r = d, m` this is
-the physical susceptibility `-⟨ρᵣ; ρᵣ⟩(ω)` of the charge and spin density, which are conserved and
-vanish for `ω ≠ 0`. For `r = s` it is `-⟨ρ; ρ⁺⟩(-ω) = -ρ/(2μ - iω)` with the pair density `ρ = c↓c↑`,
-which is not conserved off half filling. For `r = t` it is the bare bubble
-`1/β * sum(G(ν) G(-ν - ω) for n in -∞:+∞)` (see `chi` for `HubbardAtom`).
-"""
 function χ(::DensityChannel, at::DopedHubbardAtom, k::BosonicFreq)
     # variance of n = n↑ + n↓: Σ pᵢ(nᵢ - ⟨n⟩)², with 1 ± ρ = 2q±
     var = 4at._p0 * at._qp^2 + 2at._p1 * at._rho^2 + 4at._p2 * at._qm^2
@@ -662,13 +622,6 @@ function χ(::TripletChannel, at::DopedHubbardAtom, k::BosonicFreq)
     2at._p1 * _pair(at, -Int(k))
 end
 
-"""
-    G₃(::SpinChannel, atom::DopedHubbardAtom, (n, k)::Tuple{FermionicFreq, BosonicFreq})
-    g3(::SpinChannel, atom::DopedHubbardAtom, (n, k)::Tuple{FermionicFreq, BosonicFreq})
-
-Three-point Green's function `-1/β * sum(χ(r, atom, (n, n′, k)) for n′ in -∞:+∞)` (`r = d, m, s`);
-zero for `r = t`.
-"""
 function G₃(r::PHChannel, at::DopedHubbardAtom, (n, k)::FermiBose)
     β, a, ρ = at.beta, at._a, at._rho
     f = _ph_factors(at, n, k)

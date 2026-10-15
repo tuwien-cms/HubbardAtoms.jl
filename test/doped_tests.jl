@@ -251,7 +251,7 @@ end
     end
 end
 
-@testitem "Doped atom: χ = ±(χ₀ - χ₀ F χ₀) and the BSE" setup = [Doped] begin
+@testitem "Doped atom: χ = ηχ₀ - χ₀ F χ₀ and the BSE" setup = [Doped] begin
     for (U, β, μ) in ((1.3, 2.1, 0.4), (-0.7, 3.0, -0.2)), r in CHANNELS
         at = DopedHubbardAtom(U, β, μ)
         κ = r isa SingletChannel ? -1 : 1

@@ -1,7 +1,7 @@
-@testitem "χ = ±(χ₀ - χ₀ F χ₀)" begin
+@testitem "χ = ηχ₀ - χ₀ F χ₀" begin
     using SparseIR
 
-    # From the Bethe-Salpeter equations (Eq. 7) with F = Γ ∓ Γχ₀F/β²; the minus sign is for r = s.
+    # From the Bethe-Salpeter equations (Eq. 7), F = Γ ∓ Γχ₀F/β², with the lower sign and η = -1 for r = s.
     for (U, β) in ((1.3, 2.1), (-0.7, 3.0), (5.0, 2.0), (2.0, 400.0)), r in CHANNELS
         at = HubbardAtom(U, β)
         κ = r isa SingletChannel ? -1 : 1

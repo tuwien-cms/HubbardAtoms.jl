@@ -4,6 +4,16 @@
     end
 end
 
+@testitem "Equality, hashing and printing" begin
+    for args in ((2.0, 10.0), (big(2.0), big(10.0)))
+        @test HubbardAtom(args...) == HubbardAtom(args...)
+        @test hash(HubbardAtom(args...)) == hash(HubbardAtom(args...))
+        @test DopedHubbardAtom(args..., 0.3) == DopedHubbardAtom(args..., 0.3)
+    end
+    @test HubbardAtom(2.0, 10.0) != HubbardAtom(2.0, 11.0)
+    @test sprint(show, HubbardAtom(2.0, 10.0)) == "HubbardAtom(2.0, 10.0)"
+end
+
 @testitem "Extreme βU" setup = [AllFunctions] begin
     using SparseIR
 
