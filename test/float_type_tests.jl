@@ -3,9 +3,9 @@ using HubbardAtoms, SparseIR
 
 export results
 
-"All public functions of channel `r` at one generic frequency point (avoiding e.g. ν´ = -ν´ - ω, where Λ_t = 0)."
-function results(r, at; ν=FermionicFreq(3), ν´=FermionicFreq(-3), ω=BosonicFreq(2))
-    w = (ν, ν´, ω)
+"All public functions of channel `r` at one generic frequency point (avoiding e.g. ν′ = -ν′ - ω, where Λ_t = 0)."
+function results(r, at; ν=FermionicFreq(3), ν′=FermionicFreq(-3), ω=BosonicFreq(2))
+    w = (ν, ν′, ω)
     res = [bare_vertex(r, at), gf(at, ν), chi(r, at, w), chi(r, at, ω), chi0(r, at, w),
            chi0(r, at, (ν, ω)), full_vertex(r, at, w), gamma(r, at, w), irreducible_vertex(r, at, w),
            channel_reducible_vertex(r, at, w), g3(r, at, (ν, ω))]

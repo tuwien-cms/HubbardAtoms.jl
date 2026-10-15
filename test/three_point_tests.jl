@@ -1,7 +1,7 @@
 @testitem "G₃ from the generalized susceptibility" begin
     using SparseIR
 
-    # G₃(r) = -1/β Σ_ν´ χ(r, (ν, ν´, ω)); the truncated sum converges like 1/N.
+    # G₃(r) = -1/β Σ_ν′ χ(r, (ν, ν′, ω)); the truncated sum converges like 1/N.
     N = 20_000
     for (U, β) in ((0.0, 1.0), (1.3, 2.1), (-0.7, 3.0), (5.0, 2.0)), r in CHANNELS[1:3], (n, k) in ((0, 0), (0, 1), (-2, 2), (2, -1))
         at = HubbardAtom(U, β)
@@ -29,8 +29,8 @@ end
             @test iszero(chi(r, at, BosonicFreq(2)))
         end
 
-        # Triplet: -2/β² Σ_νν´ χ_t is the bare pp bubble (1/β) Σ_ν G(ν) G(-ν - ω), since with
-        # χ_t = χ₀ - χ₀ F_t χ₀ the vertex part Σ_ν´ χ₀(ν´) F_t(ν, ν´, ω) vanishes
+        # Triplet: -2/β² Σ_νν′ χ_t is the bare pp bubble (1/β) Σ_ν G(ν) G(-ν - ω), since with
+        # χ_t = χ₀ - χ₀ F_t χ₀ the vertex part Σ_ν′ χ₀(ν′) F_t(ν, ν′, ω) vanishes
         t = TripletChannel()
         for k in (0, 1, -2)
             ω = BosonicFreq(2k)
@@ -42,7 +42,7 @@ end
             end
         end
 
-        # chi(r, ω) = -2/β² Σ_νν´ χ(r, (ν, ν´, ω)) = 2/β Σ_ν G₃(r, (ν, ω)) for r = d, m, s
+        # chi(r, ω) = -2/β² Σ_νν′ χ(r, (ν, ν′, ω)) = 2/β Σ_ν G₃(r, (ν, ω)) for r = d, m, s
         for r in CHANNELS[1:3], k in (0, 1)
             S = sum(g3(r, at, (FermionicFreq(2j + 1), BosonicFreq(2k))) for j in -200_000:199_999)
             @test chi(r, at, BosonicFreq(2k)) ≈ 2S / β atol = 1e-4

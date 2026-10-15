@@ -12,8 +12,8 @@ const cdn⁺ = [0 0 0 0; 0 0 0 0; 1 0 0 0; 0 -1 0 0]
 const cup, cdn = Matrix(cup⁺'), Matrix(cdn⁺')
 const nup, ndn = cup⁺ * cup, cdn⁺ * cdn
 
-# Eq. 1, H = U(n↑ - 1/2)(n↓ - 1/2), is diagonal in this basis.
-energies(U) = U .* (diag(nup) .- 1 / 2) .* (diag(ndn) .- 1 / 2)
+# Eq. 1, H = U(n↑ - 1/2)(n↓ - 1/2) - μ(n↑ + n↓ - 1), is diagonal in this basis.
+energies(U, μ) = U .* (diag(nup) .- 1 / 2) .* (diag(ndn) .- 1 / 2) .- μ .* (diag(nup) .+ diag(ndn) .- 1)
 
 ν(n, β) = (2n + 1) * π / β
 ω(k, β) = 2k * π / β
@@ -24,8 +24,8 @@ tells whether Oⱼ anticommutes. As H is diagonal, the integrand on each time-or
 sum of exponentials, whose integral is the divided difference of exp(βx) at the cumulative
 exponents (Hermite-Genocchi formula), i.e. the corner entry of exp(βJ) for a bidiagonal J (Opitz).
 =#
-function correlator(U, β, ops, φ, fermionic)
-    E = energies(U)
+function correlator(U, β, ops, φ, fermionic; μ=0)
+    E = energies(U, μ)
     w = exp.(-β .* (E .- minimum(E)))
     k = length(φ)
     res = zero(ComplexF64)
@@ -53,31 +53,31 @@ function permsign(P, fermionic)
 end
 
 # G(ν) = -∫dτ e^{iντ} ⟨T c(τ) c⁺(0)⟩
-G_ed(U, β, n) = -correlator(U, β, (cup, cup⁺), (ν(n, β),), (true,))
+G_ed(U, β, n; μ=0) = -correlator(U, β, (cup, cup⁺), (ν(n, β),), (true,); μ)
 
 # χ(ω) = -∫dτ e^{iωτ} ⟨T ρ(τ) ρ(0)⟩ + β⟨ρ⟩² δ_ω0 for a density ρ
-function χ_ed(U, β, ρ, k)
-    E = energies(U)
+function χ_ed(U, β, ρ, k; μ=0)
+    E = energies(U, μ)
     w = exp.(-β .* (E .- minimum(E)))
     avg = tr(Diagonal(w) * ρ) / sum(w)
-    -correlator(U, β, (ρ, ρ), (ω(k, β),), (false,)) + (k == 0 ? β * avg^2 : 0)
+    -correlator(U, β, (ρ, ρ), (ω(k, β),), (false,); μ) + (k == 0 ? β * avg^2 : 0)
 end
 
 # -⟨ρ⁻; ρ⁺⟩(ω) for the singlet pair ρ⁻ = c↓c↑, ρ⁺ = c↑⁺c↓⁺
-χpair_ed(U, β, k) = -correlator(U, β, (cdn * cup, cup⁺ * cdn⁺), (ω(k, β),), (false,))
+χpair_ed(U, β, k; μ=0) = -correlator(U, β, (cdn * cup, cup⁺ * cdn⁺), (ω(k, β),), (false,); μ)
 
 #=
-Eq. 3: χ_ph,σσ´(ν, ν´, ω) = ∫dτ₁dτ₂dτ₃ e^{-iντ₁} e^{i(ν+ω)τ₂} e^{-i(ν´+ω)τ₃}
-    [⟨T cσ⁺(τ₁) cσ(τ₂) cσ´⁺(τ₃) cσ´(0)⟩ - ⟨T cσ⁺(τ₁) cσ(τ₂)⟩⟨T cσ´⁺(τ₃) cσ´(0)⟩]
-with ν = νₙ, ν´ = νₙ´, ω = ωₖ and σ´ = ↑ (`same = true`) or ↓.
+Eq. 3: χ_ph,σσ′(ν, ν′, ω) = ∫dτ₁dτ₂dτ₃ e^{-iντ₁} e^{i(ν+ω)τ₂} e^{-i(ν′+ω)τ₃}
+    [⟨T cσ⁺(τ₁) cσ(τ₂) cσ′⁺(τ₃) cσ′(0)⟩ - ⟨T cσ⁺(τ₁) cσ(τ₂)⟩⟨T cσ′⁺(τ₃) cσ′(0)⟩]
+with ν = νₙ, ν′ = νₙ′, ω = ωₖ and σ′ = ↑ (`same = true`) or ↓, for the Hamiltonian with chemical potential μ.
 =#
-function χph_ed(U, β, same, n, n´, k)
-    v, v´, w = ν(n, β), ν(n´, β), ω(k, β)
+function χph_ed(U, β, same, n, n′, k; μ=0)
+    v, v′, w = ν(n, β), ν(n′, β), ω(k, β)
     c⁺2, c2 = same ? (cup⁺, cup) : (cdn⁺, cdn)
-    full = correlator(U, β, (cup⁺, cup, c⁺2, c2), (-v, v + w, -(v´ + w)), (true, true, true))
-    # the disconnected term is β δ_ω0 ∫dτ e^{-iντ} ⟨T c↑⁺(τ) c↑(0)⟩ ∫dτ e^{-iν´τ} ⟨T cσ´⁺(τ) cσ´(0)⟩
+    full = correlator(U, β, (cup⁺, cup, c⁺2, c2), (-v, v + w, -(v′ + w)), (true, true, true); μ)
+    # the disconnected term is β δ_ω0 ∫dτ e^{-iντ} ⟨T c↑⁺(τ) c↑(0)⟩ ∫dτ e^{-iν′τ} ⟨T cσ′⁺(τ) cσ′(0)⟩
     k == 0 || return full
-    full - β * correlator(U, β, (cup⁺, cup), (-v,), (true,)) * correlator(U, β, (c⁺2, c2), (-v´,), (true,))
+    full - β * correlator(U, β, (cup⁺, cup), (-v,), (true,); μ) * correlator(U, β, (c⁺2, c2), (-v′,), (true,); μ)
 end
 end
 
@@ -106,13 +106,13 @@ end
     F(n) = FermionicFreq(2n + 1)
     for (U, β) in ((1.3, 2.1), (-0.7, 3.0), (5.0, 2.0), (-4.0, 6.0))
         at = HubbardAtom(U, β)
-        for n in -2:1, n´ in -2:1, k in -1:1
-            χ_uu, χ_ud = χph_ed(U, β, true, n, n´, k), χph_ed(U, β, false, n, n´, k)
-            # Eq. 4: pp notation is ph notation at bosonic frequency -ω - ν - ν´ (index shift n + n´ + 1)
-            kpp = -k - (n + n´ + 1)
-            χpp_uu, χpp_ud = χph_ed(U, β, true, n, n´, kpp), χph_ed(U, β, false, n, n´, kpp)
-            χ0pp = n == n´ ? -β / 2 * G_ed(U, β, n) * G_ed(U, β, -n - k - 1) : 0  # Eq. 6b
-            w = (F(n), F(n´), BosonicFreq(2k))
+        for n in -2:1, n′ in -2:1, k in -1:1
+            χ_uu, χ_ud = χph_ed(U, β, true, n, n′, k), χph_ed(U, β, false, n, n′, k)
+            # Eq. 4: pp notation is ph notation at bosonic frequency -ω - ν - ν′ (index shift n + n′ + 1)
+            kpp = -k - (n + n′ + 1)
+            χpp_uu, χpp_ud = χph_ed(U, β, true, n, n′, kpp), χph_ed(U, β, false, n, n′, kpp)
+            χ0pp = n == n′ ? -β / 2 * G_ed(U, β, n) * G_ed(U, β, -n - k - 1) : 0  # Eq. 6b
+            w = (F(n), F(n′), BosonicFreq(2k))
             scale = max(abs(χ_uu), abs(χ_ud), abs(χpp_uu), abs(χpp_ud), abs(χ0pp))
             # Eqs. 5a-d
             @test chi(d, at, w) ≈ χ_uu + χ_ud atol = 1e-12 * scale

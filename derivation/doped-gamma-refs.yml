@@ -1,0 +1,36 @@
+thunstroem2018:
+  type: article
+  title: Analytical investigation of singularities in two-particle irreducible vertex functions of the Hubbard atom
+  author: ["Thunström, P.", "Gunnarsson, O.", "Ciuchi, S.", "Rohringer, G."]
+  date: 2018
+  parent:
+    type: periodical
+    title: Physical Review B
+    volume: 98
+  page-range: 235107
+  serial-number:
+    doi: 10.1103/PhysRevB.98.235107
+    arxiv: "1805.00989"
+
+essl2024:
+  type: article
+  title: General Shiba mapping for on-site four-point correlation functions
+  author: ["Eßl, H.", "Reitner, M.", "Sangiovanni, G.", "Toschi, A."]
+  date: 2024
+  parent:
+    type: periodical
+    title: Physical Review Research
+    volume: 6
+  page-range: "033061"
+  serial-number:
+    doi: 10.1103/PhysRevResearch.6.033061
+    arxiv: "2402.16115"
+
+rohshap2023:
+  type: thesis
+  title: Analytical calculation of two-particle vertices for multiorbital Hubbard atom
+  author: Rohshap, S.
+  date: 2023
+  genre: Master's thesis
+  organization: TU Wien
+  url: https://repositum.tuwien.at/handle/20.500.12708/176712
