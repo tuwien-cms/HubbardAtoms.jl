@@ -82,12 +82,12 @@ After multiplication by a polynomial, $chi_r$ is a diagonal matrix plus $lambda 
 The inverses are two-sided and agree with the limit of inverses on finite frequency boxes, i.e. with what numerical inversion converges to (@prop-box).
 
 *Roadmap.*
-- @sec-setup defines all quantities; @sec-input states the one external input, the susceptibility from the Lehmann representation.
+- @sec-setup defines all quantities; @sec-input states the input, the susceptibility from the Lehmann representation.
 - @sec-results states all results. The rest of the note proves them.
 - @sec-sums evaluates the Matsubara sums; @sec-pp proves the particle–particle results, which need no Cauchy matrix.
 - @sec-cauchy develops the algebra of $C$, which @sec-ph uses for the particle–hole channels. The limit $mu -> 0$ and the finite-box statement are proved in @app-details.
 
-*What is assumed.* Everything is proved from the input #eqrange(<eq-chi-uu>, <eq-pair>) (Ref. @essl2024, checked against exact diagonalization) and the rational identities of @app-identities (checked by computer algebra). Independent numerical checks are listed in @app-checks. Numerical stability in floating point is not discussed here.
+*What is assumed.* Everything is proved from the input #eqrange(<eq-chi-uu>, <eq-pair>) (Ref. @essl2024) and the rational identities of @app-identities (checked by computer algebra). The Mathematica notebook `mathematica/doped_gamma.nb` derives the input from the Hamiltonian and replays the proofs step by step (@app-checks). Independent numerical checks are listed in @app-checks. Numerical stability in floating point is not discussed here.
 
 *Implementation.* The results are implemented as `DopedHubbardAtom` in the Julia package #link("https://github.com/tuwien-cms/HubbardAtoms.jl")[HubbardAtoms.jl], which also evaluates them stably at low temperatures and near the removable singularities, and is tested against exact diagonalization and finite-box inversion.
 
@@ -145,7 +145,7 @@ $ chi_(up up, n m) &= -beta G(x_n) G(x_n + w) delta_(n m) + beta a^2 (1 - rho^2)
 $ chi_(up dn, n m) &= -4 beta a^2 p_1 J(x_n) J(x_n + w) delta_(n m) + 4 beta a^2 (p_0 p_2 - p_1^2) J(x_n) J(x_m) delta_(k 0) + cal(N)_(n m), $ <eq-chi-ud>
 $ cal(N)_(n m) := c_(n + m + k + 1) Pi(x_n, x_m) + Rreg (x_n, x_m), quad quad c_ell := rho / (2 mu + i Omega_ell), \
 Pi(x, y) := (1 / (x + w - a) + 1 / (y - a)) (1 / (y + w - a) + 1 / (x - a)). $ <eq-pair>
-The pair coefficient $c_ell$ stems from the transition $|0 chevron.r <-> |up dn chevron.r$. At $mu = 0$ it is understood as its limit, $c_ell = beta p_0 delta_(ell 0)$ (by @eq-weight-hyp, $rho slash 2 mu -> beta p_0$). The regular part $Rreg$ is a sum of twelve simple fractions, reproduced in @app-R. We take #eqrange(<eq-chi-uu>, <eq-pair>) as given; they agree with an independent exact diagonalization of the atom to $10^(-13)$ (@app-checks).
+The pair coefficient $c_ell$ stems from the transition $|0 chevron.r <-> |up dn chevron.r$. At $mu = 0$ it is understood as its limit, $c_ell = beta p_0 delta_(ell 0)$ (by @eq-weight-hyp, $rho slash 2 mu -> beta p_0$). The regular part $Rreg$ is a sum of twelve simple fractions, reproduced in @app-R. We take #eqrange(<eq-chi-uu>, <eq-pair>) as given; they follow exactly from the Lehmann representation (derived in the Mathematica notebook) and agree with an independent exact diagonalization of the atom to $10^(-13)$ (@app-checks).
 
 *Compact form.* Define the *Cauchy matrix* $C_(n m) := c_(n + m + k + 1)$. Since $2 mu + i Omega_(n + m + k + 1) = z_n + z_m$ by @eq-z,
 $ C_(n m) = rho / (z_n + z_m) quad (mu != 0), quad quad C_(n m) = beta p_0 delta_(m overline(n)) quad (mu = 0), $ <eq-C>
@@ -582,7 +582,9 @@ The regular part in @eq-pair is [Ref. @essl2024, Eq. (D3), at zero field]
 
 = Numerical checks <app-checks>
 
-All scripts are in `doped-gamma/`.
+- *Mathematica:* `mathematica/doped_gamma.nb` derives #eqrange(<eq-chi-uu>, <eq-pair>) exactly from the Lehmann representation of @eq-H, checks @lem-input, @prop-pp, @prop-ph, the lemmas of @sec-sums and @sec-cauchy, @thm-t, @thm-s, Steps 1–4 of the proof of @thm-ph and (A2)–(A4), (A6), (A7) symbolically, and compares @thm-ph, @thm-s, @thm-t and @cor-hf with finite-box inversion (62 checks).
+
+The remaining scripts are in `doped-gamma/`.
 - *Input and sums:* #eqrange(<eq-chi-uu>, <eq-pair>) agree with an independent exact diagonalization to $1.4 times 10^(-13)$, the compact form @eq-input to $1.6 times 10^(-15)$; @eq-T, @eq-T-atomic, @eq-alpha and @eq-resolvent agree with direct lattice sums (`check_formulas.jl`).
 - *Vertices:* @eq-Gamma-t and @eq-Gamma-s agree with an independent residue-based BigFloat evaluator (`doped_gamma.jl`) to $3 times 10^(-15)$, @eq-Gamma-ph at 256 bits to $10^(-65)$ (300 entries, $k = 0, 1, 2, -3, 5$, $|mu| <= 2 |U|$); at $mu = 0$, @eq-Gamma-t, @eq-Gamma-s and @eq-Gamma-hf agree with `HubbardAtoms.jl` (Eq. 19 of Ref. @thunstroem2018) to $3 times 10^(-14)$ (`check_dm.jl`).
 - *Proof of @thm-ph:* @eq-chi-ph agrees with the twelve-term input to $3 times 10^(-76)$ (256 bits); the pole-pair images @eq-mode-image agree with direct box sums of the twelve-term $chi_r$ to $10^(-11)$ (44 cases, both channels, both signs of $U$; `check_dm.jl`).
