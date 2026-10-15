@@ -3,13 +3,15 @@
 
     # G₃(r) = -1/β Σ_ν′ χ(r, (ν, ν′, ω)); the truncated sum converges like 1/N.
     N = 20_000
-    for (U, β) in ((0.0, 1.0), (1.3, 2.1), (-0.7, 3.0), (5.0, 2.0)), r in CHANNELS[1:3], (n, k) in ((0, 0), (0, 1), (-2, 2), (2, -1))
+    for (U, β) in ((0.0, 1.0), (1.3, 2.1), (-0.7, 3.0), (5.0, 2.0)), r in CHANNELS[1:3],
+        (n, k) in ((0, 0), (0, 1), (-2, 2), (2, -1))
         at = HubbardAtom(U, β)
         ν, ω = FermionicFreq(2n + 1), BosonicFreq(2k)
-        S = sum(chi(r, at, (ν, FermionicFreq(2j + 1), ω)) for j in -N:N-1)
+        S = sum(chi(r, at, (ν, FermionicFreq(2j + 1), ω)) for j in (-N):(N - 1))
         @test g3(r, at, (ν, ω)) ≈ -S / β rtol = 1e-4
     end
-    @test iszero(g3(TripletChannel(), HubbardAtom(1.3, 2.1), (FermionicFreq(1), BosonicFreq(2))))
+    @test iszero(g3(TripletChannel(), HubbardAtom(1.3, 2.1),
+                    (FermionicFreq(1), BosonicFreq(2))))
 end
 
 @testitem "Integrated susceptibilities" begin
@@ -34,17 +36,22 @@ end
         t = TripletChannel()
         for k in (0, 1, -2)
             ω = BosonicFreq(2k)
-            bubble = sum(real(gf(at, FermionicFreq(2j + 1)) * gf(at, FermionicFreq(-2j - 1 - 2k))) for j in -10^6:10^6-1) / β
+            bubble = sum(real(gf(at, FermionicFreq(2j + 1)) *
+                              gf(at, FermionicFreq(-2j - 1 - 2k)))
+                         for j in (-10 ^ 6):(10 ^ 6 - 1)) / β
             @test chi(t, at, ω) ≈ bubble rtol = 1e-5 atol = 1e-6
             for n in -3:2
                 ν = FermionicFreq(2n + 1)
-                @test abs(sum(chi0(t, at, (FermionicFreq(2j + 1), ω)) * full_vertex(t, at, (ν, FermionicFreq(2j + 1), ω)) for j in -100:99)) < 1e-12
+                @test abs(sum(chi0(t, at, (FermionicFreq(2j + 1), ω)) *
+                              full_vertex(t, at, (ν, FermionicFreq(2j + 1), ω))
+                              for j in -100:99)) < 1e-12
             end
         end
 
         # chi(r, ω) = -2/β² Σ_νν′ χ(r, (ν, ν′, ω)) = 2/β Σ_ν G₃(r, (ν, ω)) for r = d, m, s
         for r in CHANNELS[1:3], k in (0, 1)
-            S = sum(g3(r, at, (FermionicFreq(2j + 1), BosonicFreq(2k))) for j in -200_000:199_999)
+            S = sum(g3(r, at, (FermionicFreq(2j + 1), BosonicFreq(2k)))
+                    for j in -200_000:199_999)
             @test chi(r, at, BosonicFreq(2k)) ≈ 2S / β atol = 1e-4
         end
     end
@@ -65,7 +72,8 @@ end
             @test hedin(r, at, (FermionicFreq(2 * 10^6 + 1), BosonicFreq(2k))) ≈ sign[r] rtol = 1e-6
         end
     end
-    @test_throws ArgumentError hedin(t, HubbardAtom(1.3, 2.1), (FermionicFreq(1), BosonicFreq(0)))
+    @test_throws ArgumentError hedin(t, HubbardAtom(1.3, 2.1),
+                                     (FermionicFreq(1), BosonicFreq(0)))
 end
 
 @testitem "Hedin equation for the self-energy" begin
@@ -82,7 +90,8 @@ end
         w_sp = -U * (1 - U * chi(m, at, ω) / 2)
         for n in -3:2
             ν = FermionicFreq(2n + 1)
-            Σ = -gf(at, ν) * (w_ch * hedin(d, at, (ν, ω)) + w_sp * hedin(m, at, (ν, ω))) / 2β
+            Σ = -gf(at, ν) * (w_ch * hedin(d, at, (ν, ω)) + w_sp * hedin(m, at, (ν, ω))) /
+                2β
             @test Σ ≈ U^2 / (4 * SparseIR.valueim(ν, β))
             @test hedin(d, at, (ν, BosonicFreq(2))) == hedin(m, at, (ν, BosonicFreq(2)))
         end

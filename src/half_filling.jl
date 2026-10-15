@@ -1,4 +1,5 @@
-# The half-filled atom; equation numbers refer to Thunström et al., Phys. Rev. B 98, 235107 (2018).
+# The half-filled atom; equation numbers refer to Thunström et al., Phys. Rev. B 98, 235107
+# (2018).
 
 """
     HubbardAtom(U, beta)
@@ -7,10 +8,11 @@ Half-filled Hubbard atom with the Hamiltonian (Equation 1)
 
     H = U * (n[↑] - 1/2) * (n[↓] - 1/2)
 
-in contact with a heat bath at temperature `1/beta`. `U` must be finite and `beta` finite and
-positive. Both are promoted to a common floating-point type `T`, which is used for all results,
-e.g. `HubbardAtom(big"2.0", big"10.0")` evaluates everything in `BigFloat`. All quantities except
-`gf` are real; `DopedHubbardAtom(U, beta, 0)` gives the same values as complex numbers.
+in contact with a heat bath at temperature `1/beta`. `U` must be finite and `beta` finite
+and positive. Both are promoted to a common floating-point type `T`, which is used for all
+results, e.g. `HubbardAtom(big"2.0", big"10.0")` evaluates everything in `BigFloat`. All
+quantities except `gf` are real; `DopedHubbardAtom(U, beta, 0)` gives the same values as
+complex numbers.
 """
 struct HubbardAtom{T<:AbstractFloat} <: AbstractHubbardAtom
     U::T              # Hubbard interaction
@@ -23,7 +25,8 @@ struct HubbardAtom{T<:AbstractFloat} <: AbstractHubbardAtom
     function HubbardAtom(U::Real, beta::Real)
         U, beta = float.(promote(U, beta))
         isfinite(U) || throw(DomainError(U, "U must be finite"))
-        (isfinite(beta) && beta > 0) || throw(DomainError(beta, "beta must be positive and finite"))
+        (isfinite(beta) && beta > 0) ||
+            throw(DomainError(beta, "beta must be positive and finite"))
 
         # Both weights are computed directly, so each is accurate (and neither
         # overflows) for arbitrarily large |βU|.
@@ -59,7 +62,8 @@ function χ(r::SpinChannel, at::HubbardAtom, (n, n′, k)::FermiFermiBose)
          δ₁ == 0 ? -B²mA²(r, at) : 2(ν * νω - B²(r, at))
     χ_ab = ℬ₀(r) * β / 2 * ab / ((ν^2 + U²₄) * (νω^2 + U²₄))
     # each bᵢ is purely real or purely imaginary, so these products are real
-    χ_ab + real(b₁(r, at, (n, k)) * b₁(r, at, (n′, k)) + b₂(r, at, (n, k)) * b₂(r, at, (n′, k)))
+    χ_ab +
+    real(b₁(r, at, (n, k)) * b₁(r, at, (n′, k)) + b₂(r, at, (n, k)) * b₂(r, at, (n′, k)))
 end
 
 "Equation 11c"
@@ -85,7 +89,8 @@ function b₂(r::SpinChannel, at::HubbardAtom, (n, k)::FermiBose)
     νω = value(n + k, β)
     Cᵣʷ = C(r, at, k)
 
-    ℬ₂(r, at) * √(Complex(U * U²₄)) * √(U^2 / (1 - Cᵣʷ) + ω^2) / ((ν^2 + U²₄) * (νω^2 + U²₄))
+    ℬ₂(r, at) * √(Complex(U * U²₄)) * √(U^2 / (1 - Cᵣʷ) + ω^2) /
+    ((ν^2 + U²₄) * (νω^2 + U²₄))
 end
 
 "Equation 12"
@@ -178,7 +183,9 @@ end
 # Equation 27
 F(::DensityChannel, at::HubbardAtom, w::FermiFermiBose) = F_up_up(at, w) + F_up_down(at, w)
 F(::MagneticChannel, at::HubbardAtom, w::FermiFermiBose) = F_up_up(at, w) - F_up_down(at, w)
-F(::SingletChannel, at::HubbardAtom, w::FermiFermiBose) = -F_up_up(at, _to_pp(w)) + 2F_up_down(at, _to_pp(w))
+function F(::SingletChannel, at::HubbardAtom, w::FermiFermiBose)
+    -F_up_up(at, _to_pp(w)) + 2F_up_down(at, _to_pp(w))
+end
 F(::TripletChannel, at::HubbardAtom, w::FermiFermiBose) = F_up_up(at, _to_pp(w))
 
 _to_pp((n, n′, k)::FermiFermiBose) = (n, n′, -n - n′ - k)
@@ -214,7 +221,8 @@ function F_up_down(at::HubbardAtom, w::FermiFermiBose)
     νω = value(n + k, β)
     ν′ω = value(n′ + k, β)
 
-    res = U - U^3 / 8 * (ν^2 + νω^2 + ν′ω^2 + ν′^2) / (ν * νω * ν′ω * ν′) - 3U^5 / (16 * ν * νω * ν′ω * ν′)
+    res = U - U^3 / 8 * (ν^2 + νω^2 + ν′ω^2 + ν′^2) / (ν * νω * ν′ω * ν′) -
+          3U^5 / (16 * ν * νω * ν′ω * ν′)
 
     deltas1 = 2 * δ(n, -(n′ + k)) + δ(k)
     if !iszero(deltas1)
@@ -314,11 +322,13 @@ function Γ_B(r::SpinChannel, at::HubbardAtom, (n, n′, k)::FermiFermiBose, ΓA
     (; X, R, w, ψ, zν) = a
     P = (X + bU)^2 + U²₄ * ω^2
     if isfinite(w) && iszero(zν)
-        ΓA + (σ * β * b * P - U * Q + U * b * (2bU + X - β^2 * P * ψ / 4)) / (ℬ₀(r) * ν * νω * R)
+        ΓA +
+        (σ * β * b * P - U * Q + U * b * (2bU + X - β^2 * P * ψ / 4)) / (ℬ₀(r) * ν * νω * R)
     elseif isfinite(w)
         ρ = β^2 / (4(zν + z))
         η = (1 + w^2 * ψ) / (2z) + w * ψ
-        ΓA + (σ * β * b * P - 2U * Q + 2U * b * (P * ρ * η + 2bU + X)) / (2ℬ₀(r) * ν * νω * R)
+        ΓA +
+        (σ * β * b * P - 2U * Q + 2U * b * (P * ρ * η + 2bU + X)) / (2ℬ₀(r) * ν * νω * R)
     elseif D == 1 && iszero(δ(n, n′))  # ν′ = -ν - ω
         β * P * B²mA²(r, at) / (2ℬ₀(r) * (ν * νω - A²(r, at)) * X) - K / (R * X)
     else
@@ -334,7 +344,7 @@ function _TX(ν, νω, y, β, U, σ, b, s², z, T)
         t = β^2 * s² / 16  # z², the pole is at z = 0
         if abs(t) <= 1
             ψ = _ψ(t)
-            return (; X, R=σ * X + U / β * (1 + t * ψ), w=√abs(t), ψ, zν)
+            return (; X, R=σ * X + U / β * (1 + t * ψ), w=(√abs(t)), ψ, zν)
         end
     elseif s² > 0
         w = β^2 * X / (4(zν + z))
@@ -404,8 +414,12 @@ end
 
 # The Ward identities of Krien and Valli; at half filling, the singlet pair and the charge density
 # are related by η-pairing symmetry, which gives G₃(s) = G₃(d)/2.
-G₃(::d, at::HubbardAtom, (n, k)::FermiBose) = -real(iszero(k) ? ∂G∂μ(at, n) : ∂G∂ν(at, n, k))
-G₃(::m, at::HubbardAtom, (n, k)::FermiBose) = -real(iszero(k) ? ∂G∂H(at, n) : ∂G∂ν(at, n, k))
+function G₃(::d, at::HubbardAtom, (n, k)::FermiBose)
+    -real(iszero(k) ? ∂G∂μ(at, n) : ∂G∂ν(at, n, k))
+end
+function G₃(::m, at::HubbardAtom, (n, k)::FermiBose)
+    -real(iszero(k) ? ∂G∂H(at, n) : ∂G∂ν(at, n, k))
+end
 G₃(::s, at::HubbardAtom, w::FermiBose) = G₃(d(), at, w) / 2
 G₃(::t, at::HubbardAtom, (n, k)::FermiBose) = zero(at.U)
 

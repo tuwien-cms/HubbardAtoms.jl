@@ -1,7 +1,7 @@
 """
 Supertype of the four channels, `PHChannel` (`DensityChannel`, `MagneticChannel`) and
-`PPChannel` (`SingletChannel`, `TripletChannel`). The channels are singleton types; `CHANNELS`
-holds one instance of each.
+`PPChannel` (`SingletChannel`, `TripletChannel`). The channels are singleton types;
+`CHANNELS` holds one instance of each.
 """
 abstract type SpinChannel end
 

@@ -42,7 +42,7 @@ function bisect(f, lo, hi)
     for _ in 1:2precision(lo)
         mid = (lo + hi) / 2
         fmid = f(mid)
-        sign(fmid) == sign(flo) ? (lo = mid; flo = fmid) : (hi = mid)
+        sign(fmid) == sign(flo) ? (lo=mid; flo=fmid) : (hi = mid)
     end
     (lo + hi) / 2
 end
@@ -60,7 +60,8 @@ end
             end
         end
     end
-    @test gamma(DensityChannel(), HubbardAtom(1.0, 1.0), (FermionicFreq(1), FermionicFreq(1), BosonicFreq(0))) isa Float64
+    @test gamma(DensityChannel(), HubbardAtom(1.0, 1.0),
+                (FermionicFreq(1), FermionicFreq(1), BosonicFreq(0))) isa Float64
 end
 
 @testitem "Γ at the removable singularities (Eq. 21)" setup = [Eq19] begin
@@ -68,21 +69,28 @@ end
 
     # Regression for the reported failure (previously ≈ 7.4e15)
     w = (FermionicFreq(1), FermionicFreq(1), BosonicFreq(0))
-    @test gamma(DensityChannel(), HubbardAtom(3.961870127108698, 1.0), w) ≈ -37.10545999730081 rtol = 1e-13
+    @test gamma(DensityChannel(), HubbardAtom(3.961870127108698, 1.0), w) ≈
+          -37.10545999730081 rtol = 1e-13
 
     setprecision(BigFloat, 512) do
         # (channel, β, ν = (2n+1)π/β, ω = 2kπ/β, bracket for U), with ν(ν + ω) of either sign. The
         # last three have 2ν + ω = 0, where both Kronecker deltas of Eq. 19 hold and B² = -ω²/4.
-        for (r, β, n, k, Ulo, Uhi) in ((DensityChannel(), 1.0, 0, 0, 0.1, 50.0), (SingletChannel(), 1.0, 0, 0, 0.1, 50.0),
-                                       (DensityChannel(), 3.0, 1, 1, 0.1, 50.0), (DensityChannel(), 1.0, -2, 1, 0.1, 50.0),
-                                       (MagneticChannel(), 1.0, 0, 0, -50.0, -0.1), (MagneticChannel(), 2.0, 0, -2, 0.1, 50.0),
-                                       (MagneticChannel(), 1.0, -1, 1, 0.5, 50.0), (DensityChannel(), 1.0, -1, 1, -50.0, -0.5),
+        for (r, β, n, k, Ulo, Uhi) in ((DensityChannel(), 1.0, 0, 0, 0.1, 50.0),
+                                       (SingletChannel(), 1.0, 0, 0, 0.1, 50.0),
+                                       (DensityChannel(), 3.0, 1, 1, 0.1, 50.0),
+                                       (DensityChannel(), 1.0, -2, 1, 0.1, 50.0),
+                                       (MagneticChannel(), 1.0, 0, 0, -50.0, -0.1),
+                                       (MagneticChannel(), 2.0, 0, -2, 0.1, 50.0),
+                                       (MagneticChannel(), 1.0, -1, 1, 0.5, 50.0),
+                                       (DensityChannel(), 1.0, -1, 1, -50.0, -0.5),
                                        (MagneticChannel(), 2.0, 1, -3, 0.5, 50.0))
             βb = big(β)
             ν = SparseIR.value(FermionicFreq(2n + 1), βb)
             ω = SparseIR.value(BosonicFreq(2k), βb)
             U₀ = Float64(bisect(U -> B²ref(r, U, βb) - ν * (ν + ω), big(Ulo), big(Uhi)))
-            Us = vcat(U₀, nextfloat(U₀), prevfloat(U₀), [U₀ * (1 + d) for d in (1e-15, 1e-12, 1e-9, 1e-6, 1e-3) for d in (d, -d)])
+            Us = vcat(U₀, nextfloat(U₀), prevfloat(U₀),
+                      [U₀ * (1 + d) for d in (1e-15, 1e-12, 1e-9, 1e-6, 1e-3)
+                       for d in (d, -d)])
             # ν′ = ν and ν′ = -ν - ω combine both singular terms, the others only the third
             for U in Us, n′ in (n, -n - k - 1, n + 1, n - 2)
                 w = (FermionicFreq(2n + 1), FermionicFreq(2n′ + 1), BosonicFreq(2k))
@@ -116,8 +124,9 @@ end
     ν, ω = FermionicFreq(1), BosonicFreq(0)
     N = 10^5
     for ν′ in (FermionicFreq(1), FermionicFreq(3))
-        Φ = -sum(j -> gamma(d, at, (ν, FermionicFreq(2j + 1), ω)) * chi0(d, at, (FermionicFreq(2j + 1), ω)) *
-                      full_vertex(d, at, (FermionicFreq(2j + 1), ν′, ω)), -N:N-1)
+        Φ = -sum(j -> gamma(d, at, (ν, FermionicFreq(2j + 1), ω)) *
+                      chi0(d, at, (FermionicFreq(2j + 1), ω)) *
+                      full_vertex(d, at, (FermionicFreq(2j + 1), ν′, ω)), (-N):(N - 1))
         @test Φ ≈ full_vertex(d, at, (ν, ν′, ω)) - gamma(d, at, (ν, ν′, ω)) rtol = 1e-5
     end
 end
@@ -129,13 +138,17 @@ end
     # A² ≈ B² (r = d, m and βU ≫ 1). For ω = 0 and |βU| ≳ 700 the third term is a ratio of two
     # numbers ∝ exp(-|βU|) that underflow in Float64. Γ must be as accurate as a 1-ulp change of U
     # or β allows. The literal Eq. 19 loses ~|βU|/ln(10) digits there, hence the precision.
-    for (U, β) in ((3.0, 50.0), (-3.0, 50.0), (3.0, 1e3), (-3.0, 1e3), (20.0, 50.0), (-20.0, 50.0), (20.0, 200.0), (-20.0, 200.0))
+    for (U, β) in
+        ((3.0, 50.0), (-3.0, 50.0), (3.0, 1e3), (-3.0, 1e3), (20.0, 50.0), (-20.0, 50.0),
+         (20.0, 200.0), (-20.0, 200.0))
         setprecision(BigFloat, 256 + ceil(Int, 3abs(β * U))) do
             for r in CHANNELS, n in (-4, -1, 0), n′ in (-1, 0, 3), k in (-3, 0, 2)
                 w = (FermionicFreq(2n + 1), FermionicFreq(2n′ + 1), BosonicFreq(2k))
                 ref = Γref(r, big(U), big(β), w)
-                sensitivity = max(abs(Γref(r, big(nextfloat(U)), big(β), w) - ref), abs(Γref(r, big(U), big(nextfloat(β)), w) - ref))
-                @test abs(gamma(r, HubbardAtom(U, β), w) - ref) <= 10sensitivity + 1e-13 * abs(ref)
+                sensitivity = max(abs(Γref(r, big(nextfloat(U)), big(β), w) - ref),
+                                  abs(Γref(r, big(U), big(nextfloat(β)), w) - ref))
+                @test abs(gamma(r, HubbardAtom(U, β), w) - ref) <=
+                      10sensitivity + 1e-13 * abs(ref)
             end
         end
     end
@@ -150,13 +163,15 @@ end
     β = 1.0
     w = (FermionicFreq(1), FermionicFreq(1), BosonicFreq(0))
     setprecision(BigFloat, 512) do
-        T(U) = (s = 2sqrt(B²ref(d, U, big(β))); U * tan(β * s / 4) / s + 1)
+        T(U) = (s=2sqrt(B²ref(d, U, big(β))); U * tan(β * s / 4) / s + 1)
         for U₀ in (2π / sqrt(3), Float64(bisect(T, big(4.0), big(8.0))))
             for δ in (1e-3, 1e-6, 1e-9)
                 Γ₊, Γ₋ = (gamma(d, HubbardAtom(U₀ * (1 + x), β), w) for x in (δ, -δ))
                 for (U, Γ) in ((U₀ * (1 + δ), Γ₊), (U₀ * (1 - δ), Γ₋))
                     ref = Γref(d, big(U), big(β), w)
-                    @test abs(Γ - ref) <= 10abs(Γref(d, big(nextfloat(U)), big(β), w) - ref) + 1e-13 * abs(ref)
+                    @test abs(Γ - ref) <=
+                          10abs(Γref(d, big(nextfloat(U)), big(β), w) - ref) +
+                          1e-13 * abs(ref)
                 end
                 @test sign(Γ₊) == -sign(Γ₋)                   # pole of first order:
                 @test abs(Γ₊ * δ) ≈ abs(gamma(d, HubbardAtom(U₀ * (1 + 1e-3), β), w) * 1e-3) rtol = 1e-2
@@ -172,13 +187,16 @@ end
     # does tan(β(s + ω)/4) of its large argument; both must be avoided.
     for (U, β) in ((1.3, 2.1), (-5.0, 10.0), (20.0, 200.0)), r in CHANNELS
         at, atb = HubbardAtom(U, β), HubbardAtom(big(U), big(β))
-        for (n, n′, k) in ((-10^6, -1, 10^6), (-10^6, 10^6 - 1, 10^6), (10^6, -10^6, -10^6), (-1000, 5, 1000), (999, -1000, 1))
+        for (n, n′, k) in
+            ((-10^6, -1, 10^6), (-10^6, 10^6 - 1, 10^6), (10^6, -10^6, -10^6),
+             (-1000, 5, 1000), (999, -1000, 1))
             w = (FermionicFreq(2n + 1), FermionicFreq(2n′ + 1), BosonicFreq(2k))
             @test chi(r, at, w) ≈ chi(r, atb, w) rtol = 1e-14 atol = 1e-300
             @test full_vertex(r, at, w) ≈ full_vertex(r, atb, w) rtol = 1e-14 atol = 1e-300
             setprecision(BigFloat, 256 + ceil(Int, 3abs(β * U))) do
                 ref = Γref(r, big(U), big(β), w)
-                sensitivity = max(abs(Γref(r, big(nextfloat(U)), big(β), w) - ref), abs(Γref(r, big(U), big(nextfloat(β)), w) - ref))
+                sensitivity = max(abs(Γref(r, big(nextfloat(U)), big(β), w) - ref),
+                                  abs(Γref(r, big(U), big(nextfloat(β)), w) - ref))
                 @test abs(gamma(r, at, w) - ref) <= 10sensitivity + 1e-14 * abs(ref)
             end
         end

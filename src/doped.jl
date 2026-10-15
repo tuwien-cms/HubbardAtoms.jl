@@ -56,7 +56,8 @@ struct DopedHubbardAtom{T<:AbstractFloat} <: AbstractHubbardAtom
         U, beta, mu = float.(promote(U, beta, mu))
         isfinite(U) || throw(DomainError(U, "U must be finite"))
         isfinite(mu) || throw(DomainError(mu, "mu must be finite"))
-        (isfinite(beta) && beta > 0) || throw(DomainError(beta, "beta must be positive and finite"))
+        (isfinite(beta) && beta > 0) ||
+            throw(DomainError(beta, "beta must be positive and finite"))
 
         # Boltzmann factors relative to the ground state, each from a directly computed gap
         # (E₀ - E₁ = a + μ, E₂ - E₁ = a - μ, E₀ - E₂ = 2μ), so none of them overflows.
@@ -78,13 +79,19 @@ struct DopedHubbardAtom{T<:AbstractFloat} <: AbstractHubbardAtom
         logh = log(beta) + (l0 + l2) / 2 - log(Z)
         T = typeof(U)
         new{T}(U, beta, mu, a, p0, p1, p2, (w1 + w2) / Z, (w0 + w1) / Z, rho, w11, logh,
-            Dict{Tuple{Int,Int},PHSetup{T}}(), Dict{Int,Complex{T}}(), ReentrantLock())
+               Dict{Tuple{Int,Int},PHSetup{T}}(), Dict{Int,Complex{T}}(), ReentrantLock())
     end
 end
 
-Base.:(==)(a::DopedHubbardAtom, b::DopedHubbardAtom) = (a.U, a.beta, a.mu) == (b.U, b.beta, b.mu)
-Base.hash(a::DopedHubbardAtom, h::UInt) = hash((a.U, a.beta, a.mu), hash(:DopedHubbardAtom, h))
-Base.show(io::IO, a::DopedHubbardAtom) = print(io, "DopedHubbardAtom(", a.U, ", ", a.beta, ", ", a.mu, ")")
+function Base.:(==)(a::DopedHubbardAtom, b::DopedHubbardAtom)
+    (a.U, a.beta, a.mu) == (b.U, b.beta, b.mu)
+end
+function Base.hash(a::DopedHubbardAtom, h::UInt)
+    hash((a.U, a.beta, a.mu), hash(:DopedHubbardAtom, h))
+end
+function Base.show(io::IO, a::DopedHubbardAtom)
+    print(io, "DopedHubbardAtom(", a.U, ", ", a.beta, ", ", a.mu, ")")
+end
 
 # Matsubara frequency from an integer index i: πi/β (as SparseIR.value)
 _freq(i::Integer, β) = i * (π / β)
@@ -138,8 +145,9 @@ end
 _x(at::DopedHubbardAtom, n::FermionicFreq) = Complex(at.mu, _freq(Int(n), at.beta))
 
 # z = x + w/2 = μ + i(ν + ω/2)
-_z(at::DopedHubbardAtom, n::FermionicFreq, k::BosonicFreq) =
+function _z(at::DopedHubbardAtom, n::FermionicFreq, k::BosonicFreq)
     Complex(at.mu, _freq(Int(n) + Int(k) ÷ 2, at.beta))
+end
 
 function G(at::DopedHubbardAtom, n::FermionicFreq)
     x = _x(at, n)
@@ -180,7 +188,8 @@ function _χconn(r::PHChannel, at::DopedHubbardAtom, (n, n′, k)::FermiFermiBos
     C = _pair(at, Int(n) + Int(n′) + Int(k))
     # ε𝒩 (Lemma "compact input"), with 4a²(1 - ρ) = 8a²q₋
     # divided early, so that no intermediate exceeds degree four in the energies (Float32 range)
-    res = ε * ((4a^2 * C - 2a) / fn.Qm / fm.Qm + (8a^2 * at._qm * (z * v + q0) / fn.P) * ((z + v + 2a) / fm.P))
+    res = ε * ((4a^2 * C - 2a) / fn.Qm / fm.Qm +
+               (8a^2 * at._qm * (z * v + q0) / fn.P) * ((z + v + 2a) / fm.P))
     if iszero(k)
         # ζᵣ J(z) J(v), ζᵣ = βa²[1 - ρ² + 4ε(p₀p₂ - p₁²)] with 1 - ρ² = 4q₊q₋
         ζ = β * a^2 * 4 * (at._qp * at._qm - ε * at._w11)
@@ -198,7 +207,9 @@ _Δ(::DensityChannel, at::DopedHubbardAtom) = 4at._a^2 * (2at._p1 - at._w11)
 _Δ(::MagneticChannel, at::DopedHubbardAtom) = -4at._a^2 * at._w11
 
 # Eßl et al., Eq. (D3), in the compact form of the note
-χ(r::SpinChannel, at::DopedHubbardAtom, w::FermiFermiBose) = _χconn(r, at, w) + _η(r) * χ₀(r, at, w)
+function χ(r::SpinChannel, at::DopedHubbardAtom, w::FermiFermiBose)
+    _χconn(r, at, w) + _η(r) * χ₀(r, at, w)
+end
 
 _η(::SpinChannel) = 1
 _η(::SingletChannel) = -1
@@ -218,7 +229,8 @@ is B = -β𝒢/(2𝒫).
 function _pp_factors(at::DopedHubbardAtom, n::FermionicFreq, k::BosonicFreq)
     a, ρ = at._a, at._rho
     x, x̄ = _x(at, n), _x(at, -n - k)
-    (; x, x̄, t=x * x̄, 𝒫=(x - a) * (x + a) * (x̄ - a) * (x̄ + a), 𝒢=(x + a * ρ) * (x̄ + a * ρ))
+    𝒫 = (x - a) * (x + a) * (x̄ - a) * (x̄ + a)
+    (; x, x̄, t=x * x̄, 𝒫, 𝒢=(x + a * ρ) * (x̄ + a * ρ))
 end
 
 # Dₛ = a²(ρ² - 1 + 8p₁) = 4a²(p₁ + w₁₁), so that t + Aₛ = 𝒢(t) - Dₛ
@@ -306,7 +318,8 @@ precision if needed.
 =#
 function _pp_setup(at::DopedHubbardAtom{T}, k::BosonicFreq) where {T}
     _cached(at, at._pp_setups, Int(k)) do
-        _adaptive(at, (bat, _) -> _pp_setup_raw(bat, k), x -> x.loss, x -> Complex{T}(x.c))
+        _adaptive(at, (bat, _) -> _pp_setup_raw(bat, k), x -> x.loss,
+                  x -> Complex{T}(x.c))
     end::Complex{T}
 end
 
@@ -315,7 +328,8 @@ function _pp_setup_raw(at::DopedHubbardAtom{T}, k::BosonicFreq) where {T}
     b = Complex(2at.mu, -_freq(Int(k), β))
     As = a * ρ * b + a^2 * (1 - 8p1)
     𝒫A = 4a^2 * (4a * p1 - b * at._qp) * (4a * p1 + b * at._qm)
-    loss = _cancel(4a * p1 - b * at._qp, 4a * p1, b * at._qp) + _cancel(4a * p1 + b * at._qm, 4a * p1, b * at._qm)
+    loss = _cancel(4a * p1 - b * at._qp, 4a * p1, b * at._qp) +
+           _cancel(4a * p1 + b * at._qm, 4a * p1, b * at._qm)
     ξ = sqrt(b^2 / 4 + As)  # Re ξ ≥ 0
     y = β * ξ / 2
     kodd = _kodd(k)
@@ -377,7 +391,8 @@ function _adaptive(at::DopedHubbardAtom{T}, raw, loss, result) where {T}
     prec = precision(T) + 48 + min(_bits(5l / 4), 1024)
     while true
         y = _withprecision(prec) do
-            raw(DopedHubbardAtom(BigFloat(at.U), BigFloat(at.beta), BigFloat(at.mu)), BigFloat)
+            raw(DopedHubbardAtom(BigFloat(at.U), BigFloat(at.beta), BigFloat(at.mu)),
+                BigFloat)
         end
         ly = loss(y)
         (precision(T) + 40 + 5ly / 4 <= prec || prec >= 1 << 16) && return result(y)
@@ -408,7 +423,7 @@ element is not.
 function _ph_setup(at::DopedHubbardAtom{T}, k::BosonicFreq, ε::Int) where {T}
     _cached(at, at._setups, (Int(k), ε)) do
         _adaptive(at, (bat, _) -> _ph_setup_exact(bat, k, ε), x -> x.loss,
-            x -> PHSetup{T}(x.q1, x.s1, x.s2, x.Y1, x.Yd))
+                  x -> PHSetup{T}(x.q1, x.s1, x.s2, x.Y1, x.Yd))
     end::PHSetup{T}
 end
 
@@ -472,10 +487,13 @@ function _ph_setup_raw(at::DopedHubbardAtom{T}, k::BosonicFreq, ε::Int) where {
         λα = λ * _α(at, kodd, u)
         loss = lossP + _cancel(M, 4a * β * u * X, λ^2 * β^2 * ρ / 4)
         # K = X + λα and N = X - λα, each either directly or from the identity (whichever cancels less)
-        if abs(A) >= abs(B)  # B = -ρM/A is small: Y = uPρN/K with N = B - λρS = ρ(-M/A - λS)
-            K, lK = _better((A + λ * ρ * Su, _cancel(A + λ * ρ * Su, A, λ * ρ * Su)), (X + λα, _cancel(X + λα, X, λα)))
+        # B = -ρM/A is small: Y = uPρN/K with N = B - λρS = ρ(-M/A - λS)
+        if abs(A) >= abs(B)
+            K, lK = _better((A + λ * ρ * Su, _cancel(A + λ * ρ * Su, A, λ * ρ * Su)),
+                            (X + λα, _cancel(X + λα, X, λα)))
             Nρ = -M / A - λ * Su
-            N, lN = _better((ρ * Nρ, _cancel(Nρ, M / A, λ * Su)), (X - λα, _cancel(X - λα, X, λα)))
+            N, lN = _better((ρ * Nρ, _cancel(Nρ, M / A, λ * Su)),
+                            (X - λα, _cancel(X - λα, X, λα)))
             return u * Pu * (N / K) * ρ, loss + lK + lN
         else                 # A = -ρM/B is small: Y = uPN/κ with κ = K/ρ = -M/B + λS
             κ, lκ = -M / B + λ * Su, _cancel(-M / B + λ * Su, M / B, λ * Su)
@@ -483,7 +501,8 @@ function _ph_setup_raw(at::DopedHubbardAtom{T}, k::BosonicFreq, ε::Int) where {
                 K = X + λα
                 κ, lκ = _better((κ, lκ), (K / ρ, _cancel(K, X, λα)))
             end
-            N, lN = _better((B - λ * ρ * Su, _cancel(B - λ * ρ * Su, B, λ * ρ * Su)), (X - λα, _cancel(X - λα, X, λα)))
+            N, lN = _better((B - λ * ρ * Su, _cancel(B - λ * ρ * Su, B, λ * ρ * Su)),
+                            (X - λα, _cancel(X - λα, X, λα)))
             return u * Pu * (N / κ), loss + lκ + lN
         end
     end
@@ -516,7 +535,8 @@ function _ph_setup_raw(at::DopedHubbardAtom{T}, k::BosonicFreq, ε::Int) where {
     end
     (Y1, l1), (Y2, l2) = Y(s1, σ1), Y(s2, σ2)
     # D carries the error of the roots, Y₁ - Y₂ that of the divided difference
-    loss = max(l1, l2) + _cancel(D, a^2 * ρ^4, ρ^2 * q1, 4a^2 * p0 * p2) / 2 + _cancel(Y1 - Y2, Y1, Y2)
+    loss = max(l1, l2) + _cancel(D, a^2 * ρ^4, ρ^2 * q1, 4a^2 * p0 * p2) / 2 +
+           _cancel(Y1 - Y2, Y1, Y2)
     (; q1, s1, s2, Y1, Yd=(Y1 - Y2) / Δs, loss, Δs)
 end
 
@@ -564,7 +584,8 @@ function _Γraw(r::PHChannel, at::DopedHubbardAtom, (n, n′, k)::FermiFermiBose
 
     res = complex(2ε * a)
     # separable part
-    res += λ * ((st.Y1 / ez) * ((z² + v² - st.s1 - st.s2) / ev) + st.Yd / (z² - st.s2) / (v² - st.s2))
+    res += λ * ((st.Y1 / ez) * ((z² + v² - st.s1 - st.s2) / ev) +
+                st.Yd / (z² - st.s2) / (v² - st.s2))
     # dense part -λρ𝔻(z, v) = -λ C(z, v) Q(z, v), C = ρ/(z + v)
     C = _pair(at, Int(n) + Int(n′) + Int(k))
     iszero(C) || (res -= λ * C * _Q(at, st, k, ε, z, v, n == n′))
@@ -576,7 +597,7 @@ function _Γraw(r::PHChannel, at::DopedHubbardAtom, (n, n′, k)::FermiFermiBose
     # lattice zeros of e (removable): terms ∝ 1/e(z), 1/e(v) cancel
     R = abs(st.s1) + abs(st.s2) + a^2
     loss = max(_cancel(min(abs(z² - st.s1), abs(z² - st.s2)), abs(z²), R),
-        _cancel(min(abs(v² - st.s1), abs(v² - st.s2)), abs(v²), R))
+               _cancel(min(abs(v² - st.s1), abs(v² - st.s2)), abs(v²), R))
     Complex{T}(res), loss
 end
 
@@ -609,7 +630,9 @@ function χ(::DensityChannel, at::DopedHubbardAtom, k::BosonicFreq)
     var = 4at._p0 * at._qp^2 + 2at._p1 * at._rho^2 + 4at._p2 * at._qm^2
     complex(-at.beta * δ(k) * var)
 end
-χ(::MagneticChannel, at::DopedHubbardAtom, k::BosonicFreq) = complex(-at.beta * δ(k) * 2at._p1)
+function χ(::MagneticChannel, at::DopedHubbardAtom, k::BosonicFreq)
+    complex(-at.beta * δ(k) * 2at._p1)
+end
 χ(::SingletChannel, at::DopedHubbardAtom, k::BosonicFreq) = -_pair(at, -Int(k))
 function χ(::TripletChannel, at::DopedHubbardAtom, k::BosonicFreq)
     # Σ over the pole pairs of G(ν) G(-ν - ω): 2Sₖ(∓a)/(b ∓ 2a) for both poles at ±a, and 2βp₁ρ/b for mixed ones
