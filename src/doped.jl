@@ -185,11 +185,12 @@ function _χconn(r::PHChannel, at::DopedHubbardAtom, (n, n′, k)::FermiFermiBos
     q0 = a^2 + _freq(Int(k), β)^2 / 4
     C = _pair(at, Int(n) + Int(n′) + Int(k))
     # ε𝒩 (Lemma "compact input"), with 4a²(1 - ρ) = 8a²q₋
-    res = ε * ((4a^2 * C - 2a) / (fn.Qm * fm.Qm) + 8a^2 * at._qm * (z + v + 2a) * (z * v + q0) / (fn.P * fm.P))
+    # divided early, so that no intermediate exceeds degree four in the energies (Float32 range)
+    res = ε * ((4a^2 * C - 2a) / fn.Qm / fm.Qm + (8a^2 * at._qm * (z * v + q0) / fn.P) * ((z + v + 2a) / fm.P))
     if iszero(k)
         # ζᵣ J(z) J(v), ζᵣ = βa²[1 - ρ² + 4ε(p₀p₂ - p₁²)] with 1 - ρ² = 4q₊q₋
         ζ = β * a^2 * 4 * (at._qp * at._qm - ε * at._w11)
-        res += ζ / ((z^2 - a^2) * (v^2 - a^2))
+        res += ζ / (z^2 - a^2) / (v^2 - a^2)
     end
     if n == n′
         # χ - B on the diagonal: -β(H - G₂)/P with H - G₂ = Δᵣ = a²(1 - ρ² + 4εp₁)
@@ -224,7 +225,7 @@ part of χ directly.
 function F(r::SpinChannel, at::DopedHubbardAtom, (n, n′, k)::FermiFermiBose)
     β = at.beta
     B, B′ = β * χ₀(r, at, (n, k)), β * χ₀(r, at, (n′, k))
-    -β^2 * _χconn(r, at, (n, n′, k)) / (B * B′)
+    -(β * (_χconn(r, at, (n, n′, k)) / B)) * (β / B′)
 end
 
 #=
@@ -256,9 +257,9 @@ function _χconn(::SingletChannel, at::DopedHubbardAtom, (n, n′, k)::FermiFerm
     fn, fm = _pp_factors(at, n, k), _pp_factors(at, n′, k)
     b = Complex(2at.mu, -_freq(Int(k), at.beta))
     c = _pair(at, -Int(k))  # ρ/b
-    # χ_s,reg, with t - t₋ = (x + a)(x̄ + a) and 1 - ρ = 2q₋
-    res = (a * (2a * c - 1) * (fn.x + a) * (fn.x̄ + a) * (fm.x + a) * (fm.x̄ + a) +
-           2a^2 * at._qm * (b + 2a) * (fn.t + fm.t + 2a^2)) / (fn.𝒫 * fm.𝒫)
+    # χ_s,reg, with (t - t₋)/𝒫 = 1/((x - a)(x̄ - a)) and 1 - ρ = 2q₋
+    res = a * (2a * c - 1) / ((fn.x - a) * (fn.x̄ - a)) / ((fm.x - a) * (fm.x̄ - a)) +
+          (2a^2 * at._qm * (fn.t + fm.t + 2a^2) / fn.𝒫) * ((b + 2a) / fm.𝒫)
     D = δ(n, n′) + δ(n, -n′ - k)
     # (L_s + B)(δ + δ̄)/2 with L_s + B = -βDₛ/(2𝒫)
     iszero(D) || (res -= at.beta * _Ds(at) * D / (4fn.𝒫))
@@ -286,7 +287,7 @@ function Γ(::TripletChannel, at::DopedHubbardAtom, (n, n′, k)::FermiFermiBose
     f = _pp_factors(at, n, k)
     # βa²(1 - ρ²)𝒫/(𝒢(t + aρb + a²)) with t + aρb + a² = 𝒢 + a²(1 - ρ²), 1 - ρ² = 4q₊q₋
     g = 4a^2 * at._qp * at._qm
-    Complex{T}(at.beta * g * f.𝒫 / (f.𝒢 * (f.𝒢 + g)) * D)
+    Complex{T}(at.beta * g * (f.𝒫 / f.𝒢) / (f.𝒢 + g) * D)
 end
 
 function Γ(r::Union{PHChannel,SingletChannel}, at::DopedHubbardAtom, w::FermiFermiBose)
@@ -316,9 +317,9 @@ function _Γraw(::SingletChannel, at::DopedHubbardAtom, (n, n′, k)::FermiFermi
     Ds = _Ds(at)
     tAn, tAm = fn.𝒢 - Ds, fm.𝒢 - Ds  # t + Aₛ
     c = _pp_setup(at, k)
-    res = 4a - 4a * c / (tAn * tAm)
+    res = 4a - 4a * (c / tAn) / tAm
     D = δ(n, n′) + δ(n, -n′ - k)
-    iszero(D) || (res += β * Ds * fn.𝒫 / (fn.𝒢 * tAn) * D)
+    iszero(D) || (res += β * Ds * (fn.𝒫 / fn.𝒢) / tAn * D)
     loss = max(_cancel(tAn, fn.𝒢, Ds), _cancel(tAm, fm.𝒢, Ds))
     Complex{T}(res), loss
 end
@@ -362,12 +363,12 @@ function _pp_setup_raw(at::DopedHubbardAtom{T}, k::BosonicFreq) where {T}
 end
 
 #=
-`f()` with the BigFloat precision set to `prec`. From Julia 1.11 on, `setprecision` with a function is
+`f()` with the BigFloat precision set to `prec`. From Julia 1.12 on, `setprecision` with a function is
 task-local; before, it sets a global value, so concurrent calls are serialized (they still change the
 precision seen by other code running concurrently).
 =#
 const _PRECISION_LOCK = ReentrantLock()
-if VERSION >= v"1.11"
+if VERSION >= v"1.12"
     _withprecision(f, prec) = setprecision(f, BigFloat, prec)
 else
     _withprecision(f, prec) = lock(() -> setprecision(f, BigFloat, prec), _PRECISION_LOCK)
@@ -505,7 +506,7 @@ function _ph_setup_raw(at::DopedHubbardAtom{T}, k::BosonicFreq, ε::Int) where {
             K, lK = _better((A + λ * ρ * Su, _cancel(A + λ * ρ * Su, A, λ * ρ * Su)), (X + λα, _cancel(X + λα, X, λα)))
             Nρ = -M / A - λ * Su
             N, lN = _better((ρ * Nρ, _cancel(Nρ, M / A, λ * Su)), (X - λα, _cancel(X - λα, X, λα)))
-            return u * Pu * ρ * N / K, loss + lK + lN
+            return u * Pu * (N / K) * ρ, loss + lK + lN
         else                 # A = -ρM/B is small: Y = uPN/κ with κ = K/ρ = -M/B + λS
             κ, lκ = -M / B + λ * Su, _cancel(-M / B + λ * Su, M / B, λ * Su)
             if !iszero(ρ)
@@ -513,7 +514,7 @@ function _ph_setup_raw(at::DopedHubbardAtom{T}, k::BosonicFreq, ε::Int) where {
                 κ, lκ = _better((κ, lκ), (K / ρ, _cancel(K, X, λα)))
             end
             N, lN = _better((B - λ * ρ * Su, _cancel(B - λ * ρ * Su, B, λ * ρ * Su)), (X - λα, _cancel(X - λα, X, λα)))
-            return u * Pu * N / κ, loss + lκ + lN
+            return u * Pu * (N / κ), loss + lκ + lN
         end
     end
     if ε == -1 && iszero(k)
@@ -575,7 +576,7 @@ function _Y_atomic(at::DopedHubbardAtom)
     λα = -4a^2 * _α(at, false, u)
     X = β * (d2 + 4a^2 * p0 - 2a * ρ * δu)       # βH(-u₂)
     N = X - λα
-    Y2 = u * d2^2 * N / κ
+    Y2 = u * d2^2 * (N / κ)
     Y2, d2, _cancel(κ, κ1, κ2) + _cancel(N, X, λα) + _cancel(X, d2, 4a^2 * p0, 2a * ρ * δu)
 end
 
@@ -593,14 +594,14 @@ function _Γraw(r::PHChannel, at::DopedHubbardAtom, (n, n′, k)::FermiFermiBose
 
     res = complex(2ε * a)
     # separable part
-    res += λ * (st.Y1 * (z² + v² - st.s1 - st.s2) / (ez * ev) + st.Yd / ((z² - st.s2) * (v² - st.s2)))
+    res += λ * ((st.Y1 / ez) * ((z² + v² - st.s1 - st.s2) / ev) + st.Yd / (z² - st.s2) / (v² - st.s2))
     # dense part -λρ𝔻(z, v) = -λ C(z, v) Q(z, v), C = ρ/(z + v)
     C = _pair(at, Int(n) + Int(n′) + Int(k))
     iszero(C) || (res -= λ * C * _Q(at, st, k, ε, z, v, n == n′))
     if n == n′
         # βP[1/G₂ - H(-z)/e] = βP(Δᵣ H(-z) - 16a⁴p₀p₂)/(G₂ e)
         H = z² - 2a * ρ * z + st.q1
-        res += β * fn.P * (_Δ(r, at) * H - 16a^4 * at._p0 * at._p2) / (fn.G2 * ez)
+        res += β * (fn.P / ez) * ((_Δ(r, at) * H - 16a^4 * at._p0 * at._p2) / fn.G2)
     end
     # lattice zeros of e (removable): terms ∝ 1/e(z), 1/e(v) cancel
     R = abs(st.s1) + abs(st.s2) + a^2
@@ -620,15 +621,16 @@ function _Q(at::DopedHubbardAtom, st, k::BosonicFreq, ε::Int, z, v, diagonal::B
     r1 = -4a^2 * (4at._qp * at._qm + 2ε * at._p1)
     r0 = -8ε * a^2 * at._p1 * q0 - 16a^4 * at._w11
     s1, s2 = st.s1, st.s2
-    if diagonal
+    # z == v also for distinct frequencies that round to the same value
+    if diagonal || z == v
         s = z^2
         es = (s - s1) * (s - s2)
         Rs = r1 * s + r0
-        return 1 + (Rs + 2s * r1) / es - 2s * Rs * (2s - s1 - s2) / es^2
+        return 1 + (Rs + 2s * r1) / es - 2s * (Rs / es) * ((2s - s1 - s2) / es)
     end
     z², v² = z^2, v^2
-    φz = z * (r1 * z² + r0) / ((z² - s1) * (z² - s2))
-    φv = v * (r1 * v² + r0) / ((v² - s1) * (v² - s2))
+    φz = z / (z² - s1) * ((r1 * z² + r0) / (z² - s2))
+    φv = v / (v² - s1) * ((r1 * v² + r0) / (v² - s2))
     1 + (φz - φv) / (z - v)
 end
 

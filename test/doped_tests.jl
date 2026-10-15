@@ -126,6 +126,25 @@ end
     end
 end
 
+@testitem "Doped atom: range of Float32" setup = [AllFunctions] begin
+    using SparseIR
+
+    # No intermediate product may over- or underflow: for energy units far from 1, for large frequencies,
+    # and for distinct frequencies that round to the same Float32 value. Reference: Float64.
+    for (c, ν, ν′, ω) in ((1e-6, FermionicFreq(1), FermionicFreq(3), BosonicFreq(0)),
+        (1e6, FermionicFreq(1), FermionicFreq(-5), BosonicFreq(2)),
+        (1.0, FermionicFreq(2 * 10^8 + 1), FermionicFreq(2 * 10^8 + 3), BosonicFreq(2)),
+        (1.0, FermionicFreq(33554435), FermionicFreq(33554437), BosonicFreq(0)))
+        U, β, μ = 2c, 3 / c, 0.3c
+        for r in CHANNELS
+            res = results(r, DopedHubbardAtom(Float32(U), Float32(β), Float32(μ)); ν, ν′, ω)
+            ref = results(r, DopedHubbardAtom(U, β, μ); ν, ν′, ω)
+            # entries 9 (Λ) and 10 (Φ = F - Γ) are sums of terms of the size of U
+            @test all(isapprox(res[i], ref[i]; rtol=1e-3, atol=i in (9, 10) ? 1e-3 * abs(U) : 0) for i in eachindex(ref))
+        end
+    end
+end
+
 @testitem "Doped atom: accuracy against BigFloat" setup = [Doped] begin
     # Including low temperatures, attractive U, μ near 0 and in and outside the gap, and large frequencies.
     setprecision(BigFloat, 320) do

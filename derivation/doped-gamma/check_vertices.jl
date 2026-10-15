@@ -102,3 +102,4 @@ let worst_ref = 0.0, worst_pkg = 0.0
     global ok &= max(worst_ref, worst_pkg) < 1e-12
 end
 println(ok ? "ALL PASS" : "SOME FAILED")
+exit(ok ? 0 : 1)
