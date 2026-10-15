@@ -47,29 +47,4 @@ open(joinpath(@__DIR__, "gamma_cuts.csv"), "w") do io
     end
 end
 
-# Example table: closed form vs finite-box inversion (Proposition: finite boxes), d channel
-U, β, μ, k = 2.0, 3.0, 0.3, 1
-at = DA.Atom(U, β, μ); gd = DA.GammaPH(at, :d, k)
-p0, p1, p2 = weights(U, β, μ); ρ = p2 - p0; a = U/2; w = 2π*im*k/β
-G(x) = (x + a*ρ)/(x^2 - a^2)
-Bph(n) = (x = μ + im*(2n + 1)*π/β; -β*G(x)*G(x + w))
-function box_gamma(N)
-    idx = [(j - 1 - k) ÷ 2 for j in -(2N+1):(2N+1) if iseven(j - 1 - k)]
-    X = [chi_parts(U, β, μ, k, 1, n, m)[1] for n in idx, m in idx]
-    Y = inv(X); pos(n) = findfirst(==(n), idx)
-    (n, m) -> β^2*(Y[pos(n), pos(m)] - (n == m)/Bph(n))
-end
-pts = [(0, 0), (0, -2), (2, -1)]
-open(joinpath(@__DIR__, "box_table.csv"), "w") do io
-    println(io, "n,m,N,re,im")
-    for N in (64, 128, 256)
-        g = box_gamma(N)
-        for (n, m) in pts
-            v = g(n, m); @printf(io, "%d,%d,%d,%.10f,%.10f\n", n, m, N, real(v), imag(v))
-        end
-    end
-    for (n, m) in pts
-        v = DA.gamma(gd, n, m); @printf(io, "%d,%d,closed,%.10f,%.10f\n", n, m, real(v), imag(v))
-    end
-end
 println("done")

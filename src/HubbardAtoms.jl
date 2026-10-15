@@ -15,12 +15,6 @@ export HubbardAtom, DopedHubbardAtom, CHANNELS, FermiBose, FermiFermiBose,
     bare_vertex, gf, chi, chi0, full_vertex, gamma, irreducible_vertex,
     channel_reducible_vertex, hedin, g3
 
-# Documented but unexported: the supertypes and the Unicode names of the paper.
-@static if VERSION >= v"1.11"
-    eval(Expr(:public, :AbstractHubbardAtom, :SpinChannel, :PHChannel, :PPChannel,
-        :G, :χ, :χ₀, :F, :Γ, :Λ, :Φ, :G₃))
-end
-
 """
 Supertype of the four channels, `PHChannel` (`DensityChannel`, `MagneticChannel`) and
 `PPChannel` (`SingletChannel`, `TripletChannel`). The channels are singleton types; `CHANNELS`
