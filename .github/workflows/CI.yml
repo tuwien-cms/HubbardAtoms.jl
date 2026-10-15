@@ -57,4 +57,4 @@ jobs:
           Pkg.activate(; temp=true)
           Pkg.develop(; path=".")
           Pkg.add("JET")
-          include("test/jet.jl")
+          include(joinpath(pwd(), "test", "jet.jl"))  # relative paths resolve against this script's directory
