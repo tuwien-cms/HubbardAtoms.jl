@@ -178,12 +178,46 @@ end
     end
 end
 
+@testitem "Doped atom: Float64 setups" setup = [Doped] begin
+    using HubbardAtoms: _ph_setup_raw, _pp_setup_raw, _floatok
+
+    (d, m, s, t) = CHANNELS
+    # Where the plain closed forms cancel in Float64: low temperature (U < 0 with k = 0, near half
+    # filling, U > 0 away from it), large transfers, a root of e near the lattice. The setups need
+    # no BigFloat (no tiny weight, estimated loss ≤ 6 bits), and Γ agrees with BigFloat.
+    cases = ((d, -2.0, 30.0, 0.01, 0, (0, 1)), (d, -6.0, 100.0, 1e-6, 1, (0, 1)),
+             (m, -1.0883204881841495, 29.24155260783198, 0.0039439465086138145, 5000,
+              (0, 1)),
+             (m, 13.79515781611038, 35.133852121266685, -0.0875681483096054, -30, (14, 17)),
+             (d, 7.145931675912827, 10.1102742644105, 0.0041009900553070034, -200, (-1, 2)),
+             (s, -0.6595262732322414, 997.5299430008005, -3.7701189911842553e-8, -5000,
+              (40, 7)))
+    # and z real next to a root of e, with v far away (Q in Float64 for a setup in BigFloat), and a
+    # tiny weight p₀ ≈ 1e-175 (setup in BigFloat)
+    extra = ((d, -0.09211723649223727, 177.72502978267823, -0.0063991951577591875, -1,
+              (0, 42)), (m, 6.0, 100.0, 1.0, 1, (0, 1)))
+    setprecision(BigFloat, 256) do
+        for (r, U, β, μ, k, (n, n′)) in (cases..., extra...)
+            at = DopedHubbardAtom(U, β, μ)
+            if (r, U, β, μ, k, (n, n′)) in cases
+                raw = r == s ? _pp_setup_raw(at, B(k)) :
+                      _ph_setup_raw(at, B(k), r == d ? 1 : -1)
+                @test _floatok(at) && raw.loss <= 6
+            end
+            w = (F(n), F(n′), B(k))
+            ref = gamma(r, DopedHubbardAtom(big(U), big(β), big(μ)), w)
+            @test gamma(r, at, w) ≈ ref rtol = 1e-13 atol = 1e-13 * abs(U)
+        end
+    end
+end
+
 @testitem "Doped atom: extreme βU" setup = [AllFunctions] begin
     using SparseIR
 
-    # The thermal weights over- or underflow in Float64 without care
+    # The thermal weights over- or underflow in Float64 without care; at (-2, 800, 0), p₁ = 0
     for (U, β, μ) in
-        ((2.0, 800.0, 0.3), (-2.0, 800.0, 0.3), (5.0, 1e4, -1.0), (2.0, 800.0, 3.0))
+        ((2.0, 800.0, 0.3), (-2.0, 800.0, 0.3), (5.0, 1e4, -1.0), (2.0, 800.0, 3.0),
+         (-2.0, 800.0, 0.0))
         at = DopedHubbardAtom(U, β, μ)
         for r in CHANNELS,
             (ν′, ω) in
@@ -200,6 +234,11 @@ end
                       for i in eachindex(res))
         end
     end
+    # in Float32, p₁ underflows to 0 already at β = 110
+    s, w = SingletChannel(), (FermionicFreq(1), FermionicFreq(3), BosonicFreq(0))
+    ref = setprecision(() -> gamma(s, DopedHubbardAtom(big(-2.0), big(110.0), big(0.0)), w),
+                       BigFloat, 256)
+    @test gamma(s, DopedHubbardAtom(-2.0f0, 110.0f0, 0.0f0), w) ≈ ref rtol = 1e-5
 end
 
 @testitem "Doped atom: removable singularities" setup = [Doped] begin
