@@ -2,7 +2,9 @@
 
 A Lean 4 / Mathlib formalization of parts of the derivation in `../doped-gamma-derivation.typ` (the
 irreducible vertex of the Hubbard atom away from half filling), and of the identities behind the
-floating-point implementation `DopedHubbardAtom` of this package (`../../src/doped.jl`).
+floating-point implementation `DopedHubbardAtom` of this package (`../../src/doped.jl`). Appendix E
+of the note, together with a remark after each of its numbered statements, says which statements are
+formalized and under which assumptions.
 
 ## What is proved
 
