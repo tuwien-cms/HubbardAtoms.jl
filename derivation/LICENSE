@@ -4,5 +4,5 @@ International License (CC BY 4.0): https://creativecommons.org/licenses/by/4.0/
 
 Copyright (c) 2026 Samuel Badr
 
-The scripts and data in this directory are licensed under the MIT License of this repository
-(../LICENSE).
+The scripts, the Lean code (lean/) and the data in this directory are licensed under the MIT
+License of this repository (../LICENSE).
