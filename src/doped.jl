@@ -376,11 +376,11 @@ end
 `raw(at, T)` computes a setup in the precision of `at`, `loss(x)` its estimated loss in bits, and
 `result(x)` the converted value. If the loss exceeds 6 bits, the setup is repeated in `BigFloat`
 at a precision covering it; the estimate is a heuristic that can be off by several bits, hence the
-generous margins. With `float = false` it is computed in `BigFloat` right away.
+generous margins. Where `_floatok(at)` fails, it is computed in `BigFloat` right away.
 =#
-function _adaptive(at::DopedHubbardAtom{T}, raw, loss, result; float=true) where {T}
+function _adaptive(at::DopedHubbardAtom{T}, raw, loss, result) where {T}
     l = zero(T)
-    if float
+    if _floatok(at)
         x = raw(at, T)
         l = loss(x)
         l <= 6 && return result(x)
@@ -425,13 +425,9 @@ computed in higher precision (once per transfer, as they are cached); the evalua
 element is not.
 =#
 function _ph_setup(at::DopedHubbardAtom{T}, k::BosonicFreq, ε::Int) where {T}
-    # If a weight is so small that products of two weights are not normal numbers in T (e.g. p₀p₂
-    # for βU/2 ≳ 350 in Float64), terms of that order decide quotients; the exponent range of
-    # BigFloat keeps them.
-    float = min(at._p0, at._p1, at._p2) >= sqrt(floatmin(T)) * T(2)^32
     _cached(at, at._setups, (Int(k), ε)) do
         _adaptive(at, (bat, _) -> _ph_setup_exact(bat, k, ε), x -> x.loss,
-                  x -> PHSetup{T}(x.δ1, x.δ2, x.Y1, x.Yd); float)
+                  x -> PHSetup{T}(x.δ1, x.δ2, x.Y1, x.Yd))
     end::PHSetup{T}
 end
 
@@ -445,6 +441,16 @@ function _ph_setup_exact(at::DopedHubbardAtom{T}, k::BosonicFreq, ε::Int) where
 end
 
 _bits(loss) = isfinite(loss) ? ceil(Int, loss) : 1 << 16
+
+#=
+Whether the setups can be computed in the type of `at`: not if a weight is so small that products
+of two weights are not normal numbers (e.g. p₀p₂ for βU/2 ≳ 350 in Float64, or p₁ = 0 by
+underflow). Terms of that order decide quotients there (e.g. Kₛ and 𝒫(-Aₛ) are both O(p₁²)), and
+the loss estimates cannot see underflow; the exponent range of BigFloat keeps them.
+=#
+function _floatok(at::DopedHubbardAtom{T}) where {T}
+    min(at._p0, at._p1, at._p2) >= sqrt(floatmin(T)) * T(2)^32
+end
 
 # tanh(B + Δ) - tanh(B) without cancellation for small Δ. For |Re B| ≥ 1/2 and B, B + Δ with real parts
 # of the same sign (≥ 0, else use oddness) it is -2e^{-2B} expm1(-2Δ)/((1 + e^{-2(B + Δ)})(1 + e^{-2B})),
