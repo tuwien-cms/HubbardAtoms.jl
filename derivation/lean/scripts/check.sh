@@ -6,7 +6,8 @@ set -euo pipefail
 #    on any warning (a `sorry` is only a warning).
 rm -rf .lake/build
 lake build HubbardAtomLean 2>&1 | tee .lake/build.log
-for m in Basic Triplet StableForms Thermal Matsubara SingletInput Singlet; do
+for m in Basic Triplet StableForms Thermal Matsubara SingletInput Singlet PHInput PHSums \
+  PHIdentities DensityMagnetic; do
   grep -q "Built HubbardAtomLean.$m" .lake/build.log \
     || { echo "gate is vacuous: HubbardAtomLean.$m was not compiled" >&2; exit 1; }
 done

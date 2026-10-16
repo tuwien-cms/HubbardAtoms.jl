@@ -5,3 +5,7 @@ import HubbardAtomLean.Thermal
 import HubbardAtomLean.Matsubara
 import HubbardAtomLean.SingletInput
 import HubbardAtomLean.Singlet
+import HubbardAtomLean.PHInput
+import HubbardAtomLean.PHSums
+import HubbardAtomLean.PHIdentities
+import HubbardAtomLean.DensityMagnetic

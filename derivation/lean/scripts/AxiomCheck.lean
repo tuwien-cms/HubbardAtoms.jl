@@ -36,7 +36,9 @@ run_cmd Elab.Command.liftCoreM do
   -- Vacuity anchors: the filter must have reached the library.
   for anchor in [``HubbardAtom.Params.gammaT_of_isRightInverse,
       ``HubbardAtom.Stable.PHData.K_div_rho, ``HubbardAtom.Params.αeven_eq_package,
-      ``HubbardAtom.Params.hasSum_one_div_t_sub, ``HubbardAtom.Params.gammaS_eq] do
+      ``HubbardAtom.Params.hasSum_one_div_t_sub, ``HubbardAtom.Params.gammaS_eq,
+      ``HubbardAtom.Params.identity_A7, ``HubbardAtom.Params.DMGeneric.gammaR_eq,
+      ``HubbardAtom.Params.DMGeneric.chiR_isLeftInverse] do
     unless env.contains anchor do
       throwError "{anchor} is missing; the check is vacuous"
   if checked < 100 then

@@ -17,8 +17,11 @@ boxes of Mathlib's summation filters `SummationFilter.symmetricIcc` and `symmetr
 * `Params.hasSum_S_even`, `Params.hasSum_S_odd`: Lemma "basic sum", `PV ∑ₙ (zₙ - x)⁻¹ = S_k(x)`,
   over the boxes `|2n + 1 + k| ≤ 2M + 1` of the note: in the index `n + k/2` (even `k`) resp.
   `n + (k + 1)/2` (odd `k`) these are `[-M - 1, M]` resp. `[-M, M]`.
+* `Params.hasSum_pair`: `∑ₙ 1/((zₙ - x)(zₙ - y)) = (S_k(x) - S_k(y))/(x - y)`, absolutely.
 * `Params.hasSum_one_div_t_sub`: Lemma "particle–particle sum", `∑ₙ (tₙ - t)⁻¹ = -S_k(μ + ξ)/ξ` for
   `ξ² = b²/4 - t`, absolutely convergent.
+* `Params.hasDerivAt_S`, `Params.hasSum_sq`: `S_k' = S_k² - β²/4` and Lemma "basic sum" for double
+  poles, `∑ₙ (zₙ - x)⁻² = S_k'(x)`.
 -/
 
 open Complex Filter Topology SummationFilter Finset Asymptotics
@@ -195,110 +198,238 @@ theorem S_mu_sub (k : ℤ) (ξ : ℂ) : A.S k (A.μ - ξ) = -A.S k (A.μ + ξ) :
   rw [show (A.β : ℂ) * (A.μ - ξ - A.μ) / 2 = -(A.β * (A.μ + ξ - A.μ) / 2) by ring]
   split_ifs <;> simp [tanh_neg, coth_neg]
 
+/-- Off the lattice the factor of `S_k` does not vanish: `cosh(β(x - μ)/2) ≠ 0` for even `k`. -/
+theorem cosh_ne_zero_of_off {k j : ℤ} (hk : k = 2 * j) {x : ℂ} (hx : ∀ n, A.z k n ≠ x) :
+    cosh (A.β * (x - A.μ) / 2) ≠ 0 := by
+  have hβ := A.β_ne_zero
+  intro h0
+  rw [← cos_mul_I, cos_eq_zero_iff] at h0
+  obtain ⟨m, hm⟩ := h0
+  -- `x = z_n` with `2n + 1 + k = -(2m + 1)`
+  apply hx (-m - 1 - j)
+  have hI : I * I = -1 := I_mul_I
+  rw [A.z_eq, hk]
+  push_cast
+  field_simp
+  linear_combination (2 * I) * hm - (A.β * (x - A.μ)) * hI
+
+/-- Off the lattice the factor of `S_k` does not vanish: `sinh(β(x - μ)/2) ≠ 0` for odd `k`. -/
+theorem sinh_ne_zero_of_off {k j : ℤ} (hk : k = 2 * j - 1) {x : ℂ} (hx : ∀ n, A.z k n ≠ x) :
+    sinh (A.β * (x - A.μ) / 2) ≠ 0 := by
+  have hβ := A.β_ne_zero
+  intro h0
+  have h0' : sin (A.β * (x - A.μ) / 2 * I) = 0 := by rw [sin_mul_I, h0, zero_mul]
+  rw [sin_eq_zero_iff] at h0'
+  obtain ⟨m, hm⟩ := h0'
+  -- `x = z_n` with `2n + 1 + k = -2m`
+  apply hx (-m - j)
+  have hI : I * I = -1 := I_mul_I
+  rw [A.z_eq, hk]
+  push_cast
+  field_simp
+  linear_combination (2 * I) * hm - (A.β * (x - A.μ)) * hI
+
+/-- The products of two simple fractions: for `x ≠ y` off the lattice,
+`∑ₙ 1/((zₙ - x)(zₙ - y)) = (S_k(x) - S_k(y))/(x - y)`, absolutely convergent. -/
+theorem hasSum_pair {k : ℤ} {x y : ℂ} (hxy : x ≠ y) (hx : ∀ n, A.z k n ≠ x)
+    (hy : ∀ n, A.z k n ≠ y) :
+    HasSum (fun n ↦ 1 / ((A.z k n - x) * (A.z k n - y))) ((A.S k x - A.S k y) / (x - y)) := by
+  have hβ := A.β_ne_zero
+  have hπ : (Real.pi : ℂ) ≠ 0 := ofReal_ne_zero.mpr Real.pi_ne_zero
+  have hxy' := sub_ne_zero.mpr hxy
+  have hpf : ∀ n, 1 / ((A.z k n - x) * (A.z k n - y)) =
+      1 / (x - y) * (1 / (A.z k n - x) - 1 / (A.z k n - y)) := fun n ↦ by
+    have h₁ := sub_ne_zero.mpr (hx n)
+    have h₂ := sub_ne_zero.mpr (hy n)
+    field_simp
+    ring
+  -- absolute convergence: `zₙ - x = n c + w₁`, `zₙ - y = n c + w₂`
+  have hsum : Summable fun n ↦ 1 / ((A.z k n - x) * (A.z k n - y)) := by
+    have hc : (2 * Real.pi / A.β * I : ℂ) ≠ 0 :=
+      mul_ne_zero (div_ne_zero (mul_ne_zero two_ne_zero hπ) hβ) I_ne_zero
+    refine (summable_inv_mul_linear hc (A.μ + (1 + k) * Real.pi / A.β * I - x)
+      (A.μ + (1 + k) * Real.pi / A.β * I - y)).congr fun n ↦ ?_
+    rw [A.z_eq, one_div]
+    congr 1
+    push_cast
+    ring
+  -- the principal values, in an index in which the boxes are symmetric
+  have hpv : ∀ (j : ℤ) (L : SummationFilter ℤ) [L.LeAtTop] [L.NeBot],
+      (∀ u, u = x ∨ u = y → HasSum (fun m : ℤ ↦ 1 / (A.z k (m - j) - u)) (A.S k u) L) →
+      HasSum (fun n ↦ 1 / ((A.z k n - x) * (A.z k n - y))) ((A.S k x - A.S k y) / (x - y)) := by
+    intro j L _ _ hS
+    have hL := ((hS _ (Or.inl rfl)).sub (hS _ (Or.inr rfl))).mul_left (1 / (x - y))
+    have hL' : HasSum (fun m ↦ 1 / ((A.z k (m - j) - x) * (A.z k (m - j) - y)))
+        ((A.S k x - A.S k y) / (x - y)) L := by
+      convert hL using 1
+      · funext m
+        rw [hpf]
+      · ring
+    have hU := hasSum_of_hasSum_filter ((Equiv.subRight j).summable_iff.mpr hsum) hL'
+    simpa [Function.comp_def] using (Equiv.addRight j).hasSum_iff.mpr hU
+  obtain ⟨j, hj | hj⟩ := Int.even_or_odd' k
+  · exact hpv j (symmetricIco ℤ) fun u hu ↦ A.hasSum_S_even hj
+      (A.cosh_ne_zero_of_off hj (by rcases hu with rfl | rfl <;> assumption))
+  · have hj' : k = 2 * (j + 1) - 1 := by omega
+    exact hpv (j + 1) (symmetricIcc ℤ) fun u hu ↦ A.hasSum_S_odd hj'
+      (A.sinh_ne_zero_of_off hj' (by rcases hu with rfl | rfl <;> assumption))
+
 /-- Lemma "particle–particle sum": for `ξ² = b²/4 - t`, `ξ ≠ 0` and `t` off the lattice
 `{tₙ}`, `∑ₙ (tₙ - t)⁻¹ = -S_k(μ + ξ)/ξ`, absolutely convergent. -/
 theorem hasSum_one_div_t_sub {k : ℤ} {t ξ : ℂ} (hξ : ξ ^ 2 = A.b k ^ 2 / 4 - t) (hξ0 : ξ ≠ 0)
     (ht : ∀ n, A.t k n ≠ t) :
     HasSum (fun n ↦ 1 / (A.t k n - t)) (-A.S k (A.μ + ξ) / ξ) := by
-  have hβ := A.β_ne_zero
-  have hπ : (Real.pi : ℂ) ≠ 0 := ofReal_ne_zero.mpr Real.pi_ne_zero
-  -- `tₙ - t = (ξ - (zₙ - μ))(ξ + (zₙ - μ))`
-  have hfac : ∀ n, A.t k n - t = (ξ - (A.z k n - A.μ)) * (ξ + (A.z k n - A.μ)) := fun n ↦ by
+  -- `tₙ - t = -(zₙ - (μ + ξ))(zₙ - (μ - ξ))`
+  have hfac : ∀ n, A.t k n - t = -((A.z k n - (A.μ + ξ)) * (A.z k n - (A.μ - ξ))) := fun n ↦ by
     rw [A.t_eq_z]
     linear_combination (-1 : ℂ) * hξ
-  have hne₁ : ∀ n, A.z k n - (A.μ - ξ) ≠ 0 := fun n h0 ↦ ht n (by
-    rw [← sub_eq_zero, hfac]
-    apply mul_eq_zero_of_right
-    linear_combination h0)
-  have hne₂ : ∀ n, A.z k n - (A.μ + ξ) ≠ 0 := fun n h0 ↦ ht n (by
-    rw [← sub_eq_zero, hfac]
-    apply mul_eq_zero_of_left
-    linear_combination -h0)
-  -- the partial fractions
-  have hpf : ∀ n, 1 / (A.t k n - t) =
-      1 / (2 * ξ) * (1 / (A.z k n - (A.μ - ξ)) - 1 / (A.z k n - (A.μ + ξ))) := fun n ↦ by
-    have h₁ : ξ + (A.z k n - A.μ) ≠ 0 := fun h0 ↦ hne₁ n (by linear_combination h0)
-    have h₂ : ξ - (A.z k n - A.μ) ≠ 0 := fun h0 ↦ hne₂ n (by linear_combination -h0)
-    have h₁' := hne₁ n
-    have h₂' := hne₂ n
-    rw [hfac]
+  have hoff : ∀ n, (A.z k n - (A.μ + ξ)) * (A.z k n - (A.μ - ξ)) ≠ 0 := fun n h0 ↦
+    ht n (by rw [← sub_eq_zero, hfac, h0, neg_zero])
+  have h := (A.hasSum_pair (k := k) (x := A.μ + ξ) (y := A.μ - ξ)
+    (fun h0 ↦ hξ0 (by linear_combination h0 / 2))
+    (fun n h0 ↦ hoff n (by rw [h0, sub_self, zero_mul]))
+    (fun n h0 ↦ hoff n (by rw [h0, sub_self, mul_zero]))).neg
+  rw [A.S_mu_sub] at h
+  convert h using 1
+  · funext n
+    rw [hfac, one_div_neg_eq_neg_one_div]
+  · rw [show (A.μ : ℂ) + ξ - (A.μ - ξ) = 2 * ξ by ring]
     field_simp
     ring
-  -- absolute convergence: `tₙ - t = -(n c + w₁)(n c + w₂)`
-  have hsum : Summable fun n ↦ 1 / (A.t k n - t) := by
+
+/-- `tanh' = 1/cosh²`. -/
+theorem _root_.HubbardAtom.hasDerivAt_tanh {y : ℂ} (hy : cosh y ≠ 0) :
+    HasDerivAt tanh (1 / cosh y ^ 2) y := by
+  have h := (hasDerivAt_sinh y).div (hasDerivAt_cosh y) hy
+  rw [show (sinh / cosh : ℂ → ℂ) = tanh from
+    funext fun y ↦ by rw [Pi.div_apply, tanh_eq_sinh_div_cosh]] at h
+  convert h using 1
+  rw [show cosh y * cosh y - sinh y * sinh y = 1 by linear_combination cosh_sq_sub_sinh_sq y]
+
+/-- `coth' = -1/sinh²`. -/
+theorem _root_.HubbardAtom.hasDerivAt_coth {y : ℂ} (hy : sinh y ≠ 0) :
+    HasDerivAt coth (-1 / sinh y ^ 2) y := by
+  have h := (hasDerivAt_cosh y).div (hasDerivAt_sinh y) hy
+  rw [show (cosh / sinh : ℂ → ℂ) = coth from funext fun y ↦ by rw [Pi.div_apply, coth]] at h
+  convert h using 1
+  rw [show sinh y * sinh y - cosh y * cosh y = -1 by linear_combination -cosh_sq_sub_sinh_sq y]
+
+/-- `S_k' = S_k² - β²/4` off the lattice. -/
+theorem hasDerivAt_S {k : ℤ} {x : ℂ} (hx : ∀ n, A.z k n ≠ x) :
+    HasDerivAt (A.S k) (A.S k x ^ 2 - A.β ^ 2 / 4) x := by
+  have hβ := A.β_ne_zero
+  have hlin : HasDerivAt (fun x : ℂ ↦ A.β * (x - A.μ) / 2) (A.β / 2) x := by
+    simpa using (((hasDerivAt_id x).sub_const (A.μ : ℂ)).const_mul (A.β : ℂ)).div_const 2
+  obtain ⟨j, hj | hj⟩ := Int.even_or_odd' k
+  · have hk : Even k := ⟨j, by omega⟩
+    have hc := A.cosh_ne_zero_of_off hj hx
+    have hS : A.S k = fun x ↦ -(A.β / 2 : ℂ) * tanh (A.β * (x - A.μ) / 2) :=
+      funext fun x ↦ by rw [S, ite_eq_left hk]
+    rw [show A.S k x = -(A.β / 2 : ℂ) * tanh (A.β * (x - A.μ) / 2) by rw [hS], hS]
+    refine (((hasDerivAt_tanh hc).comp x hlin).const_mul (-(A.β / 2 : ℂ))).congr_deriv ?_
+    rw [tanh_eq_sinh_div_cosh]
+    field_simp
+    linear_combination 4 * cosh_sq_sub_sinh_sq (A.β * (x - A.μ) / 2)
+  · have hk : ¬Even k := by rintro ⟨r, hr⟩; omega
+    have hj' : k = 2 * (j + 1) - 1 := by omega
+    have hs := A.sinh_ne_zero_of_off hj' hx
+    have hS : A.S k = fun x ↦ -(A.β / 2 : ℂ) * coth (A.β * (x - A.μ) / 2) :=
+      funext fun x ↦ by rw [S, ite_eq_right hk]
+    rw [show A.S k x = -(A.β / 2 : ℂ) * coth (A.β * (x - A.μ) / 2) by rw [hS], hS]
+    refine (((hasDerivAt_coth hs).comp x hlin).const_mul (-(A.β / 2 : ℂ))).congr_deriv ?_
+    rw [coth]
+    field_simp
+    linear_combination -4 * cosh_sq_sub_sinh_sq (A.β * (x - A.μ) / 2)
+
+/-- The lattice keeps a positive distance from every point off it. -/
+theorem exists_lattice_dist {k : ℤ} {x : ℂ} (hx : ∀ n, A.z k n ≠ x) :
+    ∃ r > 0, ∀ n, r ≤ ‖A.z k n - x‖ := by
+  have hβ := A.β_ne_zero
+  have hπ : (Real.pi : ℂ) ≠ 0 := ofReal_ne_zero.mpr Real.pi_ne_zero
+  have hc : (2 * Real.pi / A.β * I : ℂ) ≠ 0 :=
+    mul_ne_zero (div_ne_zero (mul_ne_zero two_ne_zero hπ) hβ) I_ne_zero
+  have ht : Tendsto (fun n : ℤ ↦ ‖A.z k n - x‖) cofinite atTop := by
+    have h := (isTheta_linear (A.μ + (1 + k) * Real.pi / A.β * I - x) hc).tendsto_norm_atTop_iff.mpr
+      (tendsto_norm_comp_cofinite_atTop_of_isClosedEmbedding Int.isClosedEmbedding_coe_real)
+    refine h.congr fun n ↦ ?_
+    simp only [Function.comp_apply]
+    congr 1
+    rw [A.z_eq]
+    push_cast
+    ring
+  obtain ⟨n₀, hn₀⟩ := ht.exists_forall_le
+  exact ⟨_, norm_pos_iff.mpr (sub_ne_zero.mpr (hx n₀)), hn₀⟩
+
+/-- Lemma "basic sum" for double poles: `∑ₙ 1/(zₙ - x)² = S_k'(x) = S_k(x)² - β²/4` off the
+lattice, absolutely convergent. The slopes of `S_k` at `x` are the sums of `hasSum_pair`, which
+differ from this sum by at most a constant times `|y - x|`. -/
+theorem hasSum_sq {k : ℤ} {x : ℂ} (hx : ∀ n, A.z k n ≠ x) :
+    HasSum (fun n ↦ 1 / (A.z k n - x) ^ 2) (A.S k x ^ 2 - A.β ^ 2 / 4) := by
+  have hβ := A.β_ne_zero
+  have hπ : (Real.pi : ℂ) ≠ 0 := ofReal_ne_zero.mpr Real.pi_ne_zero
+  obtain ⟨r, hr, hdist⟩ := A.exists_lattice_dist hx
+  have hsum : Summable fun n ↦ 1 / (A.z k n - x) ^ 2 := by
     have hc : (2 * Real.pi / A.β * I : ℂ) ≠ 0 :=
       mul_ne_zero (div_ne_zero (mul_ne_zero two_ne_zero hπ) hβ) I_ne_zero
-    have := (summable_inv_mul_linear hc ((1 + k) * Real.pi / A.β * I - ξ)
-      ((1 + k) * Real.pi / A.β * I + ξ)).neg
-    refine this.congr fun n ↦ ?_
-    rw [hfac, A.z_eq, one_div, ← inv_neg]
+    refine (summable_inv_mul_linear hc (A.μ + (1 + k) * Real.pi / A.β * I - x)
+      (A.μ + (1 + k) * Real.pi / A.β * I - x)).congr fun n ↦ ?_
+    rw [A.z_eq, one_div, sq]
     congr 1
     push_cast
     ring
-  -- the principal value, in an index in which the boxes are symmetric
-  -- `zₙ - μ = ±ξ` would put `t` on the lattice
-  have hoff : ∀ n, A.z k n - A.μ ≠ ξ := fun n h0 ↦ ht n (by
-    rw [← sub_eq_zero, hfac]
-    apply mul_eq_zero_of_left
-    rw [h0, sub_self])
-  -- `ξ = c I` with `β c` real: the lattice point it hits
-  have hlat : ∀ m : ℤ, A.β * ξ = -(m * Real.pi) * I → (∃ n : ℤ, 2 * n + 1 + k = -m) → False := by
-    rintro m hm ⟨n, hn⟩
-    apply hoff n
-    rw [A.z_eq]
-    have hn' : ((2 * n + 1 + k : ℤ) : ℂ) = -m := by rw [hn]; push_cast; ring
-    push_cast at hn' ⊢
-    rw [show A.μ + (2 * (n : ℂ) + 1 + k) * Real.pi / A.β * I - A.μ =
-      (2 * (n : ℂ) + 1 + k) * Real.pi * I / A.β by ring, hn', div_eq_iff hβ]
-    linear_combination -hm
-  have hpv : ∀ (j : ℤ) (L : SummationFilter ℤ) [L.LeAtTop] [L.NeBot],
-      (∀ x, x = A.μ - ξ ∨ x = A.μ + ξ →
-        HasSum (fun m : ℤ ↦ 1 / (A.z k (m - j) - x)) (A.S k x) L) →
-      HasSum (fun n ↦ 1 / (A.t k n - t)) (-A.S k (A.μ + ξ) / ξ) := by
-    intro j L _ _ hS
-    have hL := ((hS _ (Or.inl rfl)).sub (hS _ (Or.inr rfl))).mul_left (1 / (2 * ξ))
-    rw [A.S_mu_sub, show 1 / (2 * ξ) * (-A.S k (A.μ + ξ) - A.S k (A.μ + ξ)) =
-      -A.S k (A.μ + ξ) / ξ by field_simp; ring] at hL
-    have hL' : HasSum (fun m ↦ 1 / (A.t k (m - j) - t)) (-A.S k (A.μ + ξ) / ξ) L := by
-      convert hL using 2 with m
-      rw [hpf]
-    have hsum' : Summable fun m ↦ 1 / (A.t k (m - j) - t) :=
-      (Equiv.subRight j).summable_iff.mpr hsum
-    have hU := hasSum_of_hasSum_filter hsum' hL'
-    have := (Equiv.addRight j).hasSum_iff.mpr hU
-    simpa [Function.comp_def] using this
-  obtain ⟨j, hj | hj⟩ := Int.even_or_odd' k
-  · -- even `k`: `cosh(βξ/2) ≠ 0`, and the boxes `[-N, N - 1]`
-    have hc : cosh (A.β * ξ / 2) ≠ 0 := by
-      intro h0
-      rw [← cos_mul_I, cos_eq_zero_iff] at h0
-      obtain ⟨m, hm⟩ := h0
-      refine hlat (2 * m + 1) ?_ ⟨-m - 1 - j, by omega⟩
-      have hI : I * I = -1 := I_mul_I
-      push_cast
-      linear_combination (-2 * I) * hm + (A.β * ξ) * hI
-    refine hpv j (symmetricIco ℤ) fun x hx ↦ A.hasSum_S_even hj ?_
-    rcases hx with rfl | rfl
-    · rw [show (A.β : ℂ) * (A.μ - ξ - A.μ) / 2 = -(A.β * ξ / 2) by ring, cosh_neg]
-      exact hc
-    · rw [show (A.β : ℂ) * (A.μ + ξ - A.μ) / 2 = A.β * ξ / 2 by ring]
-      exact hc
-  · -- odd `k`: `sinh(βξ/2) ≠ 0`, and the boxes `[-N, N]`
-    have hs : sinh (A.β * ξ / 2) ≠ 0 := by
-      intro h0
-      have h0' : sin (A.β * ξ / 2 * I) = 0 := by rw [sin_mul_I, h0, zero_mul]
-      rw [sin_eq_zero_iff] at h0'
-      obtain ⟨m, hm⟩ := h0'
-      refine hlat (2 * m) ?_ ⟨-m - j - 1, by omega⟩
-      have hI : I * I = -1 := I_mul_I
-      push_cast
-      linear_combination (-2 * I) * hm + (A.β * ξ) * hI
-    refine hpv (j + 1) (symmetricIcc ℤ) fun x hx ↦ A.hasSum_S_odd (by omega) ?_
-    rcases hx with rfl | rfl
-    · rw [show (A.β : ℂ) * (A.μ - ξ - A.μ) / 2 = -(A.β * ξ / 2) by ring, sinh_neg]
-      exact neg_ne_zero.mpr hs
-    · rw [show (A.β : ℂ) * (A.μ + ξ - A.μ) / 2 = A.β * ξ / 2 by ring]
-      exact hs
+  have hnorm := hsum.norm
+  set T := ∑' n, 1 / (A.z k n - x) ^ 2
+  set C := 2 / r * ∑' n, ‖1 / (A.z k n - x) ^ 2‖
+  suffices hT : T = A.S k x ^ 2 - A.β ^ 2 / 4 by rw [← hT]; exact hsum.hasSum
+  refine tendsto_nhds_unique ?_ (hasDerivAt_iff_tendsto_slope.mp (A.hasDerivAt_S hx))
+  -- `‖slope - T‖ ≤ C ‖y - x‖` for `0 < ‖y - x‖ < r/2`
+  have hbound : ∀ y, y ≠ x → ‖y - x‖ < r / 2 → ‖slope (A.S k) x y - T‖ ≤ C * ‖y - x‖ := by
+    intro y hyx hyr
+    have hy : ∀ n, A.z k n ≠ y := fun n h0 ↦ by
+      have := hdist n
+      rw [h0] at this
+      linarith
+    have hy' : ∀ n, r / 2 ≤ ‖A.z k n - y‖ := fun n ↦ by
+      have h₁ := hdist n
+      have h₂ := norm_sub_le (A.z k n - y) (x - y)
+      rw [sub_sub_sub_cancel_right, ← norm_neg (x - y), neg_sub] at h₂
+      linarith
+    have hpair := A.hasSum_pair (Ne.symm hyx) hx hy
+    have hdiff := (hsum.hasSum.sub hpair)
+    have hslope : slope (A.S k) x y - T =
+        -(T - (A.S k x - A.S k y) / (x - y)) := by
+      rw [slope_def_field]
+      have := sub_ne_zero.mpr hyx
+      have := sub_ne_zero.mpr (Ne.symm hyx)
+      field_simp
+      ring
+    rw [hslope, norm_neg]
+    refine hdiff.norm_le_of_bounded ((hnorm.hasSum.mul_left (2 / r)).mul_right ‖y - x‖) ?_
+    intro n
+    have hn := sub_ne_zero.mpr (hx n)
+    have hn' := sub_ne_zero.mpr (hy n)
+    have hr2 : 0 < r / 2 := half_pos hr
+    have heq : 1 / (A.z k n - x) ^ 2 - 1 / ((A.z k n - x) * (A.z k n - y)) =
+        1 / (A.z k n - x) ^ 2 * ((x - y) / (A.z k n - y)) := by
+      field_simp
+      ring
+    have hq : ‖(x - y) / (A.z k n - y)‖ ≤ ‖y - x‖ / (r / 2) := by
+      rw [norm_div, ← norm_neg (x - y), neg_sub]
+      exact div_le_div_of_nonneg_left (norm_nonneg _) hr2 (hy' n)
+    rw [heq, norm_mul]
+    calc ‖1 / (A.z k n - x) ^ 2‖ * ‖(x - y) / (A.z k n - y)‖
+        ≤ ‖1 / (A.z k n - x) ^ 2‖ * (‖y - x‖ / (r / 2)) := by gcongr
+      _ = 2 / r * ‖1 / (A.z k n - x) ^ 2‖ * ‖y - x‖ := by field_simp
+  rw [tendsto_iff_norm_sub_tendsto_zero]
+  have hC : Tendsto (fun y ↦ C * ‖y - x‖) (𝓝[≠] x) (𝓝 0) := by
+    have : Tendsto (fun y ↦ C * ‖y - x‖) (𝓝 x) (𝓝 (C * ‖x - x‖)) :=
+      tendsto_const_nhds.mul (tendsto_id.sub tendsto_const_nhds).norm
+    rw [sub_self, norm_zero, mul_zero] at this
+    exact this.mono_left nhdsWithin_le_nhds
+  refine squeeze_zero' (Eventually.of_forall fun y ↦ norm_nonneg _) ?_ hC
+  filter_upwards [self_mem_nhdsWithin, nhdsWithin_le_nhds (Metric.ball_mem_nhds x (half_pos hr))]
+    with y hyx hyb
+  exact hbound y hyx (by simpa [Metric.mem_ball, dist_eq_norm] using hyb)
 
 end Params
 
