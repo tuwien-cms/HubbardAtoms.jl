@@ -181,7 +181,7 @@ $ cal(T)_k (t) := -frac(S_k (mu + xi), xi), quad quad xi := sqrt(b^2 slash 4 - t
 $cal(T)_k$ is even in $xi$, so either branch may be used (for $xi = 0$ and even $k$, take the limit $beta^2 slash 4$). It equals $sum_n (t_n - t)^(-1)$ (@lem-T).
 
 #theorem(title: [triplet])[
-  For $n != overline(n)$, assuming $t_n + a rho b + a^2 != 0$,
+  Assume $t_n + a rho b + a^2 != 0$ for all $n != overline(n)$. Then for $n != overline(n)$
   $ Gamma_("t", n m) = frac(beta a^2 (1 - rho^2) cal(P)(t_n), cal(G)(t_n)(t_n + a rho b + a^2)) (delta_(n m) - delta_(m overline(n))). $ <eq-Gamma-t>
   At a fixed point $n = overline(n)$ (odd $k$, $n = -(k + 1) slash 2$), $Gamma_("t", n m) = Gamma_("t", m n) = 0$ for all $m$.
 ] <thm-t>
@@ -338,7 +338,7 @@ and $bold(L)_("s", "t") := diag(L_("s", "t")(t_n))$.
 == Proofs
 
 #proof(of: [@thm-t])[
-  $chi_"t"$ and $bold(B)$ act on each orbit ${n, overline(n)}$ separately. For $n != overline(n)$ the orbit carries a $2 times 2$ block with eigenvalue $B_n$ on the even vector and $L_"t" (t_n)$ on the odd vector; $L_"t" (t_n) != 0$ is the assumption $t_n + a rho b + a^2 != 0$. So $chi_"t"^(-1) = bold(B)^(-1) cal(M)_+ + bold(L)_"t"^(-1) cal(M)_-$, and $Gamma_"t" = beta^2 (bold(L)_"t"^(-1) - bold(B)^(-1)) cal(M)_-$ by @eq-Gamma-def. Further, $(beta^2 slash 2)(1 slash L_"t" - 1 slash B) = -beta cal(P) [cal(G) - (t + a rho b + a^2)] slash ((t + a rho b + a^2) cal(G))$ with $cal(G) - (t + a rho b + a^2) = -a^2 (1 - rho^2)$. At a fixed point the orbit is ${n}$ with $cal(M)_- = 0$; then $chi_("t", n n) = B_n$, $Gamma_("t", n n) = 0$, and $L_"t" (t_n)$ does not enter.
+  $chi_"t"$ and $bold(B)$ act on each orbit ${n, overline(n)}$ separately. For $n != overline(n)$ the orbit carries a $2 times 2$ block with eigenvalue $B_n$ on the even vector and $L_"t" (t_n)$ on the odd vector; $L_"t" (t_n) != 0$ is the assumption $t_n + a rho b + a^2 != 0$, which must hold on every orbit for $chi_"t"$ to be invertible. So $chi_"t"^(-1) = bold(B)^(-1) cal(M)_+ + bold(L)_"t"^(-1) cal(M)_-$, and $Gamma_"t" = beta^2 (bold(L)_"t"^(-1) - bold(B)^(-1)) cal(M)_-$ by @eq-Gamma-def. Further, $(beta^2 slash 2)(1 slash L_"t" - 1 slash B) = -beta cal(P) [cal(G) - (t + a rho b + a^2)] slash ((t + a rho b + a^2) cal(G))$ with $cal(G) - (t + a rho b + a^2) = -a^2 (1 - rho^2)$. At a fixed point the orbit is ${n}$ with $cal(M)_- = 0$; then $chi_("t", n n) = B_n$, $Gamma_("t", n n) = 0$, and $L_"t" (t_n)$ does not enter.
 ]
 
 #proof(of: [@thm-s])[
