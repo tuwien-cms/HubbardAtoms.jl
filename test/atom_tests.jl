@@ -5,12 +5,14 @@
 
     # Tolerance relative to the size of the combined terms, so the check stays
     # meaningful whether the vertex is tiny (small U) or huge (large β).
-    crossing(F, a, Fd, b, Fm) = isapprox(F, a * Fd + b * Fm; atol=1e-14 * (abs(Fd) + abs(Fm)))
+    crossing(F, a, Fd, b, Fm) = isapprox(F, a * Fd + b * Fm;
+                                         atol=1e-14 * (abs(Fd) + abs(Fm)))
 
     for β in (1e-3, 1e0, 1e3), U in (-1e0, -1e-3, 1e-3, 1e0)
         at = HubbardAtom(U, β)
 
-        for ν in FermionicFreq.(-3:2:3), ν′ in FermionicFreq.(-3:2:3), ω in BosonicFreq.(-4:2:4)
+        for ν in FermionicFreq.(-3:2:3), ν′ in FermionicFreq.(-3:2:3),
+            ω in BosonicFreq.(-4:2:4)
             freqs = (ν, ν′, ω)
 
             freqs_pp = (ν, ν′, -ν - ν′ - ω)
@@ -44,7 +46,8 @@ end
     for ch in CHANNELS
         model = HubbardAtom(U, beta)
 
-        f(n) = full_vertex(ch, model, (FermionicFreq(2n + 1), FermionicFreq(2n + 1), BosonicFreq(2n)))
+        f(n) = full_vertex(ch, model,
+                           (FermionicFreq(2n + 1), FermionicFreq(2n + 1), BosonicFreq(2n)))
         @test f(2^10) ≈ f(2^39)
         @test f(2^10) ≈ f(2^60)
     end
@@ -63,10 +66,10 @@ end
         ωmax = BosonicFreq(nb - 1)
         νmax_sum = FermionicFreq(nf_sum - 1)
 
-        ν = -νmax:νmax
-        ν′ = -νmax:νmax
-        ω = -ωmax:ωmax
-        ν₁ = -νmax_sum:νmax_sum
+        ν = (-νmax):νmax
+        ν′ = (-νmax):νmax
+        ω = (-ωmax):ωmax
+        ν₁ = (-νmax_sum):νmax_sum
 
         νν′ω = Iterators.product(ν, ν′, ω)
         νν₁ω = Iterators.product(ν, ν₁, ω)

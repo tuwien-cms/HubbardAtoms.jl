@@ -19,6 +19,8 @@ singularities of the closed forms, in any floating-point type (e.g. `BigFloat`).
 pkg> add HubbardAtoms
 ```
 
+HubbardAtoms requires Julia 1.11 or later.
+
 ## Example
 
 ```julia
@@ -75,7 +77,8 @@ See the docstrings for definitions and accuracy.
 
 For the half-filled atom, please cite Thunström et al. (above). For the atom away from half
 filling, please cite the derivation in
-[`derivation/doped-gamma-derivation.pdf`](derivation/doped-gamma-derivation.pdf) and this package.
+[`derivation/doped-gamma-derivation.pdf`](derivation/doped-gamma-derivation.pdf) and this package
+(see [`CITATION.cff`](CITATION.cff), or "Cite this repository" on GitHub).
 
 ## License
 

@@ -1,0 +1,40 @@
+cff-version: 1.2.0
+message: >-
+  If you use HubbardAtoms.jl, please cite it as below. For the half-filled atom, please also cite
+  Thunström et al. (2018), and for the atom away from half filling the derivation in
+  derivation/doped-gamma-derivation.pdf.
+type: software
+title: HubbardAtoms.jl
+abstract: >-
+  Exact one- and two-particle quantities of the Hubbard atom in Matsubara frequencies, at half
+  filling and at arbitrary filling.
+authors:
+  - family-names: Badr
+    given-names: Samuel
+    affiliation: TU Wien
+repository-code: "https://github.com/tuwien-cms/HubbardAtoms.jl"
+license: MIT
+keywords:
+  - Hubbard model
+  - Hubbard atom
+  - vertex functions
+  - Matsubara frequencies
+references:
+  - type: article
+    title: >-
+      Analytical investigation of singularities in two-particle irreducible vertex functions of
+      the Hubbard atom
+    authors:
+      - family-names: Thunström
+        given-names: P.
+      - family-names: Gunnarsson
+        given-names: O.
+      - family-names: Ciuchi
+        given-names: S.
+      - family-names: Rohringer
+        given-names: G.
+    journal: Physical Review B
+    volume: 98
+    start: 235107
+    year: 2018
+    doi: 10.1103/PhysRevB.98.235107

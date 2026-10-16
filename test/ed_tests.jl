@@ -13,7 +13,8 @@ const cup, cdn = Matrix(cup⁺'), Matrix(cdn⁺')
 const nup, ndn = cup⁺ * cup, cdn⁺ * cdn
 
 # Eq. 1, H = U(n↑ - 1/2)(n↓ - 1/2) - μ(n↑ + n↓ - 1), is diagonal in this basis.
-energies(U, μ) = U .* (diag(nup) .- 1 / 2) .* (diag(ndn) .- 1 / 2) .- μ .* (diag(nup) .+ diag(ndn) .- 1)
+energies(U, μ) = U .* (diag(nup) .- 1 / 2) .* (diag(ndn) .- 1 / 2) .-
+                 μ .* (diag(nup) .+ diag(ndn) .- 1)
 
 ν(n, β) = (2n + 1) * π / β
 ω(k, β) = 2k * π / β
@@ -33,7 +34,8 @@ function correlator(U, β, ops, φ, fermionic; μ=0)
         sgn = permsign(P, fermionic)
         string = push!([ops[j] for j in P], ops[end])
         for idx in Iterators.product(ntuple(_ -> 1:4, k + 1)...)
-            amp = w[idx[1]] * prod(string[j][idx[j], idx[mod1(j + 1, k + 1)]] for j in 1:k+1)
+            amp = w[idx[1]] *
+                  prod(string[j][idx[j], idx[mod1(j + 1, k + 1)]] for j in 1:(k + 1))
             iszero(amp) && continue
             a = [E[idx[j]] - E[idx[j+1]] + im * φ[P[j]] for j in 1:k]
             J = diagm(0 => [0; cumsum(a)], 1 => ones(k))
@@ -44,12 +46,14 @@ function correlator(U, β, ops, φ, fermionic; μ=0)
 end
 
 # all orderings τ_P[1] > τ_P[2] > ⋯ of the k free times
-permutations(k) = k == 1 ? [[1]] : [insert!(copy(p), i, k) for p in permutations(k - 1) for i in 1:k]
+permutations(k) = k == 1 ? [[1]] :
+                  [insert!(copy(p), i, k) for p in permutations(k - 1) for i in 1:k]
 
 # sign of the time-ordering permutation restricted to the fermionic operators
 function permsign(P, fermionic)
     f = [j for j in P if fermionic[j]]
-    count(f[i] > f[j] for i in eachindex(f) for j in i+1:lastindex(f); init=0) |> isodd ? -1 : 1
+    count(f[i] > f[j] for i in eachindex(f) for j in (i + 1):lastindex(f); init=0) |>
+    isodd ? -1 : 1
 end
 
 # G(ν) = -∫dτ e^{iντ} ⟨T c(τ) c⁺(0)⟩
@@ -64,7 +68,8 @@ function χ_ed(U, β, ρ, k; μ=0)
 end
 
 # -⟨ρ⁻; ρ⁺⟩(ω) for the singlet pair ρ⁻ = c↓c↑, ρ⁺ = c↑⁺c↓⁺
-χpair_ed(U, β, k; μ=0) = -correlator(U, β, (cdn * cup, cup⁺ * cdn⁺), (ω(k, β),), (false,); μ)
+χpair_ed(U, β, k; μ=0) = -correlator(U, β, (cdn * cup, cup⁺ * cdn⁺), (ω(k, β),), (false,);
+                                     μ)
 
 #=
 Eq. 3: χ_ph,σσ′(ν, ν′, ω) = ∫dτ₁dτ₂dτ₃ e^{-iντ₁} e^{i(ν+ω)τ₂} e^{-i(ν′+ω)τ₃}
@@ -74,10 +79,13 @@ with ν = νₙ, ν′ = νₙ′, ω = ωₖ and σ′ = ↑ (`same = true`) or
 function χph_ed(U, β, same, n, n′, k; μ=0)
     v, v′, w = ν(n, β), ν(n′, β), ω(k, β)
     c⁺2, c2 = same ? (cup⁺, cup) : (cdn⁺, cdn)
-    full = correlator(U, β, (cup⁺, cup, c⁺2, c2), (-v, v + w, -(v′ + w)), (true, true, true); μ)
+    full = correlator(U, β, (cup⁺, cup, c⁺2, c2), (-v, v + w, -(v′ + w)),
+                      (true, true, true); μ)
     # the disconnected term is β δ_ω0 ∫dτ e^{-iντ} ⟨T c↑⁺(τ) c↑(0)⟩ ∫dτ e^{-iν′τ} ⟨T cσ′⁺(τ) cσ′(0)⟩
     k == 0 || return full
-    full - β * correlator(U, β, (cup⁺, cup), (-v,), (true,); μ) * correlator(U, β, (c⁺2, c2), (-v′,), (true,); μ)
+    full -
+    β * correlator(U, β, (cup⁺, cup), (-v,), (true,); μ) *
+    correlator(U, β, (c⁺2, c2), (-v′,), (true,); μ)
 end
 end
 
@@ -110,7 +118,8 @@ end
             χ_uu, χ_ud = χph_ed(U, β, true, n, n′, k), χph_ed(U, β, false, n, n′, k)
             # Eq. 4: pp notation is ph notation at bosonic frequency -ω - ν - ν′ (index shift n + n′ + 1)
             kpp = -k - (n + n′ + 1)
-            χpp_uu, χpp_ud = χph_ed(U, β, true, n, n′, kpp), χph_ed(U, β, false, n, n′, kpp)
+            χpp_uu, χpp_ud = χph_ed(U, β, true, n, n′, kpp), χph_ed(U, β, false, n, n′,
+                                                                    kpp)
             χ0pp = n == n′ ? -β / 2 * G_ed(U, β, n) * G_ed(U, β, -n - k - 1) : 0  # Eq. 6b
             w = (F(n), F(n′), BosonicFreq(2k))
             scale = max(abs(χ_uu), abs(χ_ud), abs(χpp_uu), abs(χpp_ud), abs(χ0pp))

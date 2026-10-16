@@ -1,0 +1,4 @@
+style = "yas"
+always_use_return = false
+join_lines_based_on_source = true
+trailing_comma = false
