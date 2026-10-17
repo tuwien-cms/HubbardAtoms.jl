@@ -40,7 +40,8 @@ run_cmd Elab.Command.liftCoreM do
       ``HubbardAtom.Stable.PHData.K_div_rho, ``HubbardAtom.Params.αeven_eq_package,
       ``HubbardAtom.Params.hasSum_one_div_t_sub, ``HubbardAtom.Params.gammaS_eq,
       ``HubbardAtom.Params.identity_A7, ``HubbardAtom.Params.DMGeneric.gammaR_eq,
-      ``HubbardAtom.Params.DMGeneric.chiR_isLeftInverse] do
+      ``HubbardAtom.Params.DMGeneric.chiR_isLeftInverse, ``HubbardAtom.Params.propagator_eq,
+      ``HubbardAtom.Params.chiLehmann_upUp, ``HubbardAtom.Params.chiLehmann_upDn] do
     unless audited.contains anchor do
       throwError "{anchor} was not audited; the check is vacuous"
   if checked < 100 then
