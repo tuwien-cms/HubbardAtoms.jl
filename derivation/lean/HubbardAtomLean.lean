@@ -14,3 +14,4 @@ import HubbardAtomLean.Lehmann
 import HubbardAtomLean.LehmannInput
 import HubbardAtomLean.UZero
 import HubbardAtomLean.DMLifts
+import HubbardAtomLean.SingletZero

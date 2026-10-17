@@ -427,15 +427,13 @@ theorem chiS_isLeftInverse (h : A.SingletGeneric k ξ) :
   convert this using 2 with l
   rw [A.chiS_symm h, A.invS_symm, mul_comm]
 
-/-- **Theorem "singlet"** (generic case): for the inverse `invS` of `χ_s`,
-`β²(χ_s⁻¹ + B⁻¹) = Γ_s` of Eq. (Gamma-s) (Eq. Gamma-def with `η_s = -1`). -/
-theorem gammaS_eq (h : A.SingletGeneric k ξ) (n m : ℤ) :
+/-- `β²(invS + B⁻¹) = Γ_s` of Eq. (Gamma-s), an identity of the closed forms. -/
+theorem gammaS_eq_of (hAs : ∀ n, A.t k n + A.As k ≠ 0) (hK : A.Ks k ξ ≠ 0) (n m : ℤ) :
     (A.β : ℂ) ^ 2 * (A.invS k ξ n m + kron n m / A.Bpp k n) = A.gammaS k ξ n m := by
   have hβ := A.β_ne_zero
   have hP := A.calP_ne_zero k n
-  have hA := h.t_add_As_ne n
-  have hA' := h.t_add_As_ne m
-  have hK := h.Ks_ne
+  have hA := hAs n
+  have hA' := hAs m
   have hD : (A.As k + A.tp k) * (A.As k + A.tm k) = A.calP k (-A.As k) := by
     rw [calP, tp, tm]
     ring
@@ -456,6 +454,12 @@ theorem gammaS_eq (h : A.SingletGeneric k ξ) (n m : ℤ) :
   · unfold mirrorBlock
     field_simp
     ring
+
+/-- **Theorem "singlet"** (generic case): for the inverse `invS` of `χ_s`,
+`β²(χ_s⁻¹ + B⁻¹) = Γ_s` of Eq. (Gamma-s) (Eq. Gamma-def with `η_s = -1`). -/
+theorem gammaS_eq (h : A.SingletGeneric k ξ) (n m : ℤ) :
+    (A.β : ℂ) ^ 2 * (A.invS k ξ n m + kron n m / A.Bpp k n) = A.gammaS k ξ n m :=
+  gammaS_eq_of h.t_add_As_ne h.Ks_ne n m
 
 end Params
 

@@ -496,6 +496,36 @@ theorem hasSum_Tpp {k : ℤ} {t ξ : ℂ} (hξ : ξ ^ 2 = A.b k ^ 2 / 4 - t) (ht
   · rw [Tpp, ite_eq_right hξ0]
     exact A.hasSum_one_div_t_sub hξ hξ0 ht
 
+/-- The double-pole particle–particle sum: `∑ₙ (tₙ - t)⁻² = (S² - β²/4)/(2ξ²) - S/(2ξ³)` with
+`S = S_k(μ + ξ)`, for `ξ² = b²/4 - t`, `ξ ≠ 0` and `t` off the lattice. -/
+theorem hasSum_one_div_t_sub_sq {k : ℤ} {t ξ : ℂ} (hξ : ξ ^ 2 = A.b k ^ 2 / 4 - t) (hξ0 : ξ ≠ 0)
+    (ht : ∀ n, A.t k n ≠ t) :
+    HasSum (fun n ↦ 1 / (A.t k n - t) ^ 2)
+      ((A.S k (A.μ + ξ) ^ 2 - (A.β : ℂ) ^ 2 / 4) / (2 * ξ ^ 2) -
+        A.S k (A.μ + ξ) / (2 * ξ ^ 3)) := by
+  have hfac : ∀ n, A.t k n - t = -((A.z k n - (A.μ + ξ)) * (A.z k n - (A.μ - ξ))) := fun n ↦ by
+    rw [A.t_eq_z]
+    linear_combination (-1 : ℂ) * hξ
+  have hoff : ∀ n, (A.z k n - (A.μ + ξ)) * (A.z k n - (A.μ - ξ)) ≠ 0 := fun n h0 ↦
+    ht n (by rw [← sub_eq_zero, hfac, h0, neg_zero])
+  have hx : ∀ n, A.z k n ≠ A.μ + ξ := fun n h0 ↦ hoff n (by rw [h0, sub_self, zero_mul])
+  have hy : ∀ n, A.z k n ≠ A.μ - ξ := fun n h0 ↦ hoff n (by rw [h0, sub_self, mul_zero])
+  have hxy : (A.μ : ℂ) + ξ ≠ A.μ - ξ := fun h0 ↦ hξ0 (by linear_combination h0 / 2)
+  have h₁ := A.hasSum_sq hx
+  have h₂ := A.hasSum_sq hy
+  have h₃ := A.hasSum_pair hxy hx hy
+  rw [A.S_mu_sub] at h₂ h₃
+  convert ((h₁.add h₂).div_const (4 * ξ ^ 2)).sub (h₃.div_const (2 * ξ ^ 2)) using 1
+  · funext n
+    have h₄ := sub_ne_zero.mpr (hx n)
+    have h₅ := sub_ne_zero.mpr (hy n)
+    rw [hfac]
+    field_simp
+    ring
+  · rw [show (A.μ : ℂ) + ξ - (A.μ - ξ) = 2 * ξ by ring]
+    field_simp
+    ring
+
 end Params
 
 end HubbardAtom
