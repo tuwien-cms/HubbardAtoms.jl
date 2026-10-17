@@ -21,9 +21,10 @@ alternative `P(uⱼ) = 0`, `W(z; sⱼ) = 0` (`Params.ModeOK`). The proof follows
 * `Params.atomic_root`, `Params.dmGeneric_static_magnetic`: for `r = m`, `k = 0` the atomic root
   `u₁ = a` drops out, so the theorem covers the static magnetic channel.
 
-The note's assumption `uⱼ ≠ 0` (Steps 1–4) is not needed here. Not covered: the confluent roots
-`s₁ = s₂`, the lattice roots `e(zₙ) = 0`, common zeros of `P` and `e` other than the atomic pair,
-and `μ = 0` (Corollary "half filling"); the note treats them by limits.
+The note's assumption `uⱼ ≠ 0` (Steps 1–4) is not needed here. `DMLifts.lean` derives `DMGeneric`
+from the note's assumptions, `Confluent.lean` adds `s₁ = s₂`, and `HalfFilling.lean` and
+`HalfFillingLZ.lean` add `μ = 0` (Corollary "half filling"). Not covered: the lattice roots
+`e(zₙ) = 0` for `μ ≠ 0`, which the note treats by limits.
 -/
 
 open Complex Filter Topology

@@ -9,10 +9,13 @@ replaced by the mode `Φ(u, t) = P(u)φᵤ(t)/K(u) = (P(u)t + Z(u))/(t² - u²)`
 
 * `step3_general`: Step 3 for every `u`, with a remainder proportional to `e(u)`; at a double root
   it vanishes to second order, so the image of `∂ᵤΦ` is the derivative of the image of `Φ`
-  (`hasSum_deriv_of_bound`, by `hasSum_deriv_of_summable_norm`).
-* `Params.DMConf`: the assumptions at a double root `u ≠ 0`, and
+  (`hasSum_deriv_of_bound`, by `Complex.hasSum_deriv_of_summable_norm`); at `u = 0`, from
+  difference quotients by Tannery's theorem.
+* `Params.DMConf`: the assumptions at a double root `u` (including `u = 0`), and
   `Params.DMConf.chiR_isRightInverse`, `Params.DMConf.chiR_isLeftInverse`,
   `Params.DMConf.gammaR_eq`: **Theorem "density and magnetic"** for `s₁ = s₂`.
+* `Params.DMConfHyp`, `Params.DMConfHyp.toDMConf`: the note's assumptions, which imply
+  `P(u) ≠ 0`; `Params.DMConf.tendsto_Zeven`: the coefficient `Zsd` is `∂ₛZ` of the even part.
 -/
 
 open Complex Filter Topology Metric

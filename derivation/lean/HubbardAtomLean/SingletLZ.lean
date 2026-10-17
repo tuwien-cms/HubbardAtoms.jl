@@ -11,7 +11,7 @@ inverse is written down and checked directly. With `κₙ = 1/(tₙ + Aₛ)` off
 `χ_s⁻¹ = L_s⁻¹𝓜₊ - B⁻¹𝓜₋ + 4a/β² - (2𝒫(-Aₛ)/(βr))(ιₙκₘ + κₙιₘ) + y ιₙιₘ`,
 `y = 𝒫(-Aₛ)K'/(ar²) + 2𝒫'(-Aₛ)/(βr)` (`L_s⁻¹ = 0` on `O`).
 
-* `Params.SingletLZ`: the assumptions (`U ≠ 0`, `b ≠ 0`, `t_c + Aₛ = 0`); no condition on `Kₛ`.
+* `Params.SingletLZ`: the assumptions (`U ≠ 0`, `t_c + Aₛ = 0`, any `b`); no condition on `Kₛ`.
 * `Params.SingletLZ.chiS_isRightInverse`, `Params.SingletLZ.chiS_isLeftInverse`,
   `Params.SingletLZ.gammaS_eq`: the inverse is two-sided, and `Γ_s = β²(χ_s⁻¹ + B⁻¹)` is
   `gammaSlz`: Eq. (Gamma-s) without the separable term off the orbit, and

@@ -4,9 +4,9 @@ import HubbardAtomLean.Matsubara
 /-!
 # Theorem "singlet"
 
-Theorem "singlet" of the note in its generic case, under the assumptions `Params.SingletGeneric`:
-`U ≠ 0`, `b ≠ 0, ±2a`, `d± ≠ 0`, `tₙ + Aₛ ≠ 0`, `ξ ≠ 0`, and the theorem's `Kₛ ≠ 0`. The excluded
-values, where the note takes limits, are not covered here.
+Theorem "singlet" of the note for `b ≠ 0`, under the assumptions `Params.SingletGeneric`: `U ≠ 0`,
+`b ≠ 0`, `tₙ + Aₛ ≠ 0`, and the theorem's `Kₛ ≠ 0`; `b = ±2a` (where `d± = 0`) and `ξ = 0` are
+included. `SingletZero.lean` adds `b = 0`, and `SingletLZ.lean` a lattice zero `t_c + Aₛ = 0`.
 
 * `Params.hasSum_gp`, `Params.hasSum_gm`, `Params.hasSum_mul_κ`: the lattice sums `∑ₙ 1/(tₙ - t±)`
   (Eq. T-atomic) and `∑ₙ 1/((tₙ - t₀)(tₙ + Aₛ))`, from Lemma "particle–particle sum".
