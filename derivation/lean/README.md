@@ -11,6 +11,9 @@ formalized and under which assumptions.
 | Lean | Content | Note / package |
 |---|---|---|
 | `Basic.lean` | the atom, its Boltzmann weights from the Hamiltonian, the Matsubara lattice, the mirror `n̄ = -n - k - 1` | Section "Setup", Eqs. (weights), (weight-ids), (z) |
+| `OrderedIntegrals.lean` | the integral over `[0, β]³` (or `[0, β]²`) of an integrand that is continuous on each ordering of the times, as a sum of integrals over the ordered simplex (Fubini on rectangles and triangles); these integrals of exponentials in closed form, also where partial sums of the rates vanish, and through the Boltzmann weights | the Lehmann representation of Section "Setup" |
+| `Lehmann.lean` | the atom from its Hamiltonian: `c↑`, `c↓` as 4×4 matrices (with the anticommutation relations), `H`, `O(τ) = e^{τH}Oe^{-τH}` (matrix exponential), the thermal average, the fermionic time ordering, and `G(ν)` and `χ_σσ'(ν, ν', ω)` as the integrals of the note; `H` is diagonal with the energies of the note and `⟨X⟩ = Σᵢ pᵢXᵢᵢ`; `χ` is a sum of six ordered terms minus the disconnected part, which factorizes, and each term is a sum over paths through the four states | Section "Setup", Eq. (H) |
+| `LehmannInput.lean` | Eq. (G) and the input Eqs. (chi-uu), (chi-ud) with Eq. (pair) and Appendix C, derived from the Hamiltonian for all `U`, `μ`, `n`, `m`, `k` (including the pair coefficient `c_ℓ = βp₀δ_ℓ0` at `μ = 0`); the particle–particle forms and the bubbles of Eq. (B) through the Hamiltonian's `χ` and `G` | Eqs. (G), (chi-uu)–(pair), Appendix C |
 | `Thermal.lean` | the period shifts of `tanh` and `coth` by `kπi/2`; Eq. (shift), `S_k(u) = S₀(u - w/2)`; `S₀(±a)` from the weights; Lemma "thermal function" for even and odd `k`; the package's evaluation of `α₀` with its prefactor taken from the stored weights; the argument reduction of the singlet setup; the factorization of `𝒫(-Aₛ)` | Lemmas "basic sum" (Eq. shift), "thermal function"; `_α`, `_pp_setup_raw` |
 | `Matsubara.lean` | Mathlib's cotangent expansion (`cot_series_rep'`) as a sum over `ℤ` along the symmetric boxes of `SummationFilter.symmetricIcc`/`symmetricIco`; from it `coth` and `tanh` as sums over the integer and half-integer lattice; `S_k(x) = PV ∑ₙ (zₙ - x)⁻¹` for even and odd `k`; `∑ₙ 1/((zₙ - x)(zₙ - y))` and `∑ₙ (zₙ - x)⁻² = S_k'(x) = S_k(x)² - β²/4`; `∑ₙ (tₙ - t)⁻¹ = -S_k(μ + ξ)/ξ`; the single-pole sums as principal values along these boxes, the others absolutely convergent (Mathlib's summability lemmas for Eisenstein series, extended to complex shifts) | Lemmas "basic sum", "particle–particle sum" |
 | `Triplet.lean` | `χ_t` from the input Eq. (chi-uu) via the particle–particle frequency map; `χ_t = B𝓜₊ + L_t𝓜₋`; a two-sided inverse exists; **every** right or left inverse `Y` gives `β²(Y - B⁻¹) = Γ_t` of Eq. (Gamma-t), so the vertex of Eq. (Gamma-def) is unique and equals the closed form; `Γ_t` vanishes at mirror fixed points; the Lehmann form of `G` | Theorem "triplet", Proposition "pp" (triplet part), Eq. (G) |
@@ -29,15 +32,20 @@ on its fixtures (`LinterFixtures.lean`).
 
 ## What is trusted
 
-The statements: the definitions in `Basic.lean`, `Triplet.lean`, `SingletInput.lean` and
-`PHInput.lean` (`chiR`, `Bph` and the polynomials of Eq. (Delta)), the closed forms `gammaT`, `Ks`,
-`gammaS` and `gammaR` (with `DD`, `Fph`, `Zph`, `Kph`, `α`), and the assumptions `SingletGeneric`,
-`DMGeneric` and `ModeOK`. That is, the Hamiltonian's energies and weights, the frequency
-conventions, the inputs Eqs. (chi-uu), (chi-ud) with Eq. (pair) and Appendix C (the
-susceptibilities of Eßl et al., Phys. Rev. Research 6, 033061 (2024), Eq. (D3), taken as given, as
-in the note), the particle–particle form `χ_pp(ν, ν', ω) = χ(ν, ν', -ω - ν - ν')`, the channel
-combinations `χ_t`, `χ_s`, `χ_d`, `χ_m`, the bubbles of Eq. (B), and the definition
-`Γ_r = β²(χ_r⁻¹ - η_r B⁻¹)` with infinite-matrix products as unconditional sums over ℤ. The inverses
+The statements: the definitions in `Lehmann.lean` (`cUp`, `cDn`, `H`, `heis`, `thermal`,
+`timeOrdered`, `propagator`, `chiLehmann`) and the parameters and frequencies of `Basic.lean`; the
+channels built from them in `Triplet.lean`, `SingletInput.lean` and `PHInput.lean` (`chiPPUpUp`,
+`chiPPUpDn`, `chiT`, `chiS`, `chiR`, `Bpp`, `Bph`, and the polynomials of Eq. (Delta)); the closed
+forms `gammaT`, `Ks`, `gammaS` and `gammaR` (with `DD`, `Fph`, `Zph`, `Kph`, `α`); and the
+assumptions `SingletGeneric`, `DMGeneric` and `ModeOK`. The channels are written with the closed
+forms `chiUpUp`, `chiUpDn` (Eqs. (chi-uu), (chi-ud), (pair), Appendix C; the susceptibilities of
+Eßl et al., Phys. Rev. Research 6, 033061 (2024), Eq. (D3)) and `G`, which need no trust:
+`LehmannInput.lean` proves them equal to `chiLehmann` and `propagator`. That is, the Hamiltonian
+and the definitions of `G` and `χ_σσ'` (Thunström et al. 2018), the frequency conventions, the
+particle–particle form `χ_pp(ν, ν', ω) = χ(ν, ν', -ω - ν - ν')` (`chiPPUpUp_eq_lehmann`), the
+channel combinations `χ_t`, `χ_s`, `χ_d`, `χ_m`, the bubbles of Eq. (B) (`Bpp_eq_propagator`,
+`Bph_eq_propagator`), and the definition `Γ_r = β²(χ_r⁻¹ - η_r B⁻¹)` with infinite-matrix products
+as unconditional sums over ℤ. The inverses
 `invS` and `invR` need not be trusted: the theorems show that they are two-sided inverses. Neither
 does `W(z; s)` of (A7), which only enters the proof.
 
@@ -49,8 +57,6 @@ does `W(z; s)` of (A7), which only enters the proof.
   which the note obtains as the limit `μ → 0`. Proposition "finite boxes".
 * That `χ_s` and `χ_r` have no inverses other than the constructed ones. For the block-diagonal `χ_t`
   this is automatic; the note does not claim it for the other channels either.
-* The derivation of the input from the Hamiltonian (the note takes it from Eßl et al.; the
-  Mathematica notebook in `../mathematica` derives it).
 * Anything about rounding: `StableForms.lean` and `Thermal.lean` prove that the listed
   reformulations are exact identities, not that its loss estimates are right.
 

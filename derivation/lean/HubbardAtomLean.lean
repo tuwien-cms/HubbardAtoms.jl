@@ -9,3 +9,6 @@ import HubbardAtomLean.PHInput
 import HubbardAtomLean.PHSums
 import HubbardAtomLean.PHIdentities
 import HubbardAtomLean.DensityMagnetic
+import HubbardAtomLean.OrderedIntegrals
+import HubbardAtomLean.Lehmann
+import HubbardAtomLean.LehmannInput
