@@ -117,6 +117,43 @@ theorem k_eq_zero_of_w (h : A.w k = 0) : k = 0 := by
     or_false, Real.pi_ne_zero, Int.cast_eq_zero, two_ne_zero, false_or] at h
   exact h
 
+/-- A root of `e` with `P(u) = 0` and `K(u) ≠ 0` is the atomic pair: `r = m` (`ε = -1`), `w = 0`
+and `u² = a²`. -/
+theorem atomic_of_Pph_eq_zero (hε : ε = 1 ∨ ε = -1) (ha : (A.a : ℂ) ≠ 0) {u : ℂ}
+    (he : A.eph k ε u = 0) (hK : A.Kph k ε u ≠ 0) (hP : A.Pph k u = 0) :
+    ε = -1 ∧ A.w k = 0 ∧ u ^ 2 = A.a ^ 2 := by
+  rcases mul_eq_zero.mp hP with hQ | hQ
+  · have h₁ := A.beta_mul_eph_of_Qp k ε hε hQ
+    rw [he, mul_zero] at h₁
+    have hu : u - ε * A.a = 0 := by
+      have h₂ : (-2 * A.a * (1 - A.ρ) : ℂ) ≠ 0 :=
+        mul_ne_zero (mul_ne_zero (by norm_num) ha) A.one_sub_rho_ne
+      rcases mul_eq_zero.mp h₁.symm with h₃ | h₃
+      · exact (mul_eq_zero.mp h₃).resolve_left h₂
+      · exact absurd h₃ hK
+    have hw : A.w k ^ 2 = 4 * (u + A.a) ^ 2 := by
+      rw [Qp] at hQ
+      linear_combination -4 * hQ
+    obtain rfl : u = ε * A.a := by linear_combination hu
+    rcases hε with rfl | rfl
+    · exact absurd (by linear_combination hw) (A.w_sq_ne k ha)
+    · exact ⟨rfl, pow_eq_zero_iff two_ne_zero |>.mp (by linear_combination hw), by ring⟩
+  · have h₁ := A.beta_mul_eph_of_Qm k ε hε hQ
+    rw [he, mul_zero] at h₁
+    have hu : u + ε * A.a = 0 := by
+      have h₂ : (2 * A.a * (1 + A.ρ) : ℂ) ≠ 0 :=
+        mul_ne_zero (mul_ne_zero two_ne_zero ha) A.one_add_rho_ne
+      rcases mul_eq_zero.mp h₁.symm with h₃ | h₃
+      · exact (mul_eq_zero.mp h₃).resolve_left h₂
+      · exact absurd h₃ hK
+    have hw : A.w k ^ 2 = 4 * (u - A.a) ^ 2 := by
+      rw [Qm] at hQ
+      linear_combination -4 * hQ
+    obtain rfl : u = -(ε * A.a) := by linear_combination hu
+    rcases hε with rfl | rfl
+    · exact absurd (by linear_combination hw) (A.w_sq_ne k ha)
+    · exact ⟨rfl, pow_eq_zero_iff two_ne_zero |>.mp (by linear_combination hw), by ring⟩
+
 /-- The note's assumption on a root `u` of `e` (`K(u) ≠ 0`, unless it is the atomic pair) implies
 `ModeOK`: a root with `P(u) = 0` and `K(u) ≠ 0` is the atomic pair of `r = m`, `k = 0`. -/
 theorem modeOK_of_K (hε : ε = 1 ∨ ε = -1) (ha : (A.a : ℂ) ≠ 0) {u : ℂ} (he : A.eph k ε u = 0)
@@ -127,39 +164,7 @@ theorem modeOK_of_K (hε : ε = 1 ∨ ε = -1) (ha : (A.a : ℂ) ≠ 0) {u : ℂ
     · -- `u` is the atomic pair
       right
       refine ⟨hP, ?_⟩
-      have key : ε = -1 ∧ A.w k = 0 ∧ u ^ 2 = A.a ^ 2 := by
-        rcases mul_eq_zero.mp hP with hQ | hQ
-        · have h₁ := A.beta_mul_eph_of_Qp k ε hε hQ
-          rw [he, mul_zero] at h₁
-          have hu : u - ε * A.a = 0 := by
-            have h₂ : (-2 * A.a * (1 - A.ρ) : ℂ) ≠ 0 :=
-              mul_ne_zero (mul_ne_zero (by norm_num) ha) A.one_sub_rho_ne
-            rcases mul_eq_zero.mp h₁.symm with h₃ | h₃
-            · exact (mul_eq_zero.mp h₃).resolve_left h₂
-            · exact absurd h₃ hK
-          have hw : A.w k ^ 2 = 4 * (u + A.a) ^ 2 := by
-            rw [Qp] at hQ
-            linear_combination -4 * hQ
-          obtain rfl : u = ε * A.a := by linear_combination hu
-          rcases hε with rfl | rfl
-          · exact absurd (by linear_combination hw) (A.w_sq_ne k ha)
-          · exact ⟨rfl, pow_eq_zero_iff two_ne_zero |>.mp (by linear_combination hw), by ring⟩
-        · have h₁ := A.beta_mul_eph_of_Qm k ε hε hQ
-          rw [he, mul_zero] at h₁
-          have hu : u + ε * A.a = 0 := by
-            have h₂ : (2 * A.a * (1 + A.ρ) : ℂ) ≠ 0 :=
-              mul_ne_zero (mul_ne_zero two_ne_zero ha) A.one_add_rho_ne
-            rcases mul_eq_zero.mp h₁.symm with h₃ | h₃
-            · exact (mul_eq_zero.mp h₃).resolve_left h₂
-            · exact absurd h₃ hK
-          have hw : A.w k ^ 2 = 4 * (u - A.a) ^ 2 := by
-            rw [Qm] at hQ
-            linear_combination -4 * hQ
-          obtain rfl : u = -(ε * A.a) := by linear_combination hu
-          rcases hε with rfl | rfl
-          · exact absurd (by linear_combination hw) (A.w_sq_ne k ha)
-          · exact ⟨rfl, pow_eq_zero_iff two_ne_zero |>.mp (by linear_combination hw), by ring⟩
-      obtain ⟨rfl, hw, hu⟩ := key
+      obtain ⟨rfl, hw, hu⟩ := A.atomic_of_Pph_eq_zero k ε hε ha he hK hP
       obtain rfl := A.k_eq_zero_of_w k hw
       intro z
       rw [hu]
