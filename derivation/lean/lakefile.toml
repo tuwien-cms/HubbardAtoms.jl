@@ -1,0 +1,30 @@
+name = "HubbardAtomLean"
+version = "0.1.0"
+keywords = ["math"]
+defaultTargets = ["HubbardAtomLean"]
+
+[leanOptions]
+pp.unicode.fun = true # pretty-prints `fun a ↦ b`
+autoImplicit = false
+relaxedAutoImplicit = false
+maxSynthPendingDepth = 3
+# Linter profile for a self-contained proof: guards against fragile proof scripts
+# and leftover debugging state. `weak.` makes unknown options a no-op, so each
+# option has a trigger fixture in `LinterFixtures.lean`, which `scripts/check.sh` builds.
+weak.linter.auxLemma = true
+weak.linter.style.maxHeartbeats = true
+weak.linter.style.missingEnd = true
+weak.linter.style.multiGoal = true
+weak.linter.style.setOption = true
+weak.linter.style.show = true
+
+[[require]]
+name = "mathlib"
+scope = "leanprover-community"
+rev = "v4.35.0-rc2"
+
+[[lean_lib]]
+name = "HubbardAtomLean"
+
+[[lean_lib]]
+name = "LinterFixtures"

@@ -13,10 +13,16 @@ The note is checked three ways, as listed in its Appendix D:
 | `doped-gamma/verify_identities.py`, `verify_dm.py` | the rational identities (A1)–(A7), exact (SymPy), for readers without Mathematica |
 | `doped-gamma/check_vertices.jl` | all theorems against `doped_gamma.jl`, a reference evaluator that computes Γ from residue sums and a finite linear solve, independently of the closed forms (256 bits), and against `HubbardAtom` at half filling |
 
+In addition, `lean/` formalizes Theorems "triplet" and "singlet" (the latter in its generic case)
+in Lean 4 with Mathlib, from the input Eqs. (chi-uu)–(pair), together with the lattice sums they
+use and the exact identities behind the Float64 setup of `DopedHubbardAtom`. `lean/README.md`
+lists what is proved and what is taken as given.
+
 `doped-gamma/figures/` holds the figures, the script for their data (`figure_data.jl`) and the
 plotting script (`make_figures.py`).
 
-The note and its figures are licensed under CC BY 4.0, the scripts under MIT; see `LICENSE`.
+The note and its figures are licensed under CC BY 4.0, the scripts and the Lean code under MIT;
+see `LICENSE`.
 
 ## Reproducing
 
@@ -29,6 +35,10 @@ cd ../doped-gamma
 python verify_identities.py                                # needs SymPy
 python verify_dm.py d nonstatic                            # also: m, and static
 julia --project=../.. check_vertices.jl
+
+cd ../lean
+lake exe cache get && lake build                           # Lean 4 and Mathlib (via elan)
+./scripts/check.sh                                         # also: no sorry, standard axioms only
 ```
 
 The note compiles with `typst compile doped-gamma-derivation.typ` (Typst 0.15). To redraw
