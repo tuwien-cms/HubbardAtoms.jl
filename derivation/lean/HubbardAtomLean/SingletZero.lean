@@ -5,8 +5,8 @@ import HubbardAtomLean.Singlet
 
 At `μ = 0`, `k = 0` (`b = 0`) the two poles `t₊ = t₋ = -a²` coincide and the pair coefficient is
 `c₀ = βp₀`. Then the regular part of `χ_s` is the rank-two form
-`c₁ g₀(t)g₀(t') + c₂ (g₀(t)²g₀(t') + g₀(t)g₀(t')²)`, `g₀ = 1/(t + a²)`, `c₁ = 2a²βp₀ - a`, `c₂ = 2a³`
-(`chiS_eq_zero`), and the inverse of Theorem "singlet" is the same `invS`.
+`c₁ g₀(t)g₀(t') + c₂ (g₀(t)²g₀(t') + g₀(t)g₀(t')²)`, `g₀ = 1/(t + a²)`, `c₁ = 2a²βp₀ - a`,
+`c₂ = 2a³` (`chiS_eq_zero`), and the inverse of Theorem "singlet" is the same `invS`.
 
 * `regular_pp_zero`: the regular part at `b = 0` (a rational identity).
 * `Params.exists_hasSum_sq_mul_κ`: `∑ₙ g₀²κ` with the double-pole sum `∑ₙ g₀²`.
@@ -149,8 +149,7 @@ theorem chiS_eq_zero (hb : A.b k = 0) (n m : ℤ) :
     A.chiS k n m = mirrorBlock k (fun j ↦ A.Ls k (A.t k j)) (fun j ↦ -A.Bpp k j) n m +
       A.chiReg₀ k n m := by
   obtain ⟨hμ, rfl⟩ := (A.b_eq_zero_iff k).mp hb
-  have hp₂ : A.p₂ = A.p₀ := by
-    rw [A.p₂_eq_p₀_mul, hμ, mul_zero, Real.exp_zero, mul_one]
+  have hp₂ := p₂_eq_p₀_of_mu hμ
   have hqm : (A.qm : ℂ) = 1 / 2 := by
     have := A.weights_sum
     rw [qm]
@@ -288,8 +287,7 @@ theorem chiS_isRightInverse_zero (ha : (A.a : ℂ) ≠ 0) (hb : A.b k = 0)
     ring
   · -- the remainder vanishes by `woodbury_identity_zero`
     obtain ⟨hμ, rfl⟩ := (A.b_eq_zero_iff k).mp hb
-    have hp₂ : A.p₂ = A.p₀ := by
-      rw [A.p₂_eq_p₀_mul, hμ, mul_zero, Real.exp_zero, mul_one]
+    have hp₂ := p₂_eq_p₀_of_mu hμ
     have hs : (A.p₀ : ℂ) + 2 * A.p₁ + A.p₀ = 1 := by
       have := A.weights_sum
       rw [hp₂] at this

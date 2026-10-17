@@ -9,8 +9,8 @@ At `U = 0` the opposite-spin susceptibility vanishes and every channel is its bu
 
 * `Params.chiUpDn_of_a_eq_zero`, `Params.chiUpUp_of_a_eq_zero`: the input at `a = U/2 = 0`.
 * `Params.gammaT_zero_of_a_eq_zero`, `Params.gammaS_zero_of_a_eq_zero`,
-  `Params.gammaR_zero_of_a_eq_zero`: `Γ_r = β²(Y - η_r B⁻¹) = 0` for every right or left inverse `Y`,
-  and `Params.exists_inverse_of_a_eq_zero`: such inverses exist.
+  `Params.gammaR_zero_of_a_eq_zero`: `Γ_r = β²(Y - η_r B⁻¹) = 0` for every right or left inverse
+  `Y`, and `Params.exists_inverse_of_a_eq_zero`: such inverses exist.
 -/
 
 open Complex
@@ -90,8 +90,7 @@ theorem chiUpDn_of_a_eq_zero (ha : A.a = 0) (k n m : ℤ) : A.chiUpDn k n m = 0 
   by_cases hp : A.μ = 0 ∧ n + m + k + 1 = 0
   · rw [ite_eq_left hp]
     have hσ0 := (A.pair_eq_zero_iff k n m).mpr hp
-    have hρ : A.p₂ = A.p₀ := by
-      rw [A.p₂_eq_p₀_mul, hp.1, mul_zero, Real.exp_zero, mul_one]
+    have hρ := p₂_eq_p₀_of_mu hp.1
     have hX : A.x n + A.w k = -A.x m := by linear_combination hσ0
     have hY : A.x m + A.w k = -A.x n := by linear_combination hσ0
     simp only [qm, qp, hρ]
