@@ -36,31 +36,50 @@ noncomputable def That (u : ℂ) : ℂ := if u = 0 then -(A.β : ℂ) ^ 2 / 4 el
 /-- `D̂ = β - 2εaS_k(û)/û`, with the value `β(1 + εaβ/2)` at `û = 0`. -/
 noncomputable def Dhat (u : ℂ) : ℂ := A.β - 2 * ε * A.a * A.That k u
 
-/-- `M(v) = -λhF(v)/β²` with `h = βp₀`: the mirror part of the inverse. -/
-noncomputable def Mv (v : ℂ) : ℂ := -(A.lam ε * (A.β * A.p₀) * A.Fph k ε v) / A.β ^ 2
+/-- `ŝ' = -4εa²(p₀ + p₁) - q₀`, the other root: at `μ = 0`, `e(z) = (z² - ŝ)(z² - ŝ')`. -/
+noncomputable def shat' : ℂ := -4 * ε * A.a ^ 2 * (A.p₀ + A.p₁) - A.q₀ k
 
-/-- The inverse of `χ_r` at `μ = 0`: its column `m` is
-`D_v δ + M(v)𝓜 + 2εa/β² - 2εaP(û)ĝ(·)ĝ(v)/(βD̂)`, `v = zₘ`. -/
+/-- The inverse of the mirror-even eigenvalue `-β(z² - ŝ)/P(z)` of the diagonal-plus-mirror
+part. -/
+noncomputable def ievn (z : ℂ) : ℂ := -(A.Pph k z / (A.β * (z ^ 2 - A.shat k ε)))
+
+/-- The inverse of the mirror-odd eigenvalue `-β(z² - ŝ')/P(z)`. -/
+noncomputable def iodd (z : ℂ) : ℂ := -(A.Pph k z / (A.β * (z ^ 2 - A.shat' k ε)))
+
+/-- The inverse of `χ_r` at `μ = 0`: the inverse of the diagonal-plus-mirror part on the mirror
+orbits, plus `2εa/β² - 2εaP(û)ĝ(zₙ)ĝ(zₘ)/(βD̂)`. -/
 noncomputable def invHF (u : ℂ) (n m : ℤ) : ℂ :=
-  A.Dv k ε (A.z k m) * kron n m + A.Mv k ε (A.z k m) * kron n (mirror k m) +
+  mirrorBlock k (fun j ↦ A.ievn k ε (A.z k j)) (fun j ↦ A.iodd k ε (A.z k j)) n m +
       2 * ε * A.a / A.β ^ 2 -
     2 * ε * A.a * A.Pph k u / (A.β * A.Dhat k ε u) * A.ghat k ε (A.z k n) *
       A.ghat k ε (A.z k m)
 
-/-- The closed form of Eq. (Gamma-hf):
-`βP(zₙ)[1/G₂(zₙ) - H(zₙ)/e(zₙ)]δₙₘ + 2εa - λhF(zₙ)δ_{m n̄} - 2εaβP(û)ĝ(zₙ)ĝ(zₘ)/D̂`. -/
+/-- The closed form of Eq. (Gamma-hf) in orbit form: `βP(zₙ)δₙₘ/G₂(zₙ) + β²(invHF part on the
+orbits) + 2εa - 2εaβP(û)ĝ(zₙ)ĝ(zₘ)/D̂`; it is Eq. (Gamma-hf) where `e(zₙ) ≠ 0`
+(`gammaHF_eq_note`), and holds also at a mirror fixed point where `βH(0) = -λh`. -/
 noncomputable def gammaHF (u : ℂ) (n m : ℤ) : ℂ :=
+  A.β * A.Pph k (A.z k n) / A.G₂ k (A.z k n) * kron n m +
+      A.β ^ 2 * mirrorBlock k (fun j ↦ A.ievn k ε (A.z k j)) (fun j ↦ A.iodd k ε (A.z k j)) n m +
+      2 * ε * A.a -
+    2 * ε * A.a * A.β * A.Pph k u / A.Dhat k ε u * A.ghat k ε (A.z k n) * A.ghat k ε (A.z k m)
+
+/-- Eq. (Gamma-hf) as printed:
+`βP(zₙ)[1/G₂(zₙ) - H(zₙ)/e(zₙ)]δₙₘ + 2εa - λhF(zₙ)δ_{m n̄} - 2εaβP(û)ĝ(zₙ)ĝ(zₘ)/D̂`. -/
+noncomputable def gammaHFnote (u : ℂ) (n m : ℤ) : ℂ :=
   A.β * A.Pph k (A.z k n) *
         (1 / A.G₂ k (A.z k n) - A.Hph k ε (A.z k n) / A.eph k ε (A.z k n)) * kron n m +
       2 * ε * A.a - A.lam ε * (A.β * A.p₀) * A.Fph k ε (A.z k n) * kron m (mirror k n) -
     2 * ε * A.a * A.β * A.Pph k u / A.Dhat k ε u * A.ghat k ε (A.z k n) * A.ghat k ε (A.z k m)
 
-/-- The assumptions of Corollary "half filling" (with `U ≠ 0`), for a root `û² = ŝ`. -/
+/-- The assumptions of Corollary "half filling" (with `U ≠ 0`), for a root `û² = ŝ`: `zₙ² ≠ ŝ`, and
+`zₙ² ≠ ŝ'` off the mirror fixed points (together weaker than `e(zₙ) ≠ 0`, `HFHyp.of_eph`), and
+`D̂ ≠ 0`. -/
 structure HFHyp (u : ℂ) : Prop where
   ε_eq : ε = 1 ∨ ε = -1
   a_ne : (A.a : ℂ) ≠ 0
   μ_eq : A.μ = 0
-  e_ne : ∀ n, A.eph k ε (A.z k n) ≠ 0
+  z_sq_ne : ∀ n, A.z k n ^ 2 - A.shat k ε ≠ 0
+  odd_ne : ∀ n, n ≠ mirror k n → A.z k n ^ 2 - A.shat' k ε ≠ 0
   u_sq : u ^ 2 = A.shat k ε
   D_ne : A.Dhat k ε u ≠ 0
 
@@ -96,10 +115,34 @@ theorem Hph_sub_of_mu (hμ : A.μ = 0) (z : ℂ) :
   simp only [Hph, lam, shat, A.rho_eq_zero_of_mu hμ]
   ring
 
+theorem Hph_add_of_mu (hμ : A.μ = 0) (z : ℂ) :
+    A.Hph k ε z + A.lam ε * A.p₀ = z ^ 2 - A.shat' k ε := by
+  simp only [Hph, lam, shat', A.rho_eq_zero_of_mu hμ]
+  ring
+
 theorem eph_of_mu (hμ : A.μ = 0) (z : ℂ) :
     A.eph k ε z = (A.Hph k ε z - A.lam ε * A.p₀) * (A.Hph k ε z + A.lam ε * A.p₀) := by
   rw [eph, A.Hph_neg_of_mu k ε hμ, p₂_eq_p₀_of_mu hμ]
   ring
+
+theorem eph_of_mu' (hμ : A.μ = 0) (z : ℂ) :
+    A.eph k ε z = (z ^ 2 - A.shat k ε) * (z ^ 2 - A.shat' k ε) := by
+  rw [A.eph_of_mu k ε hμ, A.Hph_sub_of_mu k ε hμ, A.Hph_add_of_mu k ε hμ]
+
+theorem Hph_of_mu (hμ : A.μ = 0) (z : ℂ) :
+    A.Hph k ε z = z ^ 2 - (A.shat k ε + A.shat' k ε) / 2 := by
+  simp only [Hph, shat, shat', A.rho_eq_zero_of_mu hμ]
+  ring
+
+theorem lam_p₀ : A.lam ε * (A.β * A.p₀) = A.β * ((A.shat k ε - A.shat' k ε) / 2) := by
+  simp only [lam, shat, shat']
+  ring
+
+theorem ievn_neg (z : ℂ) : A.ievn k ε (-z) = A.ievn k ε z := by
+  rw [ievn, ievn, A.Pph_neg, neg_sq]
+
+theorem iodd_neg (z : ℂ) : A.iodd k ε (-z) = A.iodd k ε z := by
+  rw [iodd, iodd, A.Pph_neg, neg_sq]
 
 theorem z_add_z_ne_zero_of_ne_mirror (hμ : A.μ = 0) {n m : ℤ} (hm : m ≠ mirror k n) :
     A.z k n + A.z k m ≠ 0 := by
@@ -153,6 +196,13 @@ theorem Pph_ne_of_shat (hε : ε = 1 ∨ ε = -1) (ha : (A.a : ℂ) ≠ 0) (hμ 
   rw [hP]
   exact mul_ne_zero (mul_ne_zero (by norm_num) (pow_ne_zero 2 ha)) (ofReal_ne_zero.mpr hpos.ne')
 
+/-- The note's assumptions `e(zₙ) ≠ 0` (with `μ = 0`, `û² = ŝ`, `D̂ ≠ 0`) imply `HFHyp`. -/
+theorem HFHyp.of_eph {u : ℂ} (hε : ε = 1 ∨ ε = -1) (ha : (A.a : ℂ) ≠ 0) (hμ : A.μ = 0)
+    (he : ∀ n, A.eph k ε (A.z k n) ≠ 0) (hu : u ^ 2 = A.shat k ε) (hD : A.Dhat k ε u ≠ 0) :
+    A.HFHyp k ε u :=
+  ⟨hε, ha, hμ, fun n h0 ↦ he n (by rw [A.eph_of_mu' k ε hμ, h0, zero_mul]),
+    fun n _ h0 ↦ he n (by rw [A.eph_of_mu' k ε hμ, h0, mul_zero]), hu, hD⟩
+
 /-! ### The lattice sums -/
 
 theorem hasSum_ℓ₀ (ha : (A.a : ℂ) ≠ 0) : HasSum (fun l ↦ 1 / A.Pph k (A.z k l)) (A.ℓ₀ k) := by
@@ -179,11 +229,6 @@ theorem hasSum_Nph_div (ha : (A.a : ℂ) ≠ 0) (hμ : A.μ = 0) (z : ℂ) :
   ring
 
 variable {A k ε} {u : ℂ}
-
-theorem HFHyp.z_sq_ne (h : A.HFHyp k ε u) (n : ℤ) : A.z k n ^ 2 - A.shat k ε ≠ 0 := by
-  intro h0
-  apply h.e_ne n
-  rw [A.eph_of_mu k ε h.μ_eq, A.Hph_sub_of_mu k ε h.μ_eq, h0, zero_mul]
 
 /-- `∑ₗ ĝ(zₗ) = T̂`: `S_k(û)/û` by Lemma "basic sum", and `∑ₗ zₗ⁻² = -β²/4` at `û = 0`. -/
 theorem HFHyp.hasSum_That (h : A.HFHyp k ε u) :
@@ -393,43 +438,44 @@ theorem HFHyp.hasSum_RrowHF_ghat (h : A.HFHyp k ε u) (n : ℤ) :
     ring
   · linear_combination -hdiag
 
-/-- The diagonal and mirror part of the column `m`:
-`P(zₙ)χ_r,nm D_v + P(zₙ)χ_r,nm̄ M(v) = P(zₙ)δₙₘ - N(zₙ, v)ĝ(v)/β`, `v = zₘ`. -/
+/-- The diagonal and mirror part of the column `m`: with `ε±(v)` the inverse even and odd
+eigenvalues, `P(zₙ)χ_r,nm (ε₊ + ε₋)/2 + P(zₙ)χ_r,nm̄ (ε₊ - ε₋)/2 = P(zₙ)δₙₘ - N(zₙ, v)ĝ(v)/β`,
+`v = zₘ`; at a mirror fixed point only `ε₊` enters. -/
 theorem HFHyp.delta_part (h : A.HFHyp k ε u) (n m : ℤ) :
-    A.RrowHF k ε n m * A.Dv k ε (A.z k m) + A.RrowHF k ε n (mirror k m) * A.Mv k ε (A.z k m) =
+    A.RrowHF k ε n m * ((A.ievn k ε (A.z k m) + A.iodd k ε (A.z k m)) / 2) +
+        A.RrowHF k ε n (mirror k m) * ((A.ievn k ε (A.z k m) - A.iodd k ε (A.z k m)) / 2) =
       A.Pph k (A.z k n) * kron n m -
         A.Nph k ε (A.z k n) (A.z k m) * A.ghat k ε (A.z k m) / A.β := by
   have hμ := h.μ_eq
   have hβ := A.β_ne_zero
   have hPm := A.Pph_z_ne_zero k m
   have hgm := h.z_sq_ne m
-  have he : A.eph k ε (A.z k m) =
-      (A.z k m ^ 2 - A.shat k ε) * (A.Hph k ε (A.z k m) + A.lam ε * A.p₀) := by
-    rw [A.eph_of_mu k ε hμ, A.Hph_sub_of_mu k ε hμ]
-  have hH : A.Hph k ε (A.z k m) + A.lam ε * A.p₀ ≠ 0 := fun h0 ↦ h.e_ne m (by rw [he, h0, mul_zero])
-  -- `H(zₙ)δₙₘ = H(zₘ)δₙₘ`, `P(zₘ)δ_{n m̄} = P(zₙ)δ_{n m̄}`, etc.
-  have hHd : A.Hph k ε (A.z k n) * kron n m = A.Hph k ε (A.z k m) * kron n m :=
-    (mul_kron_eq (fun j ↦ A.Hph k ε (A.z k j)) n m).symm
-  have hHd' : A.Hph k ε (A.z k n) * kron n (mirror k m) =
-      A.Hph k ε (A.z k m) * kron n (mirror k m) :=
-    (A.mul_kron_mirror_eq k hμ (A.Hph k ε) (A.Hph_neg_of_mu k ε hμ) n m).symm
-  have hPd : A.Pph k (A.z k n) * kron n m = A.Pph k (A.z k m) * kron n m :=
-    (mul_kron_eq (fun j ↦ A.Pph k (A.z k j)) n m).symm
-  simp only [RrowHF, Dv, Mv, Fph, ghat, A.z_mirror_of_mu k hμ m, A.Nph_neg_of_mu k ε hμ,
-    A.Pph_neg, A.Hph_neg_of_mu k ε hμ, kron_mirror_mirror, kron_comm m n,
-    ← kron_mirror_comm k n m]
-  rw [he, hPd]
-  generalize kron n m = d at *
-  generalize kron n (mirror k m) = d' at *
-  have e₁ : -↑A.β * A.Hph k ε (A.z k n) * d = -↑A.β * A.Hph k ε (A.z k m) * d := by
-    linear_combination -(A.β : ℂ) * hHd
-  have e₂ : -↑A.β * A.Hph k ε (A.z k n) * d' = -↑A.β * A.Hph k ε (A.z k m) * d' := by
-    linear_combination -(A.β : ℂ) * hHd'
-  rw [e₁, e₂]
-  have hHs := A.Hph_sub_of_mu k ε hμ (A.z k m)
-  field_simp
-  linear_combination (A.β : ℂ) * d * A.Pph k (A.z k m) *
-    (A.Hph k ε (A.z k m) + A.lam ε * A.p₀) * hHs
+  have hzm := A.z_mirror_of_mu k hμ m
+  simp only [RrowHF, ievn, iodd, ghat, hzm, A.Nph_neg_of_mu k ε hμ, A.Pph_neg,
+    kron_mirror_mirror, kron_comm m n, ← kron_mirror_comm k n m, A.lam_p₀ k ε]
+  by_cases hnm : n = m
+  · subst hnm
+    rw [kron_self, A.Hph_of_mu k ε hμ]
+    by_cases hfix : n = mirror k n
+    · -- a mirror fixed point: the odd eigenvalue drops out
+      rw [← hfix, kron_self]
+      field_simp
+      ring
+    · have hodd := h.odd_ne n hfix
+      rw [kron_of_ne hfix]
+      field_simp
+      ring
+  · rw [kron_of_ne hnm]
+    by_cases hmir : n = mirror k m
+    · -- `zₙ = -zₘ`
+      have hm' : m ≠ mirror k m := fun h0 ↦ hnm (by rw [hmir, ← h0])
+      have hodd := h.odd_ne m hm'
+      rw [hmir, kron_self, hzm, A.Hph_neg_of_mu k ε hμ, A.Hph_of_mu k ε hμ]
+      field_simp
+      ring
+    · rw [kron_of_ne hmir]
+      field_simp
+      ring
 
 /-- **Corollary "half filling"**, the inverse: `χ_r invHF = 1`. By Proposition "structure" at
 `μ = 0`, `P(zₙ)(χ_r invHF)ₙₘ` is `delta_part` plus `2εa/β²` times the row sum plus the image of `ĝ`,
@@ -445,16 +491,16 @@ theorem HFHyp.chiR_isRightInverse (h : A.HFHyp k ε u) :
   have hPu := A.Pph_ne_of_shat k ε h.ε_eq ha hμ h.u_sq
   have hD := h.D_ne
   have hgm := h.z_sq_ne m
-  have s₁ : HasSum (fun l ↦ A.RrowHF k ε n l * (A.Dv k ε (A.z k m) * kron l m))
-      (A.RrowHF k ε n m * A.Dv k ε (A.z k m)) := by
-    convert hasSum_single (f := fun l ↦ A.RrowHF k ε n l * (A.Dv k ε (A.z k m) * kron l m)) m
+  set ep := (A.ievn k ε (A.z k m) + A.iodd k ε (A.z k m)) / 2 with hep
+  set em := (A.ievn k ε (A.z k m) - A.iodd k ε (A.z k m)) / 2 with hem
+  have s₁ : HasSum (fun l ↦ A.RrowHF k ε n l * (ep * kron l m)) (A.RrowHF k ε n m * ep) := by
+    convert hasSum_single (f := fun l ↦ A.RrowHF k ε n l * (ep * kron l m)) m
       (fun l hl ↦ by simp only [kron_of_ne hl, mul_zero]) using 1
     rw [kron_self, mul_one]
-  have s₂ : HasSum (fun l ↦ A.RrowHF k ε n l * (A.Mv k ε (A.z k m) * kron l (mirror k m)))
-      (A.RrowHF k ε n (mirror k m) * A.Mv k ε (A.z k m)) := by
-    convert hasSum_single (f := fun l ↦ A.RrowHF k ε n l *
-      (A.Mv k ε (A.z k m) * kron l (mirror k m))) (mirror k m)
-      (fun l hl ↦ by simp only [kron_of_ne hl, mul_zero]) using 1
+  have s₂ : HasSum (fun l ↦ A.RrowHF k ε n l * (em * kron l (mirror k m)))
+      (A.RrowHF k ε n (mirror k m) * em) := by
+    convert hasSum_single (f := fun l ↦ A.RrowHF k ε n l * (em * kron l (mirror k m)))
+      (mirror k m) (fun l hl ↦ by simp only [kron_of_ne hl, mul_zero]) using 1
     rw [kron_self, mul_one]
   have s₃ := (h.hasSum_RrowHF n).mul_left (2 * ε * A.a / A.β ^ 2)
   have s₄ := (h.hasSum_RrowHF_ghat n).mul_left
@@ -464,10 +510,21 @@ theorem HFHyp.chiR_isRightInverse (h : A.HFHyp k ε u) :
     have hc : A.chiR k ε n l = A.RrowHF k ε n l / A.Pph k (A.z k n) := by
       rw [eq_div_iff hPn, mul_comm, RrowHF]
       exact A.Pph_mul_chiR_hf k ε hμ n l
-    rw [hc, invHF]
+    have hmb : mirrorBlock k (fun j ↦ A.ievn k ε (A.z k j)) (fun j ↦ A.iodd k ε (A.z k j)) l m =
+        ep * kron l m + em * kron l (mirror k m) := by
+      rw [mirrorBlock, hep, hem]
+      have h₁ := mul_kron_eq (fun j ↦ (A.ievn k ε (A.z k j) + A.iodd k ε (A.z k j)) / 2) l m
+      have h₂ : (A.ievn k ε (A.z k l) - A.iodd k ε (A.z k l)) / 2 * kron m (mirror k l) =
+          (A.ievn k ε (A.z k m) - A.iodd k ε (A.z k m)) / 2 * kron l (mirror k m) := by
+        rw [kron_mirror_comm k m l]
+        have := A.mul_kron_mirror_eq k hμ (fun z ↦ (A.ievn k ε z - A.iodd k ε z) / 2)
+          (fun z ↦ by rw [A.ievn_neg, A.iodd_neg]) l m
+        simpa using this.symm
+      rw [← h₁, h₂]
+    rw [hc, invHF, hmb]
     field_simp
     ring
-  · rw [h.delta_part n m, A.Nph_of_mu k ε hμ, A.Nph_of_mu k ε hμ, h.u_sq, ghat]
+  · rw [hep, hem, h.delta_part n m, A.Nph_of_mu k ε hμ, A.Nph_of_mu k ε hμ, h.u_sq, ghat]
     field_simp
     ring
 
@@ -478,13 +535,23 @@ theorem HFHyp.gammaHF_eq (h : A.HFHyp k ε u) (n m : ℤ) :
   have hβ := A.β_ne_zero
   have hPn := A.Pph_z_ne_zero k n
   have hGn := A.G₂_z_ne_zero k n
-  have hen := h.e_ne n
   have hD := h.D_ne
-  have hDv := mul_kron_eq (fun j ↦ A.Dv k ε (A.z k j)) n m
-  have hMv := A.mul_kron_mirror_eq k hμ (A.Mv k ε)
-    (fun z ↦ by rw [Mv, Mv, A.Fph_neg]) n m
-  rw [invHF, gammaHF, A.Bph_eq k n, hDv, hMv, kron_mirror_comm k m n]
-  simp only [Dv, Mv, Fph, A.Hph_neg_of_mu k ε hμ]
+  rw [invHF, gammaHF, A.Bph_eq k n]
+  field_simp
+  ring
+
+variable (A k ε) in
+/-- Where `e(zₙ) ≠ 0`, the orbit form `gammaHF` is Eq. (Gamma-hf) as printed. -/
+theorem gammaHF_eq_note (hμ : A.μ = 0) {u : ℂ} {n : ℤ} (he : A.eph k ε (A.z k n) ≠ 0)
+    (m : ℤ) : A.gammaHF k ε u n m = A.gammaHFnote k ε u n m := by
+  have hβ := A.β_ne_zero
+  have hGn := A.G₂_z_ne_zero k n
+  rw [A.eph_of_mu' k ε hμ] at he
+  have h₁ := left_ne_zero_of_mul he
+  have h₂ := right_ne_zero_of_mul he
+  rw [gammaHF, gammaHFnote, mirrorBlock, Fph, A.eph_of_mu' k ε hμ, A.Hph_of_mu k ε hμ,
+    A.lam_p₀ k ε]
+  simp only [ievn, iodd]
   field_simp
   ring
 
@@ -511,10 +578,8 @@ theorem chiR_symm_hf (hμ : A.μ = 0) (n m : ℤ) : A.chiR k ε n m = A.chiR k �
 
 theorem HFHyp.invHF_symm (h : A.HFHyp k ε u) (n m : ℤ) :
     A.invHF k ε u n m = A.invHF k ε u m n := by
-  have hDv := mul_kron_eq (fun j ↦ A.Dv k ε (A.z k j)) n m
-  have hMv := A.mul_kron_mirror_eq k h.μ_eq (A.Mv k ε)
-    (fun z ↦ by rw [Mv, Mv, A.Fph_neg]) n m
-  rw [invHF, invHF, hDv, hMv, kron_comm m n, kron_mirror_comm k m n]
+  rw [invHF, invHF, mirrorBlock_symm (fun j ↦ by rw [A.z_mirror_of_mu k h.μ_eq, A.ievn_neg])
+    (fun j ↦ by rw [A.z_mirror_of_mu k h.μ_eq, A.iodd_neg])]
   ring
 
 /-- **Corollary "half filling"**, two-sidedness: `invHF χ_r = 1`, as `χ_r` and `invHF` are
