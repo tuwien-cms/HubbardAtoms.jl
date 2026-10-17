@@ -289,9 +289,10 @@ This is Eq. 19 of Ref. @thunstroem2018 for $r = "d", "m"$ (@app-checks). Compare
   Partial fractions write $phi$ as a finite sum of constants times $(t - x)^(-j)$, $j >= 1$, over its poles $x$. By @lem-S each $(t - x)^(-j)$ sums to $S_k^((j - 1))(x) slash (j - 1)!$, which is the residue of $(t - x)^(-j) S_k (t)$ at $x$, since $S_k$ is analytic there.
 ]
 
-#lemma(title: [particle–particle sum], lean: [for $xi != 0$, with @eq-T-atomic (`Matsubara.lean`: `hasSum_one_div_t_sub`; `Singlet.lean`: `hasSum_gp`, `hasSum_gm`).])[
-  For $t != t_n$ ($forall n$), $sum_n (t_n - t)^(-1) = cal(T)_k (t)$ (@eq-T), absolutely convergent. At the two points $t_(plus.minus) := -a^2 plus.minus a b$,
+#lemma(title: [particle–particle sum], lean: [for $xi != 0$, with @eq-T-atomic for $b != plus.minus 2 a$ (`Matsubara.lean`: `hasSum_one_div_t_sub`; `Singlet.lean`: `hasSum_gp`, `hasSum_gm`).])[
+  For $t != t_n$ ($forall n$), $sum_n (t_n - t)^(-1) = cal(T)_k (t)$ (@eq-T), absolutely convergent. At the two points $t_(plus.minus) := -a^2 plus.minus a b$, for $b != plus.minus 2 a$,
   $ cal(T)_k (t_+) = -frac(2 S_-, 2 a - b), quad quad cal(T)_k (t_-) = frac(2 S_+, 2 a + b). $ <eq-T-atomic>
+  If $b = plus.minus 2 a$ (which needs $k = 0$), then $t_(plus.minus) = b^2 slash 4$, i.e. $xi = 0$, and $cal(T)_k (t_(plus.minus)) = beta^2 slash 4$.
 ] <lem-T>
 #proof[
   Since $x_n = z_n - w slash 2$ and $b slash 2 = mu - w slash 2$, $t_n = b^2 slash 4 - (z_n - mu)^2$, so for $xi != 0$, $(t_n - t)^(-1) = [(z_n - mu + xi)^(-1) - (z_n - mu - xi)^(-1)] slash (2 xi)$. By @lem-S and the oddness of $tanh$ and $coth$, the sum is $(S_k (mu - xi) - S_k (mu + xi)) slash (2 xi) = -S_k (mu + xi) slash xi$; it converges absolutely, as $t_n tilde n^2$. For $xi = 0$, $(t_n - t)^(-1) = -(z_n - mu)^(-2)$ sums to $-S'_k (mu) = beta^2 slash 4$ by @lem-S. This occurs only for even $k$: for odd $k$, $t = b^2 slash 4$ is $t_n$ at the mirror fixed point. At $t_(plus.minus)$, $xi^2 = (a minus.plus b slash 2)^2$. At $t_+$ take $xi = a - b slash 2$: then $mu + xi = a + w slash 2$, and $S_k (mu + xi) = S_-$ by @eq-shift. At $t_-$ take $xi = -a - b slash 2$: then $mu + xi = -a + w slash 2$, and $S_k (mu + xi) = S_+$.
@@ -475,9 +476,9 @@ _Step 2 (the constant)._ For $y = 1$ the left side of @eq-column is $-beta H(z) 
 
 _Step 3 (pole pairs)._ The rest of @eq-defect must be removed by functions that are mapped to polynomials. A simple pole $1 slash (t - x)$ is mapped by $-beta H + lambda cC$ to poles at $x$ and at $-x$ (@lem-calculus). So consider $phi = f_+ slash (t - x) + f_- slash (t + x)$. For it, the left side of @eq-column is a polynomial plus
 $ frac(-beta H(x) f_+ + lambda alpha_k (-x) f_-, z - x) + frac(lambda alpha_k (x) f_+ - beta H(-x) f_-, z + x). $
-Both residues vanish for some $(f_+, f_-) != 0$ iff the determinant $beta^2 H(x) H(-x) - lambda^2 alpha_k (x) alpha_k (-x) = beta^2 e(x)$ vanishes (@eq-alpha), i.e. iff $x = plus.minus u_j$. For $x = u_j$ we take
+For $x != 0$, both residues vanish for some $(f_+, f_-) != 0$ iff the determinant $beta^2 H(x) H(-x) - lambda^2 alpha_k (x) alpha_k (-x) = beta^2 e(x)$ vanishes (@eq-alpha), i.e. iff $x = plus.minus u_j$. For $x = u_j$ we take
 $ phi_j (t) := frac(beta H(-u_j), t - u_j) + frac(lambda alpha_j, t + u_j) = frac(K_j t + u_j [beta H(-u_j) - lambda alpha_j], t^2 - s_j), quad quad alpha_j := alpha_k (u_j). $ <eq-mode>
-With $H(z) - H(plus.minus u_j) = (z minus.plus u_j)(z plus.minus u_j + 2 a rho)$, the polynomial part is
+(For $u_j = 0$ the two poles coincide, $phi_j = K_j slash t$, and what follows holds unchanged.) With $H(z) - H(plus.minus u_j) = (z minus.plus u_j)(z plus.minus u_j + 2 a rho)$, the polynomial part is
 $ -beta [K_j (z + 2 a rho) + u_j (beta H(-u_j) - lambda alpha_j)] + beta H(-u_j) cal(I)(z; u_j) + lambda alpha_j cal(I)(z; -u_j). $
 To evaluate it, set $v = minus.plus u_j$ in @eq-source, where $e(v) = 0$ and $P(v) = P(u_j)$:
 $ frac(lambda rho, beta) P(u_j) overline(cal(I))(z; plus.minus u_j) = lambda rho (plus.minus u_j + 2 a rho) P(u_j) - H(plus.minus u_j) N(z, minus.plus u_j) - lambda W(z; s_j). $
