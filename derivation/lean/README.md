@@ -20,11 +20,11 @@ formalized and under which assumptions.
 | `PHSums.lean` | the lattice sums of the particle–hole channels, uniform in `k` by splitting `P = Q₊Q₋` (for `k = 0` the zeros of `P` are double): `PV ∑ zʲ/P(z)`, sums of cubics over `P`; `ρS_k(-zₙ) = c̄`; Lemmas "square" and "Cauchy calculus"; `α_k(x)α_k(-x) = h²`; Lemma "rank-two sums"; the constant sum of Step 2 | Lemmas "values on the reflected lattice", "square", "thermal function" (Eq. alpha), "Cauchy calculus", "rank-two sums" |
 | `PHIdentities.lean` | identities (A6) and (A7) (Eq. source), with `S±` from the weights, for both channels and `k = 0`, `k ≠ 0` | (A6), (A7) |
 | `DensityMagnetic.lean` | the algebra of Steps 1, 3 and 4; Steps 1–3 as lattice sums; an explicit two-sided inverse of `χ_r` and `β²(χ_r⁻¹ - B⁻¹) = Γ_r` of Eq. (Gamma-ph), with `DD(z, z) = (F(z) + zF'(z))/(2z)` on the diagonal, for `U ≠ 0`, `μ ≠ 0`, `e(zₙ) ≠ 0`, `s₁ ≠ s₂` and, for each root, `P(uⱼ) ≠ 0`, `Kⱼ ≠ 0` or the atomic alternative; for `r = m`, `k = 0` the atomic root `u = a` drops out | Theorem "density and magnetic" (generic case, including the static magnetic channel) |
-| `StableForms.lean` | the reformulations used by the Float64 setup of Theorem "density and magnetic": the discriminant of `e` from the weights, the roots and Vieta products, the offsets of the roots from `t₊², t₋², a², w²/4`, `P(u)` as a product of offsets, the factors `z² - s = (x - δ)(x + w + δ)` of the entries, `AB = -ρM` at a root, the alternative forms of `K/ρ` and of `K` at `k = 0` (density), the divided-difference form of `Q(z, v)` | `_ph_setup_raw`, `_efactors`, `_Γraw`, `_Q` in `src/doped.jl` |
+| `StableForms.lean` | the reformulations used by the Float64 setup of Theorem "density and magnetic": the discriminant of `e` from the weights, the roots and Vieta products, the offsets of the roots from `t₊², t₋², a², w²/4`, `P(u)` as a product of offsets, the factors `z² - s = (x - δ)(x + w + δ)` of the entries, `AB = -ρM` at a root, the alternative forms of `K/ρ` and of `K` at `k = 0` (density), the divided-difference form of `Q(z, v)` off the diagonal. Not covered: `_Y_atomic`, `_tanhdiff`, and `_Q` on the diagonal | `_ph_setup_raw`, `_efactors`, `_Γraw`, `_Q` in `src/doped.jl` |
 
 `scripts/check.sh` rebuilds the library from a cold cache (failing on any warning), checks every
-declaration with the kernel for `sorry` and for axioms beyond `propext`, `Classical.choice` and
-`Quot.sound` (`scripts/AxiomCheck.lean`), and checks that the linter profile of `lakefile.toml` fires
+declaration, private and auxiliary ones included, with the kernel for `sorry` and for axioms beyond
+`propext`, `Classical.choice` and `Quot.sound` (`scripts/AxiomCheck.lean`), and checks that the linter profile of `lakefile.toml` fires
 on its fixtures (`LinterFixtures.lean`).
 
 ## What is trusted
@@ -51,7 +51,7 @@ does `W(z; s)` of (A7), which only enters the proof.
   this is automatic; the note does not claim it for the other channels either.
 * The derivation of the input from the Hamiltonian (the note takes it from Eßl et al.; the
   Mathematica notebook in `../mathematica` derives it).
-* Anything about rounding: `StableForms.lean` and `Thermal.lean` prove that the package's
+* Anything about rounding: `StableForms.lean` and `Thermal.lean` prove that the listed
   reformulations are exact identities, not that its loss estimates are right.
 
 ## Build

@@ -5,8 +5,10 @@ import HubbardAtomLean.Basic
 
 `DopedHubbardAtom` in HubbardAtoms.jl (`src/doped.jl`, PR #12) evaluates the closed forms of
 Theorem "density and magnetic" and Theorem "singlet" in floating point. To avoid cancellation it
-replaces the naive formulas by equivalent ones. This file proves that each replacement is an exact
-identity. (It does not prove anything about rounding.)
+replaces the naive formulas by equivalent ones. This file proves that the replacements listed below
+are exact identities. (It does not prove anything about rounding.) Not covered: `_Y_atomic` (the
+other root of the static magnetic channel), the two branches of `_tanhdiff`, and `_Q` on the
+diagonal `z = v` (`Q_eq` assumes `z ≠ v`).
 
 The scalars of one transfer and channel are bundled in `PHData`: `a = U/2`, the transfer
 `w = iω_k`, the weights `p₀, p₁, p₂` with `p₀ + 2p₁ + p₂ = 1`, and `ε = ±1` (density / magnetic).
