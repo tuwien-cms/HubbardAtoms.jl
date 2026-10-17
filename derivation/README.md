@@ -14,10 +14,12 @@ The note is checked three ways, as listed in its Appendix D:
 | `doped-gamma/check_vertices.jl` | all theorems against `doped_gamma.jl`, a reference evaluator that computes Γ from residue sums and a finite linear solve, independently of the closed forms (256 bits), and against `HubbardAtom` at half filling |
 
 In addition, `lean/` derives the input Eqs. (G), (chi-uu)–(pair) from the Hamiltonian and
-formalizes Theorems "triplet", "singlet" and "density and magnetic" (the last two in their generic
-cases) in Lean 4 with Mathlib, together with the lattice sums and identities they use and the exact
-identities behind the Float64 setup of `DopedHubbardAtom`. Appendix E of the note, together with a remark after each numbered statement,
-says what is formalized; `lean/README.md` lists the Lean files and what is taken as given.
+formalizes Theorems "triplet", "singlet" and "density and magnetic" and Corollary "half filling" in
+Lean 4 with Mathlib (except the lattice zeros of `e` at `μ ≠ 0`; at the other lattice zeros it verifies
+the limiting inverses), together with the lattice sums and identities they use and some of the
+exact identities behind the Float64 setup of `DopedHubbardAtom`. Appendix E of the note, together
+with a remark after each numbered statement, says what is formalized; `lean/README.md` lists the
+Lean files and what is taken as given.
 
 `doped-gamma/figures/` holds the figures, the script for their data (`figure_data.jl`) and the
 plotting script (`make_figures.py`).
