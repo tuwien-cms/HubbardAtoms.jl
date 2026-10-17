@@ -431,6 +431,71 @@ theorem hasSum_sq {k : ℤ} {x : ℂ} (hx : ∀ n, A.z k n ≠ x) :
     with y hyx hyb
   exact hbound y hyx (by simpa [Metric.mem_ball, dist_eq_norm] using hyb)
 
+/-- For even `k` the lattice avoids `μ`: `zₙ - μ = iπ(2n + 1 + k)/β ≠ 0`. -/
+theorem z_ne_mu_of_even {k : ℤ} (hk : Even k) (n : ℤ) : A.z k n ≠ A.μ := by
+  intro h
+  have him := congrArg Complex.im h
+  rw [A.z_eq] at him
+  simp only [add_im, ofReal_im, mul_im, ofReal_re, I_im, mul_one, I_re, mul_zero, add_zero,
+    zero_add] at him
+  have hβ := A.β_pos.ne'
+  have h2 : ((2 * n + 1 + k : ℤ) : ℝ) = 0 := by
+    have : (2 * (n : ℝ) + 1 + k) * Real.pi = 0 := by
+      field_simp at him
+      linarith
+    push_cast
+    rcases mul_eq_zero.mp this with h | h
+    · exact h
+    · exact absurd h Real.pi_ne_zero
+  have h3 : 2 * n + 1 + k = 0 := by exact_mod_cast h2
+  obtain ⟨j, rfl⟩ := hk
+  omega
+
+/-- For odd `k` the mirror fixed point `n = -(k + 1)/2` has `zₙ = μ`. -/
+theorem exists_z_eq_mu_of_odd {k : ℤ} (hk : Odd k) : ∃ n, A.z k n = A.μ := by
+  obtain ⟨j, rfl⟩ := hk
+  refine ⟨-j - 1, ?_⟩
+  rw [A.z_eq]
+  push_cast
+  ring_nf
+
+theorem S_mu_of_even {k : ℤ} (hk : Even k) : A.S k A.μ = 0 := by
+  simp [S, hk]
+
+/-- Lemma "particle–particle sum" at `ξ = 0`, i.e. `t = b²/4`, for even `k`:
+`∑ₙ (tₙ - t)⁻¹ = -∑ₙ (zₙ - μ)⁻² = -S_k'(μ) = β²/4`. -/
+theorem hasSum_one_div_t_sub_confluent {k : ℤ} (hk : Even k) :
+    HasSum (fun n ↦ 1 / (A.t k n - A.b k ^ 2 / 4)) ((A.β : ℂ) ^ 2 / 4) := by
+  have h := (A.hasSum_sq (k := k) (A.z_ne_mu_of_even hk)).neg
+  rw [A.S_mu_of_even hk] at h
+  convert h using 1
+  · funext n
+    rw [A.t_eq_z, show A.b k ^ 2 / 4 - (A.z k n - A.μ) ^ 2 - A.b k ^ 2 / 4 =
+      -((A.z k n - A.μ) ^ 2) by ring, one_div_neg_eq_neg_one_div]
+  · ring
+
+/-- `𝒯_k(t) = -S_k(μ + ξ)/ξ` of Eq. (T), `ξ² = b²/4 - t`, with the value `β²/4` at `ξ = 0`
+(Lemma "particle–particle sum"). -/
+noncomputable def Tpp (k : ℤ) (ξ : ℂ) : ℂ :=
+  if ξ = 0 then (A.β : ℂ) ^ 2 / 4 else -A.S k (A.μ + ξ) / ξ
+
+/-- Lemma "particle–particle sum", including `ξ = 0`: `∑ₙ (tₙ - t)⁻¹ = 𝒯_k(t)` for `t` off the
+lattice `{tₙ}`. -/
+theorem hasSum_Tpp {k : ℤ} {t ξ : ℂ} (hξ : ξ ^ 2 = A.b k ^ 2 / 4 - t) (ht : ∀ n, A.t k n ≠ t) :
+    HasSum (fun n ↦ 1 / (A.t k n - t)) (A.Tpp k ξ) := by
+  by_cases hξ0 : ξ = 0
+  · rw [Tpp, ite_eq_left hξ0]
+    have htb : t = A.b k ^ 2 / 4 := by
+      rw [hξ0] at hξ
+      linear_combination hξ
+    rcases Int.even_or_odd k with hk | hk
+    · rw [htb]
+      exact A.hasSum_one_div_t_sub_confluent hk
+    · obtain ⟨n, hn⟩ := A.exists_z_eq_mu_of_odd hk
+      exact absurd (by rw [A.t_eq_z, hn, sub_self, htb]; ring) (ht n)
+  · rw [Tpp, ite_eq_right hξ0]
+    exact A.hasSum_one_div_t_sub hξ hξ0 ht
+
 end Params
 
 end HubbardAtom
