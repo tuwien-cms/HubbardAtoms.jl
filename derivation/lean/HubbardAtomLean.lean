@@ -12,3 +12,5 @@ import HubbardAtomLean.DensityMagnetic
 import HubbardAtomLean.OrderedIntegrals
 import HubbardAtomLean.Lehmann
 import HubbardAtomLean.LehmannInput
+import HubbardAtomLean.UZero
+import HubbardAtomLean.DMLifts
