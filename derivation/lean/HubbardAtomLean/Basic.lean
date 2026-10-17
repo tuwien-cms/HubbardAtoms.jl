@@ -44,6 +44,20 @@ theorem mirror_eq_iff {k n m : ℤ} : m = mirror k n ↔ n = mirror k m := by
   unfold mirror
   omega
 
+theorem kron_mirror_comm (k n m : ℤ) : kron n (mirror k m) = kron m (mirror k n) := by
+  unfold kron
+  by_cases h : n = mirror k m
+  · rw [ite_eq_left h, ite_eq_left (mirror_eq_iff.mpr h)]
+  · rw [ite_eq_right h, ite_eq_right (fun h' ↦ h (mirror_eq_iff.mp h'))]
+
+theorem kron_mirror_mirror (k n m : ℤ) : kron (mirror k n) (mirror k m) = kron n m := by
+  rw [kron_mirror_comm, mirror_mirror, kron_comm]
+
+theorem mul_kron_eq (f : ℤ → ℂ) (n m : ℤ) : f m * kron n m = f n * kron n m := by
+  by_cases h : n = m
+  · rw [h]
+  · rw [kron_of_ne h, mul_zero, mul_zero]
+
 /-- Parameters of the Hubbard atom: interaction `U`, inverse temperature `β > 0`, and chemical
 potential `μ`, measured from half filling. -/
 structure Params where
@@ -130,6 +144,9 @@ theorem p₂_eq_p₀_mul : A.p₂ = A.p₀ * Real.exp (2 * A.β * A.μ) := by
   rw [div_mul_eq_mul_div, ← Real.exp_add]
   congr 2
   ring
+
+theorem p₂_eq_p₀_of_mu {A : Params} (h : A.μ = 0) : A.p₂ = A.p₀ := by
+  rw [A.p₂_eq_p₀_mul, h, mul_zero, Real.exp_zero, mul_one]
 
 /-- Part of Eq. (weight-ids): `1 - ρ² = 4 q₊ q₋`, as `q₊ + q₋ = 1` and `q₊ - q₋ = ρ`. -/
 theorem one_sub_rho_sq : 1 - A.ρ ^ 2 = 4 * A.qp * A.qm := by

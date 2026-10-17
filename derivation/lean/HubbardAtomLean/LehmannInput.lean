@@ -312,9 +312,6 @@ theorem chiLehmann_upUp (k n m : ℤ) :
 
 /-! ### The opposite-spin susceptibility -/
 
-theorem p₂_eq_p₀_of_mu {A : Params} (h : A.μ = 0) : A.p₂ = A.p₀ := by
-  rw [A.p₂_eq_p₀_mul, h, mul_zero, Real.exp_zero, mul_one]
-
 /-- `2μ + iΩ_{n+m+k+1} = x_n + x_m + w`. -/
 theorem pair_denom (k n m : ℤ) :
     2 * (A.μ : ℂ) + A.ω (n + m + k + 1) * I = A.x n + A.x m + A.w k := by

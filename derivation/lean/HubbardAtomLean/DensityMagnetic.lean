@@ -21,9 +21,10 @@ alternative `P(uⱼ) = 0`, `W(z; sⱼ) = 0` (`Params.ModeOK`). The proof follows
 * `Params.atomic_root`, `Params.dmGeneric_static_magnetic`: for `r = m`, `k = 0` the atomic root
   `u₁ = a` drops out, so the theorem covers the static magnetic channel.
 
-The note's assumption `uⱼ ≠ 0` (Steps 1–4) is not needed here. Not covered: the confluent roots
-`s₁ = s₂`, the lattice roots `e(zₙ) = 0`, common zeros of `P` and `e` other than the atomic pair,
-and `μ = 0` (Corollary "half filling"); the note treats them by limits.
+The note's assumption `uⱼ ≠ 0` (Steps 1–4) is not needed here. `DMLifts.lean` derives `DMGeneric`
+from the note's assumptions, `Confluent.lean` adds `s₁ = s₂`, and `HalfFilling.lean` and
+`HalfFillingLZ.lean` add `μ = 0` (Corollary "half filling"). Not covered: the lattice roots
+`e(zₙ) = 0` for `μ ≠ 0`, which the note treats by limits.
 -/
 
 open Complex Filter Topology
@@ -294,21 +295,20 @@ theorem DMGeneric.α_ne (h : A.DMGeneric k ε u₁ u₂) {u : ℂ} (hu : A.eph k
 
 /-! ### Steps 1 and 2 -/
 
+variable (A k ε) in
 /-- Step 1 (the Cauchy column): `∑ₗ P(zₙ)χ_r,nl (D_v δ_lm + E_v/(zₗ + v)) =
 P(v)δₙₘ + (-N₂(z) + λρz(F(v) - 1) + λW(z; v²)/e(v))/β` with `z = zₙ`, `v = zₘ`. -/
-theorem DMGeneric.hasSum_step1 (h : A.DMGeneric k ε u₁ u₂) (n m : ℤ) :
+theorem hasSum_step1_of (hε : ε = 1 ∨ ε = -1) (ha : (A.a : ℂ) ≠ 0) (hμ : A.μ ≠ 0) {n m : ℤ}
+    (hem : A.eph k ε (A.z k m) ≠ 0) :
     HasSum (fun l ↦ A.Rrow k ε n l *
         (A.Dv k ε (A.z k m) * kron l m + A.Ev k ε (A.z k m) / (A.z k l + A.z k m)))
       (A.Pph k (A.z k m) * kron n m + (-A.N₂ k ε (A.z k n) +
         A.lam ε * A.ρ * A.z k n * (A.Fph k ε (A.z k m) - 1) +
         A.lam ε * A.Wph k ε (A.z k n) (A.z k m ^ 2) / A.eph k ε (A.z k m)) / A.β) := by
-  have hμ := h.μ_ne
-  have ha := h.a_ne
   have hβ := A.β_ne_zero
   have hρ := A.rho_ne_zero hμ
-  have hlam := A.lam_ne_zero ε h.ε_eq ha
+  have hlam := A.lam_ne_zero ε hε ha
   have hPm := A.Pph_z_ne_zero k m
-  have hem := h.e_ne m
   have hzv := A.z_add_z_ne_zero k hμ n m
   have hS : A.S k (-A.z k m) = A.cbar / A.ρ := by
     rw [eq_div_iff hρ, mul_comm]
@@ -337,7 +337,7 @@ theorem DMGeneric.hasSum_step1 (h : A.DMGeneric k ε u₁ u₂) (n m : ℤ) :
     field_simp
     ring
   · rw [A.Pph_neg, hS]
-    have h7 := A.identity_A7 k ε h.ε_eq ha (A.z k n) (A.z k m)
+    have h7 := A.identity_A7 k ε hε ha (A.z k n) (A.z k m)
     simp only [Rrow, Dv, Ev, Fph, Hph] at h7 ⊢
     have hR := h7
     by_cases hnm : n = m
@@ -359,20 +359,33 @@ theorem DMGeneric.hasSum_step1 (h : A.DMGeneric k ε u₁ u₂) (n m : ℤ) :
         (W := A.Wph k ε (A.z k n) (A.z k m ^ 2)) (by linear_combination -hR)
       linear_combination -hoff
 
+theorem DMGeneric.hasSum_step1 (h : A.DMGeneric k ε u₁ u₂) (n m : ℤ) :
+    HasSum (fun l ↦ A.Rrow k ε n l *
+        (A.Dv k ε (A.z k m) * kron l m + A.Ev k ε (A.z k m) / (A.z k l + A.z k m)))
+      (A.Pph k (A.z k m) * kron n m + (-A.N₂ k ε (A.z k n) +
+        A.lam ε * A.ρ * A.z k n * (A.Fph k ε (A.z k m) - 1) +
+        A.lam ε * A.Wph k ε (A.z k n) (A.z k m ^ 2) / A.eph k ε (A.z k m)) / A.β) :=
+  A.hasSum_step1_of k ε h.ε_eq h.a_ne h.μ_ne (h.e_ne m)
+
+variable (A k ε) in
 /-- Step 2 (the constant): `∑ₗ P(zₙ)χ_r,nl = βN₂(zₙ)/(2εa)`, by `hasSum_const` and (A6). -/
-theorem DMGeneric.hasSum_step2 (h : A.DMGeneric k ε u₁ u₂) (n : ℤ) :
+theorem hasSum_step2_of (hε : ε = 1 ∨ ε = -1) (ha : (A.a : ℂ) ≠ 0) (hμ : A.μ ≠ 0) (n : ℤ) :
     HasSum (fun l ↦ A.Rrow k ε n l) (A.β * A.N₂ k ε (A.z k n) / (2 * ε * A.a)) := by
   have h₁ : HasSum (fun l ↦ -A.β * A.Hph k ε (A.z k n) * kron n l)
       (-A.β * A.Hph k ε (A.z k n)) := by
     convert hasSum_single (f := fun l ↦ -A.β * A.Hph k ε (A.z k n) * kron n l) n
       (fun l hl ↦ by simp only [kron_of_ne (Ne.symm hl), mul_zero]) using 1
     rw [kron_self, mul_one]
-  convert h₁.add (A.hasSum_const k ε h.a_ne h.μ_ne n) using 1
+  convert h₁.add (A.hasSum_const k ε ha hμ n) using 1
   · funext l
     rw [Rrow]
     ring
-  · rw [← A.identity_A6 k ε h.ε_eq h.a_ne]
+  · rw [← A.identity_A6 k ε hε ha]
     ring
+
+theorem DMGeneric.hasSum_step2 (h : A.DMGeneric k ε u₁ u₂) (n : ℤ) :
+    HasSum (fun l ↦ A.Rrow k ε n l) (A.β * A.N₂ k ε (A.z k n) / (2 * ε * A.a)) :=
+  A.hasSum_step2_of k ε h.ε_eq h.a_ne h.μ_ne n
 
 /-! ### Step 3 -/
 
