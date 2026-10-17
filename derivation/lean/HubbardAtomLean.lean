@@ -18,3 +18,4 @@ import HubbardAtomLean.SingletZero
 import HubbardAtomLean.HalfFilling
 import HubbardAtomLean.Confluent
 import HubbardAtomLean.SingletLZ
+import HubbardAtomLean.HalfFillingLZ

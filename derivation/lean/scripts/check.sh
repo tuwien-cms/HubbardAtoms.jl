@@ -7,7 +7,7 @@ set -euo pipefail
 rm -rf .lake/build
 lake build HubbardAtomLean 2>&1 | tee .lake/build.log
 for m in Basic Triplet StableForms Thermal Matsubara SingletInput Singlet PHInput PHSums \
-  PHIdentities DensityMagnetic OrderedIntegrals Lehmann LehmannInput UZero DMLifts SingletZero HalfFilling Confluent SingletLZ; do
+  PHIdentities DensityMagnetic OrderedIntegrals Lehmann LehmannInput UZero DMLifts SingletZero HalfFilling Confluent SingletLZ HalfFillingLZ; do
   grep -q "Built HubbardAtomLean.$m" .lake/build.log \
     || { echo "gate is vacuous: HubbardAtomLean.$m was not compiled" >&2; exit 1; }
 done
