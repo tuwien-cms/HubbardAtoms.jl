@@ -172,12 +172,6 @@ structure HFLZ : Prop where
   z_c : A.z k c ^ 2 - A.shat k ε = 0
   odd_ne : ∀ n, n ≠ mirror k n → A.z k n ^ 2 - A.shat' k ε ≠ 0
 
-theorem bev_neg (z : ℂ) : A.bev k ε (-z) = A.bev k ε z := by
-  rw [bev, bev, A.Pph_neg, neg_sq]
-
-theorem bodd_neg (z : ℂ) : A.bodd k ε (-z) = A.bodd k ε z := by
-  rw [bodd, bodd, A.Pph_neg, neg_sq]
-
 /-- `χ_r = (bev 𝓜₊ + bodd 𝓜₋) + N(zₙ, zₘ)/(P(zₙ)P(zₘ))` at `μ = 0`. -/
 theorem chiR_hf_eq (hμ : A.μ = 0) (n m : ℤ) :
     A.chiR k ε n m = mirrorBlock k (fun j ↦ A.bev k ε (A.z k j)) (fun j ↦ A.bodd k ε (A.z k j))

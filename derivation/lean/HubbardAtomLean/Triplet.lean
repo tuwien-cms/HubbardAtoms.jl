@@ -366,13 +366,6 @@ theorem chiT_row {Y : ℤ → ℤ → ℂ} (hY : IsRightInverse (A.chiT k) Y) (n
   refine (hasSum_sum_of_ne_finset_zero (fun l hl ↦ ?_)).unique (hY n m)
   rw [A.chiT_eq_mirrorBlock, mirrorBlock_eq_zero hl, zero_mul]
 
-/-- Column `m` of `Y χ_t = 1` as a finite sum over the orbit `{m, m̄}`. -/
-theorem chiT_col {Y : ℤ → ℤ → ℂ} (hY : IsLeftInverse (A.chiT k) Y) (n m : ℤ) :
-    ∑ l ∈ ({m, mirror k m} : Finset ℤ), Y n l * A.chiT k l m = kron n m := by
-  refine (hasSum_sum_of_ne_finset_zero (fun l hl ↦ ?_)).unique (hY n m)
-  simp only [Finset.mem_insert, Finset.mem_singleton, not_or] at hl
-  rw [A.chiT_eq_mirrorBlock, mirrorBlock_of_ne hl.1 (fun h ↦ hl.2 (mirror_eq_iff.mp h)), mul_zero]
-
 /-- A right inverse of `χ_t` is `invT`: on each orbit, `χ_t Y = 1` is a regular linear system. -/
 theorem eq_invT_of_isRightInverse (hL : TripletNondegenerate A k) {Y : ℤ → ℤ → ℂ}
     (hY : IsRightInverse (A.chiT k) Y) (n m : ℤ) : Y n m = A.invT k n m := by

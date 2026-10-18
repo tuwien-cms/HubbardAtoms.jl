@@ -127,8 +127,6 @@ theorem pair_eq_zero_iff (k n m : ℤ) :
     field_simp
     ring
 
-theorem iff_of_eq {z z' : ℂ} {C : Prop} (h : z = z') (h' : z' = 0 ↔ C) : z = 0 ↔ C := h ▸ h'
-
 /-- The exponent of the susceptibility in the variables `x_n, x_m, w`. -/
 theorem freq_eq (k n m : ℤ) (τ₁ τ₂ τ₃ : ℝ) :
     (((-A.ν n * τ₁ + (A.ν n + A.ω k) * τ₂ - (A.ν m + A.ω k) * τ₃ : ℝ) : ℂ) * I) =

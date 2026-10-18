@@ -236,13 +236,6 @@ theorem q₀_ne_zero (ha : (A.a : ℂ) ≠ 0) : A.q₀ k ≠ 0 := by
   rw [h, ofReal_ne_zero]
   positivity
 
-theorem Qp_eq (t : ℂ) : A.Qp k t = (t + (A.a : ℝ)) ^ 2 - A.w k ^ 2 / 4 := rfl
-
-theorem Qm_eq (t : ℂ) : A.Qm k t = (t + ((-A.a : ℝ) : ℂ)) ^ 2 - A.w k ^ 2 / 4 := by
-  rw [Qm]
-  push_cast
-  ring
-
 /-- The lattice sum of `M/P` for a cubic `M = m₀ + m₁t + m₂t² + m₃t³`, made absolutely convergent
 by subtracting `m₃/(t - y)`: `∑ₗ m₀ℓ₀ + m₁ℓ₁ + m₂ℓ₂ + m₃(ℓ₃ - S_k(y))`. The proof splits
 `M = (a₊(t + a) + b₊)Q₋ + (a₋(t - a) + b₋)Q₊` (`Q₊`, `Q₋` are coprime for `U ≠ 0`). -/

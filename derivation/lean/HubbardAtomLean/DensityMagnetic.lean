@@ -106,14 +106,6 @@ theorem step3_identity {β lam ρ a q₁ z u P W αu αmu Nu Nmu Ru Rmu cb : ℂ
   field_simp
   ring
 
-/-- Partial fractions of an affine function of `s` over `(s - s₁)(s - s₂)`. -/
-theorem pf_affine {g₀ g₁ s₁ s₂ s : ℂ} (h12 : s₁ - s₂ ≠ 0) (h₁ : s - s₁ ≠ 0) (h₂ : s - s₂ ≠ 0) :
-    (g₀ + g₁ * s) / ((s - s₁) * (s - s₂)) =
-      (g₀ + g₁ * s₁) / ((s₁ - s₂) * (s - s₁)) + (g₀ + g₁ * s₂) / ((s₂ - s₁) * (s - s₂)) := by
-  have h21 : s₂ - s₁ ≠ 0 := fun h ↦ h12 (by linear_combination -h)
-  field_simp
-  ring
-
 /-- Step 4: the defect of Step 1 is removed by the constant (Step 2) and the contributions
 `-(λ/β)(ρzP(uⱼ) + W(z; sⱼ))gⱼ(v)/(sⱼ - s_ℓ)` of the two root pairs (Step 3), by partial fractions in
 `s = v²` of the affine `P - e` and `W(z; ·)`. -/
