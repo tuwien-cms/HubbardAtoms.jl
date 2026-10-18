@@ -90,10 +90,6 @@ theorem x_eq_z (n : ℤ) : A.x n = A.z k n - A.w k / 2 := by
   rw [z]
   ring
 
-theorem x_add_w_eq_z (n : ℤ) : A.x n + A.w k = A.z k n + A.w k / 2 := by
-  rw [z]
-  ring
-
 /-- `Q₋(zₙ) = (xₙ - a)(xₙ + w - a)` and `Q₊(zₙ) = (xₙ + a)(xₙ + w + a)`, Eq. (Qfact). -/
 theorem Qm_z (n : ℤ) : A.Qm k (A.z k n) = (A.x n - A.a) * (A.x (n + k) - A.a) := by
   rw [Qm, ← A.x_add_w, x_eq_z A k]
@@ -122,15 +118,6 @@ theorem z_add_z_ne_zero (hμ : A.μ ≠ 0) (n m : ℤ) : A.z k n + A.z k m ≠ 0
   simp only [A.z_eq, add_re, ofReal_re, mul_re, ofReal_im, I_re, I_im, zero_re] at h
   apply hμ
   linarith
-
-/-- The pair coefficient on the lattice: `c_{n+m+k+1} = ρ/(zₙ + zₘ)` for `μ ≠ 0`, Eq. (C). -/
-theorem pairC_eq (hμ : A.μ ≠ 0) (n m : ℤ) :
-    A.pairC (n + m + k + 1) = A.ρ / (A.z k n + A.z k m) := by
-  rw [pairC, ite_eq_right (fun h ↦ hμ h.1)]
-  congr 1
-  rw [A.z_eq, A.z_eq, ω]
-  push_cast
-  ring
 
 -- the twelve fractions of Appendix C make the `field_simp` terms deep
 set_option maxRecDepth 4000 in

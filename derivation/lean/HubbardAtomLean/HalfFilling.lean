@@ -104,9 +104,6 @@ theorem Nph_of_mu (hμ : A.μ = 0) (z t : ℂ) :
   simp only [cN₁, cN₂, cN₃, N₂, A.rho_eq_zero_of_mu hμ]
   ring
 
-theorem Fph_neg (z : ℂ) : A.Fph k ε (-z) = A.Fph k ε z := by
-  rw [Fph, Fph, A.Pph_neg, A.eph_neg]
-
 theorem ghat_neg (z : ℂ) : A.ghat k ε (-z) = A.ghat k ε z := by
   rw [ghat, ghat, neg_sq]
 

@@ -93,12 +93,6 @@ noncomputable def chiReg (n m : ℤ) : ℂ :=
 
 /-! ### From the input -/
 
-theorem w_pp (n m : ℤ) : A.w (-k - n - m - 1) = A.b k - A.x n - A.x m := by
-  simp only [w, b, x, ω, ν]
-  push_cast
-  field_simp
-  ring
-
 /-- Eq. (pp-ids): `t_n - t₊ = (x_n - a)(x_{n̄} - a)`. -/
 theorem t_sub_tp (n : ℤ) : A.t k n - A.tp k = (A.x n - A.a) * (A.x (mirror k n) - A.a) := by
   rw [t, tp, A.x_mirror]
