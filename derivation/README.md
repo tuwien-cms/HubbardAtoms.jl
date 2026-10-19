@@ -17,8 +17,8 @@ In addition, `lean/` derives the input Eqs. (G), (chi-uu)–(pair) from the Hami
 formalizes Theorems "triplet", "singlet" and "density and magnetic" and Corollary "half filling" in
 Lean 4 with Mathlib (except the lattice zeros of `e` at `μ ≠ 0`; at the other lattice zeros it verifies
 the limiting inverses), together with the lattice sums and identities they use and some of the
-exact identities behind the Float64 setup of `DopedHubbardAtom`. Appendix E of the note, together
-with a remark after each numbered statement, says what is formalized; `lean/README.md` lists the
+exact identities behind the Float64 setup of `DopedHubbardAtom`. The table in Appendix E of the
+note says what is formalized, statement by statement; `lean/README.md` lists the
 Lean files and what is taken as given.
 
 `doped-gamma/figures/` holds the figures, the script for their data (`figure_data.jl`) and the

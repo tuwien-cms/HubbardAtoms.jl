@@ -2,9 +2,9 @@
 
 A Lean 4 / Mathlib formalization of parts of the derivation in `../doped-gamma-derivation.typ` (the
 irreducible vertex of the Hubbard atom away from half filling), and of the identities behind the
-floating-point implementation `DopedHubbardAtom` of this package (`../../src/doped.jl`). Appendix E
-of the note, together with a remark after each of its numbered statements, says which statements are
-formalized and under which assumptions.
+floating-point implementation `DopedHubbardAtom` of this package (`../../src/doped.jl`). The table in
+Appendix E of the note lists each numbered statement with what is formalized, under which
+assumptions, and the Lean names; the formalized statements carry a "Lean" tag in the note.
 
 ## What is proved
 
@@ -20,15 +20,15 @@ formalized and under which assumptions.
 | `SingletInput.lean` | `χ_s` from the inputs Eqs. (chi-uu), (chi-ud), with the pair term and the twelve fractions of Appendix C; `χ_s = L_s𝓜₊ - B𝓜₋ + χ_s,reg` with the rank-two `χ_s,reg = γ₊g₊g₊ + γ₋g₋g₋` (identities (A1), (A3)) | Proposition "pp" (singlet part), Eq. (chi-s-reg) |
 | `Singlet.lean` | Eq. (T-atomic) at `t±`, and its value `β²/4` at `b = ±2a`; the Woodbury cancellation, including identity (A4), without `d± ≠ 0`; an explicit two-sided inverse `Y` of `χ_s`, and `β²(Y + B⁻¹) = Γ_s` of Eq. (Gamma-s), for `U ≠ 0`, `b ≠ 0`, `tₙ + Aₛ ≠ 0` for all `n` and `Kₛ ≠ 0` | Theorem "singlet" |
 | `SingletZero.lean` | `b = 0` (`μ = 0`, `k = 0`), where the poles `t±` coincide and the regular part has double poles; the assumptions `SingletHyp` of Theorem "singlet" for all `b` | Theorem "singlet" at `b = 0` |
-| `SingletLZ.lean` | a lattice zero `t_c + Aₛ = 0` (any `b`): the limiting inverse, with the orbit removed from `𝒯_k(-Aₛ)`, is a two-sided inverse, and `Γ_s` is Eq. (Gamma-s-lz) | Theorem "singlet", last sentence |
+| `SingletLZ.lean` | a lattice zero `t_c + Aₛ = 0` (any `b`): the limiting inverse, with the orbit removed from `𝒯_k(-Aₛ)`, is a two-sided inverse, and `Γ_s` is Eq. (Gamma-s-lz) | Proposition "removable singularities", item 1 |
 | `PHInput.lean` | `χ_r = χ↑↑ + εχ↑↓` (`r = d, m`) from the inputs; Lemma "compact input" (identity (A1)); Proposition "structure", `P(zₙ)χ_r,nm = -βH(zₙ)δₙₘ + λρ/(zₙ + zₘ) + N(zₙ, zₘ)/P(zₘ)` for `zₙ + zₘ ≠ 0` (all entries for `μ ≠ 0`), and its mirror entries at `μ = 0` | Lemma "compact input", Proposition "structure" |
 | `PHSums.lean` | the lattice sums of the particle–hole channels, uniform in `k` by splitting `P = Q₊Q₋` (for `k = 0` the zeros of `P` are double): `PV ∑ zʲ/P(z)`, sums of cubics over `P`; `ρS_k(-zₙ) = c̄`; Lemmas "square" and "Cauchy calculus"; `α_k(x)α_k(-x) = h²`; Lemma "rank-two sums"; the constant sum of Step 2 | Lemmas "values on the reflected lattice", "square", "thermal function" (Eq. alpha), "Cauchy calculus", "rank-two sums" |
 | `PHIdentities.lean` | identities (A6) and (A7) (Eq. source), with `S±` from the weights, for both channels and `k = 0`, `k ≠ 0` | (A6), (A7) |
 | `DensityMagnetic.lean` | the algebra of Steps 1, 3 and 4; Steps 1–3 as lattice sums; an explicit two-sided inverse of `χ_r` and `β²(χ_r⁻¹ - B⁻¹) = Γ_r` of Eq. (Gamma-ph), with `DD(z, z) = (F(z) + zF'(z))/(2z)` on the diagonal, for `U ≠ 0`, `μ ≠ 0`, `e(zₙ) ≠ 0`, `s₁ ≠ s₂` and, for each root, `P(uⱼ) ≠ 0`, `Kⱼ ≠ 0` or the atomic alternative; for `r = m`, `k = 0` the atomic root `u = a` drops out | Theorem "density and magnetic" (`s₁ ≠ s₂`, including the static magnetic channel) |
 | `DMLifts.lean` | the note's assumptions `DMHyp` (`Kⱼ ≠ 0` only): at a zero of `P`, `βe = c(u ∓ εa)K`, so a root with `P(u) = 0`, `K(u) ≠ 0` is the atomic pair; Eq. (branch) and the independence of Eq. (Gamma-ph) of the signs of `uⱼ` | Theorem "density and magnetic", Step 5 |
-| `Confluent.lean` | a double root `s₁ = s₂ = u²` (including `u = 0`): Step 3 for every `u` up to a remainder `e(u)Ξ`, termwise differentiation of lattice series (from `Complex.hasSum_deriv_of_summable_norm`), and at `u = 0` difference quotients with Tannery's theorem; the inverse, the limit formula with `∂ₛZ`, which is shown to be the `s`-derivative of the even part `Z(s)`, and the assumptions `DMConfHyp` of the note | Theorem "density and magnetic", `s₁ = s₂` |
+| `Confluent.lean` | a double root `s₁ = s₂ = u²` (including `u = 0`): Step 3 for every `u` up to a remainder `e(u)Ξ`, termwise differentiation of lattice series (from `Complex.hasSum_deriv_of_summable_norm`), and at `u = 0` difference quotients with Tannery's theorem; the inverse, the limit formula with `∂ₛZ`, which is shown to be the `s`-derivative of the even part `Z(s)`, and the assumptions `DMConfHyp` of the note | Proposition "removable singularities", item 2 |
 | `HalfFilling.lean` | `μ = 0`: Proposition "structure" with the mirror `h𝓜`; the sums `T̂ = ∑ ĝ` (also at `û = 0`), `ℓ₀`, `ℓ₂`; the inverse in orbit form (even and odd eigenvalues of the diagonal-plus-mirror part) and Eq. (Gamma-hf), under `zₙ² ≠ ŝ` and, off the mirror fixed points, `zₙ² ≠ ŝ'` (`HFHyp.of_eph`: implied by `e(zₙ) ≠ 0`); `P(û) ≠ 0` automatically | Corollary "half filling" |
-| `HalfFillingLZ.lean` | `μ = 0` at a lattice zero `z_c² = ŝ` (including `ŝ = 0` at a fixed point): the limiting inverse, with the orbit removed from `T̂`, and `Γ_r` of Eq. (Gamma-hf-lz) | Corollary "half filling", remark after it |
+| `HalfFillingLZ.lean` | `μ = 0` at a lattice zero `z_c² = ŝ` (including `ŝ = 0` at a fixed point): the limiting inverse, with the orbit removed from `T̂`, and `Γ_r` of Eq. (Gamma-hf-lz) | Proposition "removable singularities", item 4 |
 | `UZero.lean` | `U = 0`: `χ↑↓ = 0`, every channel is diagonal or mirror-diagonal with its bubble, and `Γ_r = 0` for every right or left inverse, in all four channels | `U = 0` in the proofs of the theorems |
 | `StableForms.lean` | the reformulations used by the Float64 setup of Theorem "density and magnetic": the discriminant of `e` from the weights, the roots and Vieta products, the offsets of the roots from `t₊², t₋², a², w²/4`, `P(u)` as a product of offsets, the factors `z² - s = (x - δ)(x + w + δ)` of the entries, `AB = -ρM` at a root, the alternative forms of `K/ρ` and of `K` at `k = 0` (density), the divided-difference form of `Q(z, v)` off the diagonal. Not covered: `_Y_atomic`, `_tanhdiff`, and `_Q` on the diagonal | `_ph_setup_raw`, `_efactors`, `_Γraw`, `_Q` in `src/doped.jl` |
 
