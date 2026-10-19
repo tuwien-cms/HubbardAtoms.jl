@@ -877,7 +877,7 @@ $ p_0 := frac(e^(-beta mu), 2 cosh(beta mu) + 2 e^(beta U slash 2)), quad p_1 :=
 $ rho := frac(sinh(beta mu), cosh(beta mu) + e^(beta U slash 2)) = p_2 - p_0. $
 The mirror partner of $nu$ is $-nu - omega$, and $delta_(nu nu')$, $delta_(nu (-nu' - omega))$ are Kronecker deltas. Away from half filling the frequencies enter shifted by $mu$: in the particle–hole channels through $tilde(nu) := nu - i mu$ and $tilde(nu)' := nu' - i mu$, in the particle–particle channels through
 $ t_nu := (nu - i mu)(nu + omega + i mu), $
-which is $nu (nu + omega)$ at $mu = 0$. The particle–hole channels $r = "d", "m"$ carry the sign $epsilon_"d" = +1$ (density) and $epsilon_"m" = -1$ (magnetic). As in Ref. @thunstroem2018, the temperature enters through $tan(beta (W + omega) slash 4)$ for a square root $W$; since $beta omega slash 4 = pi k slash 2$, this is $tan(beta W slash 4)$ for even $k$ and $-cot(beta W slash 4)$ for odd $k$.
+which is $nu (nu + omega)$ at $mu = 0$. The particle–hole channels $r = "d", "m"$ carry the sign $epsilon_"d" = +1$ (density) and $epsilon_"m" = -1$ (magnetic). As in Ref. @thunstroem2018, the temperature enters through $tan(beta (W + omega) slash 4)$ for a square root $W$ (with $omega$ shifted by $2 i mu$ in the particle–hole channels); since $beta omega slash 4 = pi k slash 2$, this is $tan(beta W slash 4)$ for even $k$ and $-cot(beta W slash 4)$ for odd $k$.
 
 == Triplet
 
@@ -910,7 +910,7 @@ $ Gamma_r^(nu nu' omega) = & -beta (tilde(nu)^2 + frac(U^2, 4)) ((tilde(nu) + om
 & - frac(i epsilon_r U^2 rho, tilde(t)_(nu') - tilde(t)_nu) [frac((tilde(nu) + omega slash 2) (tilde(nu)^2 + U^2 slash 4) ((tilde(nu) + omega)^2 + U^2 slash 4), (tilde(t)_nu - B_(r, 1)^2)(tilde(t)_nu - B_(r, 2)^2)) - frac((tilde(nu)' + omega slash 2) (tilde(nu)'^2 + U^2 slash 4) ((tilde(nu)' + omega)^2 + U^2 slash 4), (tilde(t)_(nu') - B_(r, 1)^2)(tilde(t)_(nu') - B_(r, 2)^2))] \
 & + frac(i epsilon_r U^2 rho, 2) sum_(j = 1)^2 lr([frac(W_j [(B_(r, j)^2 + U^2 slash 4)^2 + U^2 omega^2 slash 4], (B_(r, 3 - j)^2 - B_(r, j)^2)(tilde(t)_nu - B_(r, j)^2)(tilde(t)_(nu') - B_(r, j)^2)) \
 & quad times frac(q - B_(r, j)^2 - (i slash 2) U rho W_j + (epsilon_r U^2 slash 2) [i rho tan(beta (W_j + omega + 2 i mu) slash 4) + p_0 + p_2], q - B_(r, j)^2 - (i slash 2) U rho W_j - (epsilon_r U^2 slash 2) [i rho tan(beta (W_j + omega + 2 i mu) slash 4) + p_0 + p_2])]). $ <eq-explicit-ph>
-The last denominator must be nonzero for each retained root. For $r = "m"$ and $k = 0$, omit the root $B_(r, j)^2 = -U^2 slash 4$ from the sum and from this requirement. Either sign of either $W_j$ gives the same vertex. As $mu -> 0$, $B_(r, 1)^2$ and $B_(r, 2)^2$ tend to $A_r^2$ and $B_r^2$ below.
+The last denominator must be nonzero for each retained root. For $r = "m"$ and $k = 0$, omit the root $B_(r, j)^2 = -U^2 slash 4$ from the sum and from this requirement. Either sign of either $W_j$ gives the same vertex. As $mu -> 0$, $B_(r, 1)^2$ and $B_(r, 2)^2$ tend to $A_r^2$ and $B_r^2$ below, in an order that depends on the signs of $U$ and $epsilon_r$.
 ]
 
 #block(breakable: false)[
