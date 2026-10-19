@@ -74,7 +74,7 @@ ok = true
 # 1. Lines against sign changes of real box eigenvalues (the conjugate-pair count unchanged)
 Ufine = range(-25, 25; length=20001);
 Ubox = range(-24.99, 24.99; length=1000)
-let nlines = 0, ncuts = 0
+let nlines = 0, ncuts = 0, npair = 0
     for ch in (:d, :m, :s), μ in (0.05, 0.3, 0.57, 0.8, 1.1, 1.3, 1.6, 2.2, 3.0, 3.9)
         pred = [U for (U, _) in divergences(ch, μ, Ufine) if abs(U) > 0.06]
         c = Vector{Tuple{Int,Int}}(undef, length(Ubox))
@@ -84,7 +84,12 @@ let nlines = 0, ncuts = 0
         box = [(Ubox[i] + Ubox[i+1]) / 2
                for i in 1:(length(Ubox) - 1)
                if c[i][2] == c[i+1][2] && abs(c[i][1] - c[i+1][1]) == 1]
-        match = length(pred) == length(box) && all(abs.(pred .- box) .< 0.15)
+        # unresolved: the real count changes by more than one at an unchanged pair count
+        unresolved = count(i -> c[i][2] == c[i+1][2] && abs(c[i][1] - c[i+1][1]) > 1,
+                           1:(length(Ubox) - 1))
+        npair += count(i -> c[i][2] != c[i+1][2], 1:(length(Ubox) - 1))
+        match = length(pred) == length(box) && all(abs.(pred .- box) .< 0.15) &&
+                unresolved == 0
         match || @printf("FAIL %s βμ = %.2f: closed form %s, box %s\n", ch, μ,
                          string(round.(pred, digits=3)),
                          string(round.(box, digits=3)))
@@ -92,8 +97,8 @@ let nlines = 0, ncuts = 0
         nlines += length(pred)
         ncuts += 1
     end
-    @printf("%-4s %d lines on %d cuts (βμ in [0.05, 3.9], |βU| ≤ 25) match the changes by one of the number of\n     negative real box eigenvalues (step 0.05, tolerance 0.15); no unmatched changes\n",
-            ok ? "PASS" : "FAIL", nlines, ncuts)
+    @printf("%-4s %d lines on %d cuts (βμ in [0.05, 3.9], |βU| ≤ 25) match the changes by one of the number of\n     negative real box eigenvalues at an unchanged number of conjugate pairs (step 0.05, tolerance 0.15);\n     no other such changes, none by more than one; %d intervals where the pair number changes, not compared\n",
+            ok ? "PASS" : "FAIL", nlines, ncuts, npair)
 end
 
 # 2. Null vectors: g_n = 1/(z_n² - s_j) (d, m) and 1/(t_n + A_s) (s), against the box eigenvector of the
@@ -150,13 +155,14 @@ function aligned(ch, U, μ, j, M)
     g = gvec(U, μ, ch == :d ? 1 : -1, j, M)
     ov = [abs(dot(g, E.vectors[:, i])) / (norm(g) * norm(E.vectors[:, i]))
           for i in eachindex(E.values)]
-    abs.(E.values[ov .> 0.99]), minimum(abs.(E.values[ov .< 0.5]))
+    abs.(E.values[ov .> 0.99]), minimum(abs.(E.values[ov .<= 0.99]))
 end
-# an EP: two aligned eigenvalues of equal size, far below the rest, shrinking as the box grows
+# a near-EP pair: exactly two eigenvalues aligned with g (overlap > 0.99), equal in size within 10%, below a
+# tenth of all other eigenvalues, at M = 60 and M = 120, and shrinking by more than half between them
 function isep(ch, U, μ, j)
     (l60, b60), (l120, b120) = aligned(ch, U, μ, j, 60), aligned(ch, U, μ, j, 120)
-    length(l60) == length(l120) == 2 && maximum(l60) < 0.1b60 && maximum(l120) < 0.1b120 &&
-        maximum(l60) < 1.1minimum(l60) && maximum(l120) < 0.5minimum(l60), l120
+    good(l, b) = length(l) == 2 && maximum(l) < 0.1b && maximum(l) < 1.1minimum(l)
+    good(l60, b60) && good(l120, b120) && maximum(l120) < 0.5minimum(l60), l120
 end
 for (label, ch, j, μs, lo, hi, essl) in
     (("charge, U > 0, first loop", :d, 2, 0.5:0.002:0.6, 3.8, 4.6, "0.6"),
@@ -190,6 +196,38 @@ let f = μ -> (S=sinh(μ); a=(π + atan(S)) * S; (S^-2 - 1) / 2 - exp(a) / (cosh
     @printf("%-4s α_e = 0 on a line (βμ = %.5f, βU = %.5f): Φ = %.0e, σ = %.0e; smallest box |λ| for M = 24, 60, 120: %s\n",
             good ? "PASS" : "FAIL", μf, Uf, Φ, σ,
             join([@sprintf("%.0e", l) for l in λ], ", "))
+    global ok &= good
+end
+
+# 3b'. The singlet curve where K_s = 0 = d₋ (μ > 0) or d₊ (μ < 0): no box eigenvalue with eigenvector aligned
+# with g = 1/(t_n + A_s) is small, and Γ_s has a finite limit approaching the curve
+let good = true, worst = Inf
+    for μ in (0.3, 1.0, 3.0, -0.3, -1.0, -3.0)
+        dfac(U) = (p=wts(U, abs(μ)); 4 * (U / 2) * p[2] + 2 * abs(μ) * (p[1] + p[2]))  # d∓ up to -2a, by μ → -μ
+        # the other zero of d∓ is U = -2|μ| (b = ∓2a), below the curve for |βμ| ≲ 2 and above it beyond
+        U = abs(μ) < 2 ? bisect0(dfac, -30.0, -2abs(μ) - 0.3) :
+            bisect0(dfac, -2abs(μ) + 0.3, -0.5)
+        Ks = s_line(U, μ)[1]
+        M = 60
+        idx = (-M - 1):M
+        a = U / 2
+        p0, p1, p2 = wts(U, μ)
+        As = a * (p2 - p0) * 2μ + a^2 * (1 - 8p1)
+        g = [1 / (abs2(μ + im * (2n + 1) * π) + As) for n in idx]
+        E = eigen(boxchi(:s, U, μ, M))
+        ov = [abs(dot(g, E.vectors[:, i])) / (norm(g) * norm(E.vectors[:, i]))
+              for i in eachindex(E.values)]
+        λg = abs(E.values[argmax(ov)])                       # the eigenvalue most aligned with g
+        w = (F(0), F(-1), BosonicFreq(0))
+        Γ = [gamma(SingletChannel(), DopedHubbardAtom(U + δ, 1.0, μ), w)
+             for δ in (1e-2, 1e-4, 1e-6, -1e-6)]
+        lim = abs(Γ[3] - Γ[4]) < 1e-4 * (1 + abs(Γ[3])) &&
+              abs(Γ[2] - Γ[3]) < 1e-2 * (1 + abs(Γ[3]))
+        good &= abs(Ks) < 1e-10 && λg > 1e-3 && lim
+        worst = min(worst, λg)
+    end
+    @printf("%-4s singlet K_s = 0 = d∓ at βμ = ±0.3, ±1, ±3 (U < 0): smallest |λ| aligned with g ≥ %.1e; Γ_s finite on both sides\n",
+            good ? "PASS" : "FAIL", worst)
     global ok &= good
 end
 
