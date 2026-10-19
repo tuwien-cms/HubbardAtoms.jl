@@ -97,7 +97,7 @@ The inverses are two-sided and agree with the limit of inverses on finite freque
 - @sec-results states all results. The rest of the note proves them.
 - @sec-sums evaluates the Matsubara sums; @sec-pp proves the particle–particle results, which need no Cauchy matrix.
 - @sec-cauchy develops the algebra of $C$, which @sec-ph uses for the particle–hole channels. The limit $mu -> 0$, the removable singularities and the finite-box statement are proved in @app-details.
-- @app-explicit writes the vertices out in terms of $U$, $beta$, $mu$ and the frequencies, for implementation; @app-symbols lists the symbols with the place where each is defined.
+- @app-explicit writes the vertices out in terms of $U$, $beta$, $mu$ and the frequencies, for implementation; @app-div derives and plots the divergences of $Gamma_r$; @app-symbols lists the symbols with the place where each is defined.
 
 *What is assumed.* Everything is proved from the input #eqrange(<eq-chi-uu>, <eq-pair>) (Ref. @essl2024) and the rational identities of @app-identities (checked by computer algebra). The Mathematica notebook `mathematica/doped_gamma.nb` derives the input from the Hamiltonian and replays the proofs step by step (@app-checks). Independent numerical checks are listed in @app-checks. Most of the proofs are also formalized in Lean 4, which also derives the input from the Hamiltonian; statements marked #lean-tag("yes") or #lean-tag("part") are formalized, and the table in @app-lean says how much of each. Numerical stability in floating point is not discussed here.
 
@@ -334,7 +334,7 @@ Item 1 is proved with @thm-s, item 2 in Step 5 of the proof of @thm-ph, and item
   Under the assumptions of @thm-t, @thm-s, @thm-ph or @cor-hf, or in the cases of @prop-special, the restrictions of $chi_r$ to the boxes $|2n + 1 + k| <= 2M + 1$ are invertible for all sufficiently large $M$, and their inverses converge entrywise to $chi_r^(-1) = Gamma_r slash beta^2 + eta_r bold(B)^(-1)$.
 ] <prop-box>
 
-*Divergences.* An entry of $Gamma_r$ can diverge only where a denominator in its closed form vanishes. Apart from the removable cases of @prop-special, and away from intersections of these exceptional sets, the remaining zeros are genuine poles under the following nonvanishing conditions:
+*Divergences.* An entry of $Gamma_r$ can diverge only where a denominator in its closed form vanishes; @app-div finds the null vectors and maps the divergences at $omega = 0$. Apart from the removable cases of @prop-special, and away from intersections of these exceptional sets, the remaining zeros are genuine poles under the following nonvanishing conditions:
 - $K_j = 0$ with $u_j P(u_j) != 0$ and $s_1 != s_2$ (d, m). Then, as $alpha_k (u_j) != 0$,
   $ gamma_j K_j = frac(2 lambda rho beta u_j P(u_j) H(-u_j), s_j - s_ell) != 0. $
   At $u_j = 0$ the zero of $K_j$ can cancel, as at $hat(u) = 0$ in @cor-hf.
@@ -801,6 +801,7 @@ The regular part in @eq-pair is [Ref. @essl2024, Eq. (D3), at zero field]
 - *Mathematica:* `mathematica/doped_gamma.nb` derives #eqrange(<eq-chi-uu>, <eq-pair>) exactly from the Lehmann representation of @eq-H, checks @lem-input, @prop-pp, @prop-ph, the lemmas of @sec-sums and @sec-cauchy, @thm-t, @thm-s, Steps 1–4 of the proof of @thm-ph and (A2)–(A4), (A6), (A7) symbolically, and compares @thm-ph, @thm-s, @thm-t and @cor-hf with finite-box inversion (62 checks).
 - *Vertices* (`doped-gamma/check_vertices.jl`): @eq-Gamma-t and @eq-Gamma-s agree with an independent residue-based BigFloat evaluator (`doped-gamma/doped_gamma.jl`) to $3 times 10^(-15)$, @eq-Gamma-ph at 256 bits to $10^(-65)$ (300 entries, $k = 0, 1, 2, -3, 5$, $|mu| <= 2 |U|$); at $mu = 0$, @eq-Gamma-t, @eq-Gamma-s and @eq-Gamma-hf agree with `HubbardAtoms.jl` (Eq. 19 of Ref. @thunstroem2018) to $3 times 10^(-14)$.
 - *Expanded formulas* (`doped-gamma/check_explicit.jl`): @app-explicit is transcribed without the main text's polynomial and thermal coefficients and compared with `DopedHubbardAtom` at 256 bits, including diagonal entries, mirror fixed points, both signs of each particle–hole square root and the static magnetic atomic root.
+- *Divergences* (`doped-gamma/check_divergences.jl`): on 30 cuts at fixed $beta mu in [0.05, 3.9]$ with $|beta U| <= 25$, the 70 lines of @eq-div-ph and @eq-div-s are exactly the sign changes of real eigenvalues of $chi_"d"$, $chi_"m"$, $chi_"s"$ on the box $|2 n + 1| <= 49$ (within $0.15$ in $beta U$), with no others. At points on the lines, the box eigenvector of the eigenvalue closest to zero is the $bold(g)$ of @app-div to $2 times 10^(-12)$; at the exceptional points of @eq-div-ep the box has two eigenvalues of size $10^(-7)$.
 - *Implementation:* the test suite of `HubbardAtoms.jl` compares `DopedHubbardAtom` with exact diagonalization, with finite-box inversion and with `BigFloat` evaluation, including the removable singularities of @prop-special.
 
 
@@ -856,7 +857,7 @@ The inverses constructed in the proofs need no trust: Lean proves that they are 
 
 *Proofs.* For the input, Lean splits the integral over $[0, beta]^3$ into the six orderings of the times, sums each ordering over the paths through the four states, and evaluates the integrals over the ordered simplex in closed form, also where a partial sum of the rates vanishes: at $k = 0$, at $n = m$, and at $mu = 0$, $n + m + k + 1 = 0$ (`chiLehmann_eq`, `orderedTerm_eq`, `pathTerm_eq`). Two arguments differ from this note. Lattice sums with the denominator $P$ are evaluated by splitting $P = Q_+ Q_-$ instead of by @lem-res, which needs no separate treatment of the double zeros at $k = 0$. And the inverse of $chi_"s"$ is verified directly; the cancellation of the Woodbury step is `woodbury_identity`. Where this note takes limits, Lean argues directly. @cor-hf is proved at $mu = 0$. At the lattice zeros of items 1 and 4 of @prop-special the limiting inverses are verified with lattice sums from which the orbit is removed (`SingletLZ.hasSum_g_kappa`, `HFLZ.hasSum_Nph_ghat`). For $s_1 = s_2$, Step 3 holds for every $u$ up to a remainder proportional to $e(u)$ (`step3_general`), which vanishes to second order at a double root; the image of the $u$-derivative of the mode then follows by differentiating the lattice sums termwise (`hasSum_deriv_of_bound`, from Mathlib's `Complex.hasSum_deriv_of_summable_norm`), and at $s = 0$ from difference quotients by Tannery's theorem (`DMConf.hasSum_M₁_zero`).
 
-*Not formalized.* @prop-box, @lem-cont and the rest of @app-details: item 3 of @prop-special (the lattice zeros of $e$ for $mu != 0$), and that the values in items 1 and 4 are the limits of @eq-Gamma-s and @eq-Gamma-hf; that the inverses of $chi_"s"$, $chi_"d"$ and $chi_"m"$ are unique (for $chi_"t"$ it is proved, and for $U = 0$ in all channels); and floating-point evaluation.
+*Not formalized.* @app-div; @prop-box, @lem-cont and the rest of @app-details: item 3 of @prop-special (the lattice zeros of $e$ for $mu != 0$), and that the values in items 1 and 4 are the limits of @eq-Gamma-s and @eq-Gamma-hf; that the inverses of $chi_"s"$, $chi_"d"$ and $chi_"m"$ are unique (for $chi_"t"$ it is proved, and for $U = 0$ in all channels); and floating-point evaluation.
 
 #pagebreak(weak: true)
 = The vertices written out <app-explicit>
@@ -928,9 +929,79 @@ $ Gamma_(r, n m) = & beta [(z_n + a)^2 + omega^2 slash 4][(z_n - a)^2 + omega^2 
 & - frac(2 epsilon_r a [(hat(s) + a^2 + omega^2 slash 4)^2 - 4 a^2 hat(s)], [1 + epsilon_r a T(hat(u)) slash hat(u)] (z_n^2 - hat(s))(z_m^2 - hat(s))). $ <eq-explicit-hf>
 The thermal denominator $1 + epsilon_r a T(hat(u)) slash hat(u)$ must be nonzero. Either sign of $hat(u)$ gives the same value. At $hat(u) = 0$ and even $k$, replace $T(hat(u)) slash hat(u)$ by $beta slash 2$. The lattice-zero and mirror-fixed-point continuations are item 4 of @prop-special.
 
+#pagebreak(weak: true)
+= Vertex divergences <app-div>
+
+The vertex $Gamma_r = beta^2 (chi_r^(-1) - eta_r bold(B)^(-1))$ diverges where $chi_r$ has a zero mode; $bold(B)^(-1)$ is bounded, since $G$ has no zeros on the lattice. These divergences were found analytically at half filling @thunstroem2018, located as zeros of $det chi_r$ on finite boxes @rohshap2023, and mapped away from half filling through the eigenvalues of $chi_r$ on finite boxes @essl2024. The closed forms give them exactly. @sec-res-box lists the genuine poles. Here we find the null vectors of $chi_r$ at these poles, write out the conditions at $omega = 0$, and plot them (@fig-div).
+
+== Null vectors
+
+At each genuine pole the singular part of the closed form has rank one: $Gamma_r = c thin bold(g) bold(g)^T slash kappa + O(1)$ as a scalar $kappa -> 0$. Then $chi_r^(-1) = c thin bold(g) bold(g)^T slash (beta^2 kappa) + O(1)$, so $chi_r bold(g) -> 0$, and $bold(g)$ spans the kernel at the divergence. From @thm-t, @thm-s, @thm-ph and @cor-hf:
+- Triplet, $t_n + a rho b + a^2 = 0$ with $n != overline(n)$: $bold(g) = bold(e)_n - bold(e)_(overline(n))$.
+- Singlet, $K_"s" = 0$ with $cal(P)(-As) != 0$: $g_l = 1 slash (t_l + As)$.
+- Density and magnetic at $mu != 0$, $K_j = 0$: $g_l = g_j (z_l) = 1 slash (z_l^2 - s_j)$.
+- Half filling, $hat(D) = 0$: $g_l = hat(g)(z_l)$; and $beta H(z_n) = -lambda h$ with $n != overline(n)$: $bold(g) = bold(e)_n - bold(e)_(overline(n))$ (@sec-res-box).
+Following Ref. @thunstroem2018, a divergence is _localized_ if its null vector has finite support, and _global_ otherwise. Only the triplet divergences and the mirror-odd ones at half filling are localized. A global null vector is concentrated where its denominator, $t_l + As$ or $z_l^2 - s_j$, is small. This is how the localized divergences continue away from half filling (below).
+
+== Static transfer
+
+From now on $omega = 0$ ($k = 0$). Then $b = 2 mu$ and $t_n = |x_n|^2$ are real, so $chi_"s"$ and $chi_"t"$ are real symmetric matrices, while $chi_"d"$ and $chi_"m"$ are centrohermitian, $chi_(r, overline(n) overline(m)) = chi_(r, n m)^*$ @essl2024. Their eigenvalues are therefore real or come in complex-conjugate pairs. $Gamma_r$ diverges only where a real eigenvalue vanishes. A conjugate pair can change the sign of its real part without vanishing (a _pseudo-divergence_ @essl2024); $Gamma_r$ stays finite there. Up to a factor $beta^3$, $chi_r$ depends on $beta$, $U$ and $mu$ only through $beta U$ and $beta mu$ @essl2024.
+
+*Triplet.* Since $t_n = mu^2 + nu_n^2$,
+$ t_n + a rho b + a^2 = (mu + a rho)^2 + nu_n^2 + a^2 (1 - rho^2) > 0, $
+so there are no triplet divergences.
+
+*Singlet.* With $xi^2 = mu^2 + 2 a rho mu + a^2 (1 - 8 p_1)$, which is real, @eq-T gives $cal(T)_0 (-As) = beta tanh(beta xi slash 2) slash (2 xi)$, so
+$ K_"s" cosh frac(beta xi, 2) = cosh frac(beta xi, 2) + a frac(sinh(beta xi slash 2), xi), $ <eq-div-s>
+an even, hence real, function of $xi$. $Gamma_"s"$ diverges where it vanishes, except where $cal(P)(-As) = d_+ d_-$ (@eq-dc) vanishes too. There the separable term of @eq-Gamma-s stays finite, and in fact $d_(plus.minus) = 0$ forces $K_"s" = 0$ (for $b != plus.minus 2 a$): if $d_+ = 0$, then $-As = t_+$, and @eq-T-atomic with the value of $S_-$ in @lem-S gives
+$ K_"s" = 1 - frac(4 a S_-, beta (2 a - b)) = frac(4 a p_1 - b (p_1 + p_2), (2 a - b)(p_1 + p_2)) = -frac(d_+, 2 a (2 a - b)(p_1 + p_2)) = 0, $
+and likewise for $d_-$. At $omega = 0$ this happens on one curve, at $U < 0$, where $d_- = -2 a [4 a p_1 + 2 mu (p_0 + p_1)] = 0$. It is not a divergence.
+
+*Density and magnetic, $mu != 0$.* The roots $s_(1, 2)$ of @eq-Delta are real or complex conjugate. Since $K(overline(u)) = overline(K(u))$ for the function $K(u) := beta H(-u) + lambda alpha_0 (u)$, conjugate roots give $K_1 = 0$ only together with $K_2 = 0$, a complex equation that holds at isolated points at most. Divergence lines thus come from real roots. Let $s_j$ be real and $u := u_j$. By @eq-alpha,
+$ alpha_0 (plus.minus u) = -h frac(cosh(beta (u plus.minus mu) slash 2), cosh(beta (u minus.plus mu) slash 2)), $
+so the parts of $alpha_0$ even and odd in $u$ are
+$ alpha_"e" = -h frac(1 + cosh(beta mu) cosh(beta u), cosh(beta u) + cosh(beta mu)), quad quad alpha_"o" = -h frac(sinh(beta mu) sinh(beta u), cosh(beta u) + cosh(beta mu)). $ <eq-div-alpha>
+With $h sinh(beta mu) = beta rho slash 2$ (@eq-weight-hyp), the even and odd parts of $K_j = K(u)$ are
+$ K_"e" = beta (s_j + q_1) + lambda alpha_"e", quad quad K_"o" = -frac(2 a beta rho thin u thin Phi(s_j), cosh(beta u) + cosh(beta mu)), $
+where
+$ Phi(s) := cosh(beta mu) + cosh(beta u) + epsilon_r a frac(sinh(beta u), u) quad quad (u^2 = s). $ <eq-div-Phi>
+$Phi$ is even in $u$, hence a real function of real $s$; for $s = -y^2$ it reads $cosh(beta mu) + cos(beta y) + epsilon_r a sin(beta y) slash y$. At the root, @eq-Delta and @eq-alpha give $beta^2 H(u) H(-u) = lambda^2 h^2 = lambda^2 alpha_0 (u) alpha_0 (-u)$, and hence
+$ beta H(-u) K(-u) = lambda alpha_0 (-u) K(u). $
+So $K_j = 0$ if and only if $K(u) = K(-u) = 0$, that is, if and only if $K_"e" = K_"o" = 0$. Conversely, if $Phi(s_j) = 0$, then $K_"o" = 0$ and $K(u) = K(-u) = K_"e"$, and the last identity becomes $K_"e" [beta (s_j + q_1) - lambda alpha_"e"] = 0$. Exactly one factor vanishes (as $lambda alpha_"e" != 0$), and @eq-div-alpha decides which. So $Gamma_"d"$ and $Gamma_"m"$ diverge exactly where, for a real root $s_j$,
+$ Phi(s_j) = 0 quad "and" quad (s_j + q_1) thin epsilon_r frac(1 + cosh(beta mu) cosh(beta u_j), cosh(beta u_j) + cosh(beta mu)) > 0. $ <eq-div-ph>
+On the zeros of $Phi$ where the second condition fails, $K_j != 0$, and the vertex is finite. By @lem-S,
+$ sum_n frac(1, z_n^2 - s) = frac(S_0 (u) - S_0 (-u), 2 u) = -frac(beta sinh(beta u), 2 u (cosh(beta u) + cosh(beta mu))), $ <eq-div-T>
+so $Phi(s) = (cosh(beta u) + cosh(beta mu)) [1 - (2 epsilon_r a slash beta) sum_n (z_n^2 - s)^(-1)]$. The first condition in @eq-div-ph is therefore
+$ beta = 2 epsilon_r a sum_n frac(1, z_n^2 - s_j), $
+the counterpart of $hat(D) = 0$ (@eq-hf-D) with $s_j$ in place of $hat(s)$.
+
+*Half filling.* At $mu = 0$,
+$ Phi(s) = 2 cosh^2 frac(beta u, 2) [1 + epsilon_r a frac(tanh(beta u slash 2), u)], $
+and the bracket is $hat(D) slash beta$ with $hat(u)$ replaced by $u$. The zeros of $cosh(beta u slash 2)$ are the lattice points $s = z_n^2$. For $s_j = hat(s)'$ they are the localized divergences $beta H(z_n) = -lambda h$; for $s_j = hat(s)$ they are the removable cases of item 4 of @prop-special. The zeros of the bracket at $s_j = hat(s)$ are the global divergences $hat(D) = 0$. These are Eqs. (20) and (22) of Ref. @thunstroem2018 at $omega = 0$. Localized divergences occur only in the density channel, at $nu_n^2 = 3 a^2$, since $hat(s)' = -a^2 (1 + 2 epsilon_r)$ at $k = 0$.
+
+For $mu != 0$, $cosh(beta u) + cosh(beta mu) > 0$ for real $s$, so no localized divergences remain. The localized lines continue as zeros of $Phi$. Along them $g_j$ is concentrated on the orbit ${n, overline(n)}$ with $z_n^2 approx s_j$, and tends to $bold(e)_n - bold(e)_(overline(n))$ as $mu -> 0$.
+
+*Exceptional points.* $chi_r$ is symmetric, $chi_r^T = chi_r$. A zero eigenvalue with null vector $bold(g)$ is therefore defective, that is, an exceptional point where two eigenvalues of $chi_r$ meet at zero, exactly when $bold(g)^T bold(g) = 0$; then $bold(g)$ lies in the range of $chi_r$. On the density and magnetic lines, by @eq-div-T, this is
+$ bold(g)_j^T bold(g)_j = sum_n frac(1, (z_n^2 - s_j)^2) = frac(dif, dif s) sum_n frac(1, z_n^2 - s) |_(s = s_j) = 0. $ <eq-div-ep>
+There a pair of real eigenvalues of $chi_r$ meets at zero and continues as a conjugate pair; the pseudo-divergence lines of Ref. @essl2024 start at these points. The singlet has no exceptional points, as its $bold(g)$ is real.
+
+== The divergence map
+
+#figure(
+  image("doped-gamma/figures/divergences.svg", width: 82%),
+  caption: [Divergences of $Gamma_"d"$ (red), $Gamma_"m"$ (green) and $Gamma_"s"$ (yellow) at $omega = 0$, from @eq-div-ph and @eq-div-s. The map is symmetric under $mu -> -mu$. Open circles: the localized divergences $beta U = plus.minus 2 pi (2 n + 1) slash sqrt(3)$ at half filling. Black dots: exceptional points, @eq-div-ep; on the second and third loop at $U > 0$ they lie at the loop ends, $|beta mu| approx 0.549$, and are not marked. Pseudo-divergences @essl2024, where $Gamma_r$ is finite, are not shown.],
+) <fig-div>
+
+@fig-div shows the lines; the numbers below are from `doped-gamma/check_divergences.jl` (@app-checks).
+- *Density, $U > 0$.* Each localized line and the global line above it are the two halves of one closed loop. The first loop has its exceptional points at $|beta mu| = 0.564$, $beta U = 4.33$, a doping of $rho = 0.060$. As $beta U -> oo$, $q_1 -> 3 a^2$ and $rho^2 = 4 p_0 p_2 sinh^2(beta mu)$, so the discriminant $a^2 rho^4 - rho^2 q_1 + 4 a^2 p_0 p_2$ of @eq-Delta changes sign at $sinh(beta mu) = 1 slash sqrt(3)$. The loops therefore shrink to $|beta mu| <= "arsinh"(1 slash sqrt(3)) = 0.549$.
+- *Singlet, $U > 0$.* The lines start at the global density lines, with which they coincide at half filling @thunstroem2018, and rise with $|beta mu|$.
+- *Magnetic, $U > 0$.* There are no divergences.
+- *$U < 0$.* The density lines start at the localized points, the magnetic ones at the global points of half filling; their first exceptional points are at $|beta mu| = 1.121$ (density) and $0.971$ (magnetic). Beyond them the lines continue to $beta U -> -oo$. A line passes from one root to the other where $s_1 = s_2$, for example at $|beta mu| = 1.453$ on the first density line; it is smooth there.
+This is the structure that Ref. @essl2024 found numerically (its Fig. 2a, where $delta mu$ is our $mu$). Its exceptional points, at $beta delta mu approx 0.6$, $1.12$ and $0.975$, agree with ours.
+
 = List of symbols <app-symbols>
 
-Symbols introduced inside a proof or in @app-explicit are local to it and not listed, except those of the proof of @thm-ph that @app-details uses.
+Symbols introduced inside a proof, in @app-explicit or in @app-div are local to it and not listed, except those of the proof of @thm-ph that @app-details uses.
 
 #let sym-table(..rows) = text(size: 9pt, {
   set par(justify: false)
