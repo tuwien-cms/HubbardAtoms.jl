@@ -97,7 +97,7 @@ The inverses are two-sided and agree with the limit of inverses on finite freque
 - @sec-results states all results. The rest of the note proves them.
 - @sec-sums evaluates the Matsubara sums; @sec-pp proves the particle–particle results, which need no Cauchy matrix.
 - @sec-cauchy develops the algebra of $C$, which @sec-ph uses for the particle–hole channels. The limit $mu -> 0$, the removable singularities and the finite-box statement are proved in @app-details.
-- @app-symbols lists the symbols with the place where each is defined.
+- @app-explicit writes the vertices out in terms of $U$, $beta$, $mu$ and the frequencies, for implementation; @app-symbols lists the symbols with the place where each is defined.
 
 *What is assumed.* Everything is proved from the input #eqrange(<eq-chi-uu>, <eq-pair>) (Ref. @essl2024) and the rational identities of @app-identities (checked by computer algebra). The Mathematica notebook `mathematica/doped_gamma.nb` derives the input from the Hamiltonian and replays the proofs step by step (@app-checks). Independent numerical checks are listed in @app-checks. Most of the proofs are also formalized in Lean 4, which also derives the input from the Hamiltonian; statements marked #lean-tag("yes") or #lean-tag("part") are formalized, and the table in @app-lean says how much of each. Numerical stability in floating point is not discussed here.
 
@@ -220,7 +220,7 @@ Neither $Q_(plus.minus)(z_n)$ vanishes: its factors have imaginary parts $nu_n$ 
 
 All lattice sums that occur below are expressed through
 $ S_k (x) := cases(-beta/2 thin tanh(beta (x - mu) slash 2) & quad k "even", -beta/2 thin coth(beta (x - mu) slash 2) & quad k "odd"), $ <eq-S>
-which equals $PV sum_n (z_n - x)^(-1)$ for $x$ off the lattice (@lem-S).
+which equals $PV sum_n (z_n - x)^(-1)$ for $x$ off the lattice (@lem-S). @app-explicit restates the regular vertex formulas with their coefficients written out.
 
 == Singlet and triplet <sec-res-pp>
 
@@ -800,6 +800,7 @@ The regular part in @eq-pair is [Ref. @essl2024, Eq. (D3), at zero field]
 
 - *Mathematica:* `mathematica/doped_gamma.nb` derives #eqrange(<eq-chi-uu>, <eq-pair>) exactly from the Lehmann representation of @eq-H, checks @lem-input, @prop-pp, @prop-ph, the lemmas of @sec-sums and @sec-cauchy, @thm-t, @thm-s, Steps 1–4 of the proof of @thm-ph and (A2)–(A4), (A6), (A7) symbolically, and compares @thm-ph, @thm-s, @thm-t and @cor-hf with finite-box inversion (62 checks).
 - *Vertices* (`doped-gamma/check_vertices.jl`): @eq-Gamma-t and @eq-Gamma-s agree with an independent residue-based BigFloat evaluator (`doped-gamma/doped_gamma.jl`) to $3 times 10^(-15)$, @eq-Gamma-ph at 256 bits to $10^(-65)$ (300 entries, $k = 0, 1, 2, -3, 5$, $|mu| <= 2 |U|$); at $mu = 0$, @eq-Gamma-t, @eq-Gamma-s and @eq-Gamma-hf agree with `HubbardAtoms.jl` (Eq. 19 of Ref. @thunstroem2018) to $3 times 10^(-14)$.
+- *Expanded formulas* (`doped-gamma/check_explicit.jl`): @app-explicit is transcribed without the main text's polynomial and thermal coefficients and compared with `DopedHubbardAtom` at 256 bits, including diagonal entries, mirror fixed points, both signs of each particle–hole square root and the static magnetic atomic root.
 - *Implementation:* the test suite of `HubbardAtoms.jl` compares `DopedHubbardAtom` with exact diagonalization, with finite-box inversion and with `BigFloat` evaluation, including the removable singularities of @prop-special.
 
 
@@ -857,9 +858,79 @@ The inverses constructed in the proofs need no trust: Lean proves that they are 
 
 *Not formalized.* @prop-box, @lem-cont and the rest of @app-details: item 3 of @prop-special (the lattice zeros of $e$ for $mu != 0$), and that the values in items 1 and 4 are the limits of @eq-Gamma-s and @eq-Gamma-hf; that the inverses of $chi_"s"$, $chi_"d"$ and $chi_"m"$ are unique (for $chi_"t"$ it is proved, and for $U = 0$ in all channels); and floating-point evaluation.
 
+#pagebreak(weak: true)
+= The vertices written out <app-explicit>
+
+This appendix gives the regular formulas of @thm-t, @thm-s, @thm-ph and @cor-hf without the nested coefficient definitions used in the proofs. The input panel below fixes the notation; $Gamma_(r, n m)$ denotes $Gamma_r (nu_n, nu_m, omega)$ in the channel convention of @eq-Gamma-def. Only square roots and their explicit values are introduced in the individual channels; every polynomial and thermal coefficient is expanded inside the vertex. These are exact identities, not numerically stabilized evaluation rules.
+
+== Input panel
+
+Take $U, mu in RR$, $beta > 0$ and $n, m, k in ZZ$. For $U = 0$, all four vertices vanish. For $U != 0$ use
+$ a := U/2, quad omega := frac(2 pi k, beta), quad nu_n := frac((2n + 1) pi, beta), quad overline(n) := -n - k - 1, $
+$ x_n := mu + i frac((2n + 1) pi, beta), quad overline(x)_n := mu - i frac((2n + 1 + 2k) pi, beta), $
+$ z_n := mu + i frac((2n + 1 + k) pi, beta), quad b := 2 mu - i frac(2 pi k, beta). $
+The normalized weights and filling parameter are
+$ p_0 := frac(e^(-beta mu), 2 cosh(beta mu) + 2 e^(beta a)), quad p_1 := frac(e^(beta a), 2 cosh(beta mu) + 2 e^(beta a)), quad p_2 := frac(e^(beta mu), 2 cosh(beta mu) + 2 e^(beta a)), $
+$ rho := frac(sinh(beta mu), cosh(beta mu) + e^(beta a)) = p_2 - p_0. $
+Use the parity-dependent function
+$ T(y) := cases(tanh(beta y slash 2) & quad k "even,", coth(beta y slash 2) & quad k "odd.") $
+Here $delta_(n m)$ is the Kronecker delta. The two particle–hole channels use $epsilon = +1$ for density and $epsilon = -1$ for magnetic.
+
+== Triplet
+
+For $n != overline(n)$,
+$ Gamma_("t", n m) = frac(beta a^2 (1 - rho^2) (x_n^2 - a^2)(overline(x)_n^2 - a^2), (x_n + a rho)(overline(x)_n + a rho) [(x_n + a rho)(overline(x)_n + a rho) + a^2 (1 - rho^2)]) (delta_(n m) - delta_(m overline(n))). $ <eq-explicit-t>
+The last bracket in the denominator must be nonzero for every $n != overline(n)$. At a mirror fixed point, $n = overline(n)$, the entire row and column vanish: $Gamma_("t", n m) = Gamma_("t", m n) = 0$ for every $m$.
+
+#block(breakable: false)[
+== Singlet
+
+The only additional input is the square root
+$ xi := sqrt(b^2 slash 4 + a rho b + a^2 (1 - 8 p_1)). $
+Then
+$ Gamma_("s", n m) = & frac(beta a^2 (rho^2 - 1 + 8 p_1) (x_n^2 - a^2)(overline(x)_n^2 - a^2), (x_n + a rho)(overline(x)_n + a rho) [(x_n + a rho)(overline(x)_n + a rho) + a^2 (1 - rho^2 - 8 p_1)]) (delta_(n m) + delta_(m overline(n))) \
+& + 4 a - frac(16 a^3 [4 a p_1 - (p_1 + p_2) b] [4 a p_1 + (p_0 + p_1) b], 1 + a T(xi) slash xi) \
+& quad times frac(1, [(x_n + a rho)(overline(x)_n + a rho) + a^2 (1 - rho^2 - 8 p_1)] [(x_m + a rho)(overline(x)_m + a rho) + a^2 (1 - rho^2 - 8 p_1)]). $ <eq-explicit-s>
+The brackets depending on a fermionic index must be nonzero for every index, and $1 + a T(xi) slash xi != 0$. Either sign of $xi$ gives the same value. At $xi = 0$ and even $k$, replace $T(xi) slash xi$ by $beta slash 2$. The lattice-zero continuation is item 1 of @prop-special.
+]
+
+#block(breakable: false)[
+== Density and magnetic away from half filling
+
+Take $mu != 0$. The roots needed for this formula are explicitly
+$ s_(1, 2) := & 2 a^2 rho^2 - a^2 - omega^2 slash 4 - 4 epsilon a^2 p_1 \
+& plus.minus 2 a sqrt(a^2 rho^4 - rho^2 (a^2 + omega^2 slash 4 + 4 epsilon a^2 p_1) + 4 a^2 p_0 p_2), quad u_j := sqrt(s_j). $
+For $s_1 != s_2$ and $z_n^2 != s_j$ for every $n$ and $j$,
+$ Gamma_(r, n m) = & beta ([(z_n + a)^2 + omega^2 slash 4][(z_n - a)^2 + omega^2 slash 4]) \
+& quad times [frac(1, (z_n + a rho)^2 + omega^2 slash 4) - frac(z_n^2 - 2 a rho z_n + a^2 + omega^2 slash 4 + 4 epsilon a^2 p_1, (z_n^2 - s_1)(z_n^2 - s_2))] delta_(n m) + 2 epsilon a \
+& - frac(4 epsilon a^2 rho z_n [(z_n + a)^2 + omega^2 slash 4][(z_n - a)^2 + omega^2 slash 4], (z_n^2 - z_m^2)(z_n^2 - s_1)(z_n^2 - s_2)) \
+& + frac(4 epsilon a^2 rho z_m [(z_m + a)^2 + omega^2 slash 4][(z_m - a)^2 + omega^2 slash 4], (z_n^2 - z_m^2)(z_m^2 - s_1)(z_m^2 - s_2)) \
+& + 4 epsilon a^2 rho sum_(j = 1)^2 lr([frac(u_j [(u_j + a)^2 + omega^2 slash 4][(u_j - a)^2 + omega^2 slash 4], (s_j - s_(3-j))(z_n^2 - s_j)(z_m^2 - s_j)) \
+& quad times frac(s_j - 2 a rho u_j + a^2 + omega^2 slash 4 + 4 epsilon a^2 p_1 + 2 epsilon a^2 [rho T(u_j - mu) + p_0 + p_2], s_j - 2 a rho u_j + a^2 + omega^2 slash 4 + 4 epsilon a^2 p_1 - 2 epsilon a^2 [rho T(u_j - mu) + p_0 + p_2])]). $ <eq-explicit-ph>
+The last denominator must be nonzero for each retained root. For $r = "m"$ and $k = 0$, omit the root $s_j = a^2$ from the sum and from this nonvanishing requirement. Either sign of either $u_j$ gives the same vertex.
+]
+
+#block(breakable: false)[
+*Diagonal entries.* For $n = m$, replace the two fractions containing $z_n^2 - z_m^2$ together by $-4 epsilon a^2 rho$ times the following explicit rational function:
+$ & frac([(z_n + a)^2 + omega^2 slash 4][(z_n - a)^2 + omega^2 slash 4], 2 z_n (z_n^2 - s_1)(z_n^2 - s_2)) + frac(2 z_n (z_n^2 - a^2 + omega^2 slash 4), (z_n^2 - s_1)(z_n^2 - s_2)) \
+& - frac(z_n [(z_n + a)^2 + omega^2 slash 4][(z_n - a)^2 + omega^2 slash 4] (2 z_n^2 - s_1 - s_2), (z_n^2 - s_1)^2 (z_n^2 - s_2)^2). $ <eq-explicit-diag>
+The confluent-root and lattice-zero continuations are items 2 and 3 of @prop-special.
+]
+
+== Density and magnetic at half filling
+
+Set $mu = 0$. The input panel reduces to $rho = 0$, $p_2 = p_0 = 1 slash [2 (1 + e^(beta a))]$ and $p_1 = e^(beta a) slash [2 (1 + e^(beta a))]$. The roots are
+$ hat(s) := 4 epsilon a^2 (p_0 - p_1) - a^2 - omega^2 slash 4, quad hat(s)' := -4 epsilon a^2 (p_0 + p_1) - a^2 - omega^2 slash 4, quad hat(u) := sqrt(hat(s)). $
+For $z_n^2 != hat(s), hat(s)'$ for every $n$,
+$ Gamma_(r, n m) = & beta [(z_n + a)^2 + omega^2 slash 4][(z_n - a)^2 + omega^2 slash 4] \
+& quad times [frac(1, z_n^2 + omega^2 slash 4) - frac(z_n^2 + a^2 + omega^2 slash 4 + 4 epsilon a^2 p_1, (z_n^2 - hat(s))(z_n^2 - hat(s)'))] delta_(n m) + 2 epsilon a \
+& - frac(4 epsilon a^2 beta p_0 [(z_n + a)^2 + omega^2 slash 4][(z_n - a)^2 + omega^2 slash 4], (z_n^2 - hat(s))(z_n^2 - hat(s)')) delta_(m overline(n)) \
+& - frac(2 epsilon a [(hat(s) + a^2 + omega^2 slash 4)^2 - 4 a^2 hat(s)], [1 + epsilon a T(hat(u)) slash hat(u)] (z_n^2 - hat(s))(z_m^2 - hat(s))). $ <eq-explicit-hf>
+The thermal denominator $1 + epsilon a T(hat(u)) slash hat(u)$ must be nonzero. Either sign of $hat(u)$ gives the same value. At $hat(u) = 0$ and even $k$, replace $T(hat(u)) slash hat(u)$ by $beta slash 2$. The lattice-zero and mirror-fixed-point continuations are item 4 of @prop-special.
+
 = List of symbols <app-symbols>
 
-Symbols introduced inside a proof are local to it and not listed, except those of the proof of @thm-ph that @app-details uses.
+Symbols introduced inside a proof or in @app-explicit are local to it and not listed, except those of the proof of @thm-ph that @app-details uses.
 
 #let sym-table(..rows) = text(size: 9pt, {
   set par(justify: false)
