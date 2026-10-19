@@ -252,8 +252,8 @@ At $mu = 0$ both formulas reduce to Eq. 19 of Ref. @thunstroem2018 (@app-checks)
 
 == Density and magnetic <sec-res-ph>
 
-Let $epsilon := +1$ for $r = "d"$ and $epsilon := -1$ for $r = "m"$. The particle–hole channels are built from the polynomials
-$ H(z) &:= z^2 + 2 a rho z + q_1, quad q_1 := q_0 + 4 epsilon a^2 p_1, quad lambda := 4 epsilon a^2, \
+Let $epsilon_"d" := +1$ and $epsilon_"m" := -1$. The particle–hole channels are built from the polynomials
+$ H(z) &:= z^2 + 2 a rho z + q_1, quad q_1 := q_0 + 4 epsilon_r a^2 p_1, quad lambda := 4 epsilon_r a^2, \
 P(z) &:= Q_(+)(z) Q_(-)(z), quad G_2 (z) := (z + a rho)^2 - w^2/4, $ <eq-HP>
 and
 $ e(z) := H(z) H(-z) - lambda^2 h^2 slash beta^2 = (z^2 + q_1)^2 - 4 a^2 rho^2 z^2 - 16 a^4 p_0 p_2 = (z^2 - s_1)(z^2 - s_2). $ <eq-Delta>
@@ -274,7 +274,7 @@ $DD$ gives the dense term; $K_j$ is the thermal denominator and $gamma_j$ the we
 
 #theorem(title: [density and magnetic], lean: "yes")[
   Let $mu != 0$, $e(z_n) != 0$ for all $n$, $s_1 != s_2$, and $K_j != 0$. Then
-  $ Gamma_(r, n m) = beta P(z_n) [frac(1, G_2 (z_n)) - frac(H(-z_n), e(z_n))] delta_(n m) + 2 epsilon a - lambda rho DD(z_n, z_m) + sum_(j = 1)^2 gamma_j thin g_j (z_n) g_j (z_m). $ <eq-Gamma-ph>
+  $ Gamma_(r, n m) = beta P(z_n) [frac(1, G_2 (z_n)) - frac(H(-z_n), e(z_n))] delta_(n m) + 2 epsilon_r a - lambda rho DD(z_n, z_m) + sum_(j = 1)^2 gamma_j thin g_j (z_n) g_j (z_m). $ <eq-Gamma-ph>
   For $r = "m"$ and $k = 0$ the atomic pair is omitted, both from the sum and from the assumption $K_j != 0$. The formula does not depend on the sign chosen for $u_j$, and the inverse $chi_r^(-1)$ it represents is two-sided.
 ] <thm-ph>
 
@@ -287,16 +287,16 @@ So $Gamma_"d"$ and $Gamma_"m"$ have the same anatomy as $Gamma_"s"$: a diagonal 
 ) <fig-cuts>
 
 *Half filling.* At $mu = 0$, $rho = 0$ and @thm-ph does not apply literally. Here the Cauchy matrix is the mirror, $C = h cal(M)$ with $h = overline(c) = beta p_0$ (@eq-C), and $H(z) = z^2 + q_1$ is even. Then $e$ factorizes as
-$ e(z) = (z^2 - hat(s))(z^2 - hat(s)'), quad quad hat(s) := 4 epsilon a^2 (p_0 - p_1) - q_0, quad quad hat(s)' := -4 epsilon a^2 (p_0 + p_1) - q_0, $ <eq-hf-defs>
+$ e(z) = (z^2 - hat(s))(z^2 - hat(s)'), quad quad hat(s) := 4 epsilon_r a^2 (p_0 - p_1) - q_0, quad quad hat(s)' := -4 epsilon_r a^2 (p_0 + p_1) - q_0, $ <eq-hf-defs>
 and we define
-$ hat(g)(z) := frac(1, z^2 - hat(s)), quad quad hat(D) := beta - frac(2 epsilon a S_k (hat(u)), hat(u)), $ <eq-hf-D>
+$ hat(g)(z) := frac(1, z^2 - hat(s)), quad quad hat(D) := beta - frac(2 epsilon_r a S_k (hat(u)), hat(u)), $ <eq-hf-D>
 where $hat(u)$ is either square root of $hat(s)$; $hat(D)$ is even in $hat(u)$. Explicitly, for even $k$,
-$ hat(D) = beta [1 + frac(epsilon a, hat(u)) tanh frac(beta hat(u), 2)], $
-with the value $beta (1 + epsilon a beta slash 2)$ at $hat(u) = 0$. For odd $k$, $coth$ replaces $tanh$, and $hat(u) = 0$ means $e(0) = 0$ at the mirror fixed point $z_n = 0$ (@prop-special).
+$ hat(D) = beta [1 + frac(epsilon_r a, hat(u)) tanh frac(beta hat(u), 2)], $
+with the value $beta (1 + epsilon_r a beta slash 2)$ at $hat(u) = 0$. For odd $k$, $coth$ replaces $tanh$, and $hat(u) = 0$ means $e(0) = 0$ at the mirror fixed point $z_n = 0$ (@prop-special).
 
 #corollary(title: [half filling], lean: "yes")[
   Let $mu = 0$, $e(z_n) != 0$ for all $n$, and $hat(D) != 0$. Then
-  $ Gamma_(r, n m) = beta P(z_n) [frac(1, G_2 (z_n)) - frac(H(z_n), e(z_n))] delta_(n m) + 2 epsilon a - lambda h F(z_n) delta_(m overline(n)) - frac(2 epsilon a beta P(hat(u)), hat(D)) hat(g)(z_n) hat(g)(z_m), $ <eq-Gamma-hf>
+  $ Gamma_(r, n m) = beta P(z_n) [frac(1, G_2 (z_n)) - frac(H(z_n), e(z_n))] delta_(n m) + 2 epsilon_r a - lambda h F(z_n) delta_(m overline(n)) - frac(2 epsilon_r a beta P(hat(u)), hat(D)) hat(g)(z_n) hat(g)(z_m), $ <eq-Gamma-hf>
   and the inverse $chi_r^(-1)$ it represents is two-sided.
 ] <cor-hf>
 
@@ -319,10 +319,10 @@ At isolated parameters a denominator of @eq-Gamma-s, @eq-Gamma-ph or @eq-Gamma-h
     where $Z(u)$ is $Z_j$ with $u_j$ replaced by $u$.
   + _Density and magnetic, $e$ vanishing on one orbit $O$_ (at $mu != 0$, the other assumptions of @thm-ph holding). @eq-Gamma-ph holds, with the entries in the rows and columns of $O$ taken as limits as $mu$ approaches its value.
   + _Half filling, $beta H(z_c) = lambda h$_, i.e. $z_c^2 = hat(s)$, with $beta H(z_n) != -lambda h$ for all $n != overline(n)$. Then $hat(u) = z_c$, and $hat(D)$ diverges. With
-    $ hat(T)' := sum_(l in.not O) hat(g)(z_l), quad quad hat(D)' := beta - 2 epsilon a hat(T)', $
+    $ hat(T)' := sum_(l in.not O) hat(g)(z_l), quad quad hat(D)' := beta - 2 epsilon_r a hat(T)', $
     the separable term of @eq-Gamma-hf drops out for $n, m in.not O$, and
-    $ Gamma_(r, n m) = 2 epsilon a + frac(beta P(z_c) hat(g)(z_m), |O|) quad (n in O, m in.not O), \
-    Gamma_(r, n m) = beta P(z_c) [frac(delta_(n m), G_2 (z_c)) - frac(delta_(n m) - delta_(m overline(n)), 2 (hat(s) - hat(s)'))] + 2 epsilon a + frac(beta P(z_c) hat(D)', 2 epsilon a |O|^2) - frac(2 beta (hat(s) + q_0 - 2 a^2), |O|) quad (n, m in O), $ <eq-Gamma-hf-lz>
+    $ Gamma_(r, n m) = 2 epsilon_r a + frac(beta P(z_c) hat(g)(z_m), |O|) quad (n in O, m in.not O), \
+    Gamma_(r, n m) = beta P(z_c) [frac(delta_(n m), G_2 (z_c)) - frac(delta_(n m) - delta_(m overline(n)), 2 (hat(s) - hat(s)'))] + 2 epsilon_r a + frac(beta P(z_c) hat(D)', 2 epsilon_r a |O|^2) - frac(2 beta (hat(s) + q_0 - 2 a^2), |O|) quad (n, m in O), $ <eq-Gamma-hf-lz>
     and symmetrically for $n in.not O$, $m in O$. At a mirror fixed point with $beta H(0) = -lambda h$, @eq-Gamma-hf holds as a limit: its diagonal and mirror terms, which act on the same entry, stay finite together.
 ] <prop-special>
 
@@ -572,25 +572,25 @@ Let $cC$ be the action of $C$ on functions sampled on the lattice, $(cC phi)(z_m
 == Structure
 
 Let $delta := delta_(k 0)$ and
-$ zeta_r := beta a^2 [1 - rho^2 + 4 epsilon (p_0 p_2 - p_1^2)], quad quad N_2 (v) := -2 epsilon a (v^2 + 2 a rho v + q_0) + delta zeta_r (v^2 - a^2), $
-$ N_0 (v) := (v^2 + 2 q_0 - 4 a^2) N_2 (v) + (2 epsilon a - delta zeta_r) P(v), quad quad N(z, v) := N_0 (v) + z^2 N_2 (v). $ <eq-N>
+$ zeta_r := beta a^2 [1 - rho^2 + 4 epsilon_r (p_0 p_2 - p_1^2)], quad quad N_2 (v) := -2 epsilon_r a (v^2 + 2 a rho v + q_0) + delta zeta_r (v^2 - a^2), $
+$ N_0 (v) := (v^2 + 2 q_0 - 4 a^2) N_2 (v) + (2 epsilon_r a - delta zeta_r) P(v), quad quad N(z, v) := N_0 (v) + z^2 N_2 (v). $ <eq-N>
 $P$ is even by @eq-Qfact and has no zeros on the lattice. In $N_0$ the terms of degree four cancel, so $N_0 (v) slash P(v) = O(v^(-1))$ and $N_2 (v) slash P(v) = O(v^(-2))$. We identify a function $phi$ on the lattice with the vector $(phi(z_n))_n$ and write $(chi_r phi)(z_n) := sum_m chi_(r, n m) phi(z_m)$.
 
 #proposition(title: [structure], lean: "yes")[
   $ P(z_n) chi_(r, n m) = -beta H(z_n) delta_(n m) + lambda C_(n m) + frac(N(z_n, z_m), P(z_m)). $ <eq-chi-ph>
 ] <prop-ph>
 #proof[
-  Write $z := z_n$, $v := z_m$, and collect the terms of $chi_r = chi_(up up) + epsilon chi_(up dn)$ (@eq-chi-uu, @eq-chi-ud).
+  Write $z := z_n$, $v := z_m$, and collect the terms of $chi_r = chi_(up up) + epsilon_r chi_(up dn)$ (@eq-chi-uu, @eq-chi-ud).
 
   _(a) The $delta_(n m)$ terms_ are
-  $ -beta [G(x_n) G(x_n + w) + a^2 (1 - rho^2 + 4 epsilon p_1) J(x_n) J(x_n + w)]. $
+  $ -beta [G(x_n) G(x_n + w) + a^2 (1 - rho^2 + 4 epsilon_r p_1) J(x_n) J(x_n + w)]. $
   By @eq-G and @eq-Qfact,
   $ G(x_n) G(x_n + w) = frac((z + a rho)^2 - w^2 slash 4, P(z)), quad quad J(x_n) J(x_n + w) = frac(1, P(z)), $
-  and the numerators add up to $(z + a rho)^2 - w^2 slash 4 + a^2 (1 - rho^2) + 4 epsilon a^2 p_1 = H(z)$.
+  and the numerators add up to $(z + a rho)^2 - w^2 slash 4 + a^2 (1 - rho^2) + 4 epsilon_r a^2 p_1 = H(z)$.
 
   _(b) The $delta_(k 0)$ terms_ occur only for $k = 0$, where $w = 0$, $x_n = z$ and $P(z) = (z^2 - a^2)^2$. They are $zeta_r J(z) J(v)$, and $P(z) J(z) J(v) = (z^2 - a^2)(v^2 - a^2) slash P(v)$.
 
-  _(c) The remaining terms_ are $epsilon cal(N)_(n m)$ with @eq-input. Since $C_(n m)(z + v) = rho$ and $Q_(+)(z) - Q_(-)(v) = (z + v)(z - v + 2 a)$,
+  _(c) The remaining terms_ are $epsilon_r cal(N)_(n m)$ with @eq-input. Since $C_(n m)(z + v) = rho$ and $Q_(+)(z) - Q_(-)(v) = (z + v)(z - v + 2 a)$,
   $ Q_(+)(z) C_(n m) = Q_(-)(v) C_(n m) + rho (z - v + 2 a). $
   With $1 slash Q_(-)(v) = Q_(+)(v) slash P(v)$ this gives
   $ P(z) cal(N)_(n m) = 4 a^2 C_(n m) + frac(1, P(v)) [& 4 a^2 rho (z - v + 2 a) Q_(+)(v) - 2 a Q_(+)(z) Q_(+)(v) \
@@ -599,7 +599,7 @@ $P$ is even by @eq-Qfact and has no zeros on the lattice. In $N_0$ the terms of 
   $ z^1: quad & 4 a^2 Q_(+)(v) [rho - 1 + (1 - rho)] = 0, \
   z^2: quad & -2 a Q_(+)(v) + 4 a^2 (1 - rho) v = -2 a (v^2 + 2 a rho v + q_0), \
   z^0: quad & -2 a (v^2 + 2 q_0 - 4 a^2)(v^2 + 2 a rho v + q_0) + 2 a P(v) quad "(identity (A2))". $
-  Times $epsilon$, this is the part of @eq-N without $zeta_r$. The term (b) is the rest, since $(v^2 - 2 a^2)(v^2 - a^2) - P(v) = -a^2 (v^2 - a^2)$ at $k = 0$.
+  Times $epsilon_r$, this is the part of @eq-N without $zeta_r$. The term (b) is the rest, since $(v^2 - 2 a^2)(v^2 - a^2) - P(v) = -a^2 (v^2 - a^2)$ at $k = 0$.
 ]
 
 So, after multiplication by $P$, the finite-rank part of $chi_r$ has only two output directions, $1$ and $z^2$.
@@ -641,8 +641,8 @@ Here $W(z; s) := W_0 (s) + z^2 W_2 (s)$ with polynomials $W_0$, $W_2$ of degree 
 $ frac(1, beta) [-N_2 (z) + lambda rho z (F(v) - 1) + lambda frac(W(z; v^2), e(v))]. $ <eq-defect>
 
 _Step 2 (the constant)._ For $y = 1$ the left side of @eq-column is
-$ -beta H(z) + lambda overline(c) + PV sum_l frac(N(z, z_l), P(z_l)) = frac(beta N_2 (z), 2 epsilon a), $
-by $cC[1] = overline(c)$ (@lem-calculus) and identity (A6). So adding the constant $2 epsilon a slash beta^2$ to $y$ removes the first term of @eq-defect.
+$ -beta H(z) + lambda overline(c) + PV sum_l frac(N(z, z_l), P(z_l)) = frac(beta N_2 (z), 2 epsilon_r a), $
+by $cC[1] = overline(c)$ (@lem-calculus) and identity (A6). So adding the constant $2 epsilon_r a slash beta^2$ to $y$ removes the first term of @eq-defect.
 
 _Step 3 (pole pairs)._ The rest of @eq-defect must be removed by functions that are mapped to polynomials. A simple pole $1 slash (t - x)$ is mapped by $-beta H + lambda cC$ to poles at $x$ and at $-x$ (@lem-calculus). So consider $phi = f_+ slash (t - x) + f_- slash (t + x)$. For it, the left side of @eq-column is a polynomial plus
 $ frac(-beta H(x) f_+ + lambda alpha_k (-x) f_-, z - x) + frac(lambda alpha_k (x) f_+ - beta H(-x) f_-, z + x). $
@@ -666,13 +666,13 @@ $ F(v) - 1 = sum_j F_j g_j (v), quad quad frac(W(z; v^2), e(v)) = sum_j frac(W(z
 So the last two terms of @eq-defect are
 $ frac(1, beta) sum_j lambda rho F_j g_j (v) [z + frac(W(z; s_j), rho P(u_j))]. $
 By Steps 1–3 and @eq-mode-image,
-$ y_v (z) := D_v delta_(z v) + frac(E_v, z + v) + frac(1, beta^2) [2 epsilon a + lambda rho sum_j frac(F_j g_j (v), K_j) phi_j (z)] $
+$ y_v (z) := D_v delta_(z v) + frac(E_v, z + v) + frac(1, beta^2) [2 epsilon_r a + lambda rho sum_j frac(F_j g_j (v), K_j) phi_j (z)] $
 solves @eq-column. To read off $Gamma_r$, note that by @eq-mode
 $ frac(lambda rho F_j g_j (v) phi_j (z), K_j) = lambda rho F_j z g_j (z) g_j (v) + gamma_j g_j (z) g_j (v), $
 and that $F(z) - F(v) = -(z^2 - v^2) sum_j F_j g_j (z) g_j (v)$ gives
 $ DD(z, v) = frac(F(v), z + v) - z sum_j F_j g_j (z) g_j (v). $ <eq-defect-dd>
 Hence
-$ y_v (z) = -frac(H(-z) P(z), beta e(z)) delta_(z v) + frac(1, beta^2) [2 epsilon a - lambda rho DD(z, v) + sum_j gamma_j g_j (z) g_j (v)]. $
+$ y_v (z) = -frac(H(-z) P(z), beta e(z)) delta_(z v) + frac(1, beta^2) [2 epsilon_r a - lambda rho DD(z, v) + sum_j gamma_j g_j (z) g_j (v)]. $
 By @eq-G and @eq-Qfact, $B_n = -beta G_2 (z_n) slash P(z_n)$; so by @eq-Gamma-def, $beta^2 [y_(z_m)(z_n) - delta_(n m) slash B_n]$ is the right side of @eq-Gamma-ph.
 
 _Step 5 (two-sidedness, branches, special cases)._
@@ -707,12 +707,12 @@ Each identity is checked exactly with SymPy: (A1)–(A5) by `doped-gamma/verify_
 / (A4): $Xi = diag(-1 slash a, K_"s" slash (a d_+ d_-))$ in the proof of @thm-s, and $d_+ d_- = cal(P)(-As)$.
 / (A5): the $delta_(n m)$ and $delta_(k 0)$ identities in the proof of @prop-ph, and $H(a) = 4 a^2 p_2$, $H(-a) = 4 a^2 p_0$ for $r = "m"$, $k = 0$.
 / (A6): Step 2 of the proof of @thm-ph, the sum evaluated by @lem-res and @lem-U:
-  $ -beta H(z) + lambda overline(c) + PV sum_l frac(N(z, z_l), P(z_l)) = frac(beta N_2 (z), 2 epsilon a). $
+  $ -beta H(z) + lambda overline(c) + PV sum_l frac(N(z, z_l), P(z_l)) = frac(beta N_2 (z), 2 epsilon_r a). $
 / (A7): @eq-source, where $overline(cal(I))$ is evaluated by @lem-U and, with $pi.alt := 4 (p_0 p_2 - p_1^2)$,
-  $ W_0 (s) &:= epsilon a q_0 [pi.alt - 2 epsilon (1 - rho^2)] (s + q_0 + 2 epsilon a^2) + delta beta a^4 psi(s), \
-  W_2 (s) &:= epsilon a pi.alt (s + q_0 + 2 epsilon a^2) - delta beta a^2 psi(s), \
-  psi(s) &:= -4 epsilon p_1 (p_0 + p_2 - rho^2) [s + (1 + 2 epsilon) a^2] + (1 + epsilon) rho^2 pi.alt (s - a^2). $
-  For $r = "m"$ and $k = 0$ ($epsilon = -1$, $q_0 = a^2$) this shows $W_0 (a^2) = W_2 (a^2) = 0$.
+  $ W_0 (s) &:= epsilon_r a q_0 [pi.alt - 2 epsilon_r (1 - rho^2)] (s + q_0 + 2 epsilon_r a^2) + delta beta a^4 psi(s), \
+  W_2 (s) &:= epsilon_r a pi.alt (s + q_0 + 2 epsilon_r a^2) - delta beta a^2 psi(s), \
+  psi(s) &:= -4 epsilon_r p_1 (p_0 + p_2 - rho^2) [s + (1 + 2 epsilon_r) a^2] + (1 + epsilon_r) rho^2 pi.alt (s - a^2). $
+  For $r = "m"$ and $k = 0$ ($epsilon_"m" = -1$, $q_0 = a^2$) this shows $W_0 (a^2) = W_2 (a^2) = 0$.
 
 = Analytic details <app-details>
 
@@ -740,14 +740,14 @@ $ e(z) = (z^2 - hat(s))(z^2 - hat(s) + 2 lambda h slash beta). $
 As $beta -> beta_0$, $hat(u) -> z_n$. The diagonal and mirror terms of @eq-Gamma-hf contribute
 $ -frac(lambda h P(z_n), e(z_n)) + O(1) = -frac(beta P(z_n), 2 (z_n^2 - hat(s))) + O(1) $
 to each of the entries $(n, n)$ and $(n, overline(n))$. Since $S_k (hat(u)) = 1 slash (z_n - hat(u)) + O(1)$,
-$ hat(D) = frac(2 epsilon a, hat(u)(hat(u) - z_n)) + O(1), $
+$ hat(D) = frac(2 epsilon_r a, hat(u)(hat(u) - z_n)) + O(1), $
 so the separable term contributes $beta P(z_n) slash (2 (z_n^2 - hat(s))) + O(1)$ to the same entries and $O(1)$ to the others. The singular parts cancel.
 
 At a mirror fixed point $n = overline(n)$ (odd $k$, $z_n = 0$), let $e(0) = 0$ at $beta = beta_0$. The diagonal and mirror terms of @eq-Gamma-hf act on the same entry $(n, n)$. As $beta^2 e(0) = (beta H(0) - lambda h)(beta H(0) + lambda h)$, they combine to
 $ frac(beta P(0), G_2 (0)) - frac(beta^2 P(0), beta H(0) - lambda h). $
 - If $beta H(0) = -lambda h$ at $beta_0$, this stays finite, and under the remaining assumptions of @cor-hf nothing else is singular.
-- If $beta H(0) = lambda h$, then $hat(s) -> 0$, and the combination is $beta P(0) slash hat(s) + O(1)$, as $beta H(0) - lambda h = -beta hat(s)$. For odd $k$, $coth(beta hat(u) slash 2) slash hat(u) = 2 slash (beta hat(s)) + O(1)$, so $hat(D) = 2 epsilon a slash hat(s) + O(1)$, and the separable term is
-  $ -frac(2 epsilon a beta P(hat(u)), hat(D)) hat(g)(0)^2 = -frac(beta P(0), hat(s)) + O(1) $
+- If $beta H(0) = lambda h$, then $hat(s) -> 0$, and the combination is $beta P(0) slash hat(s) + O(1)$, as $beta H(0) - lambda h = -beta hat(s)$. For odd $k$, $coth(beta hat(u) slash 2) slash hat(u) = 2 slash (beta hat(s)) + O(1)$, so $hat(D) = 2 epsilon_r a slash hat(s) + O(1)$, and the separable term is
+  $ -frac(2 epsilon_r a beta P(hat(u)), hat(D)) hat(g)(0)^2 = -frac(beta P(0), hat(s)) + O(1) $
   at $(n, n)$ and $O(1)$ elsewhere. The singular parts cancel again.
 In all these cases @eq-Gamma-hf extends continuously, and @lem-cont (with $p = beta$) gives $chi_r Y = bb(1)$ at $beta_0$.
 
@@ -760,7 +760,7 @@ In all these cases @eq-Gamma-hf extends continuously, and @lem-cont (with $p = b
   $ K_j = X_- - lambda overline(c) + lambda rho S_k (u_j), quad quad X_- - lambda alpha_k (u_j) = X_- + lambda overline(c) - lambda rho S_k (u_j). $
   - _The pair $j$._ Here $X_(plus.minus) -> lambda h$, so the identity gives $(X_- - lambda overline(c)) slash rho -> -2 a beta hat(u)$. Hence
     $ frac(K_j, rho) -> lambda S_k (hat(u)) - 2 a beta hat(u) = -2 a hat(u) hat(D), quad quad X_- - lambda alpha_k (u_j) -> 2 lambda h, quad quad s_j - s_ell -> frac(2 lambda h, beta), $
-    so $gamma_j -> -2 epsilon a beta P(hat(u)) slash hat(D)$ if $hat(u) != 0$.
+    so $gamma_j -> -2 epsilon_r a beta P(hat(u)) slash hat(D)$ if $hat(u) != 0$.
   - _The pair $ell$._ Here $X_(plus.minus) -> -lambda h$, so $K_ell -> -2 lambda h$, $X_- - lambda alpha_k (u_ell) -> 0$ and $gamma_ell -> 0$. (For $r = "m"$, $k = 0$ this is the atomic pair, absent anyway.)
   - _The dense term._ By @eq-defect-dd, since $z_(overline(n)) = -z_n$ at $mu = 0$ and $F$ is even,
     $ lambda rho DD(z_n, z_m) = lambda C_(n m) F(z_m) - lambda rho z_n sum_j F_j g_j (z_n) g_j (z_m) -> lambda h F(z_n) delta_(m overline(n)). $
@@ -874,7 +874,7 @@ $ p_0 := frac(e^(-beta mu), 2 cosh(beta mu) + 2 e^(beta a)), quad p_1 := frac(e^
 $ rho := frac(sinh(beta mu), cosh(beta mu) + e^(beta a)) = p_2 - p_0. $
 Use the parity-dependent function
 $ T(y) := cases(tanh(beta y slash 2) & quad k "even,", coth(beta y slash 2) & quad k "odd.") $
-Here $delta_(n m)$ is the Kronecker delta. The two particle–hole channels use $epsilon = +1$ for density and $epsilon = -1$ for magnetic.
+Here $delta_(n m)$ is the Kronecker delta. The particle–hole channels $r = "d", "m"$ carry the sign $epsilon_"d" = +1$ (density) and $epsilon_"m" = -1$ (magnetic).
 
 == Triplet
 
@@ -898,20 +898,20 @@ The brackets depending on a fermionic index must be nonzero for every index, and
 == Density and magnetic away from half filling
 
 Take $mu != 0$. The roots needed for this formula are explicitly
-$ s_(1, 2) := & 2 a^2 rho^2 - a^2 - omega^2 slash 4 - 4 epsilon a^2 p_1 \
-& plus.minus 2 a sqrt(a^2 rho^4 - rho^2 (a^2 + omega^2 slash 4 + 4 epsilon a^2 p_1) + 4 a^2 p_0 p_2), quad u_j := sqrt(s_j). $
+$ s_(1, 2) := & 2 a^2 rho^2 - a^2 - omega^2 slash 4 - 4 epsilon_r a^2 p_1 \
+& plus.minus 2 a sqrt(a^2 rho^4 - rho^2 (a^2 + omega^2 slash 4 + 4 epsilon_r a^2 p_1) + 4 a^2 p_0 p_2), quad u_j := sqrt(s_j). $
 For $s_1 != s_2$ and $z_n^2 != s_j$ for every $n$ and $j$,
 $ Gamma_(r, n m) = & beta ([(z_n + a)^2 + omega^2 slash 4][(z_n - a)^2 + omega^2 slash 4]) \
-& quad times [frac(1, (z_n + a rho)^2 + omega^2 slash 4) - frac(z_n^2 - 2 a rho z_n + a^2 + omega^2 slash 4 + 4 epsilon a^2 p_1, (z_n^2 - s_1)(z_n^2 - s_2))] delta_(n m) + 2 epsilon a \
-& - frac(4 epsilon a^2 rho z_n [(z_n + a)^2 + omega^2 slash 4][(z_n - a)^2 + omega^2 slash 4], (z_n^2 - z_m^2)(z_n^2 - s_1)(z_n^2 - s_2)) \
-& + frac(4 epsilon a^2 rho z_m [(z_m + a)^2 + omega^2 slash 4][(z_m - a)^2 + omega^2 slash 4], (z_n^2 - z_m^2)(z_m^2 - s_1)(z_m^2 - s_2)) \
-& + 4 epsilon a^2 rho sum_(j = 1)^2 lr([frac(u_j [(u_j + a)^2 + omega^2 slash 4][(u_j - a)^2 + omega^2 slash 4], (s_j - s_(3-j))(z_n^2 - s_j)(z_m^2 - s_j)) \
-& quad times frac(s_j - 2 a rho u_j + a^2 + omega^2 slash 4 + 4 epsilon a^2 p_1 + 2 epsilon a^2 [rho T(u_j - mu) + p_0 + p_2], s_j - 2 a rho u_j + a^2 + omega^2 slash 4 + 4 epsilon a^2 p_1 - 2 epsilon a^2 [rho T(u_j - mu) + p_0 + p_2])]). $ <eq-explicit-ph>
+& quad times [frac(1, (z_n + a rho)^2 + omega^2 slash 4) - frac(z_n^2 - 2 a rho z_n + a^2 + omega^2 slash 4 + 4 epsilon_r a^2 p_1, (z_n^2 - s_1)(z_n^2 - s_2))] delta_(n m) + 2 epsilon_r a \
+& - frac(4 epsilon_r a^2 rho z_n [(z_n + a)^2 + omega^2 slash 4][(z_n - a)^2 + omega^2 slash 4], (z_n^2 - z_m^2)(z_n^2 - s_1)(z_n^2 - s_2)) \
+& + frac(4 epsilon_r a^2 rho z_m [(z_m + a)^2 + omega^2 slash 4][(z_m - a)^2 + omega^2 slash 4], (z_n^2 - z_m^2)(z_m^2 - s_1)(z_m^2 - s_2)) \
+& + 4 epsilon_r a^2 rho sum_(j = 1)^2 lr([frac(u_j [(u_j + a)^2 + omega^2 slash 4][(u_j - a)^2 + omega^2 slash 4], (s_j - s_(3-j))(z_n^2 - s_j)(z_m^2 - s_j)) \
+& quad times frac(s_j - 2 a rho u_j + a^2 + omega^2 slash 4 + 4 epsilon_r a^2 p_1 + 2 epsilon_r a^2 [rho T(u_j - mu) + p_0 + p_2], s_j - 2 a rho u_j + a^2 + omega^2 slash 4 + 4 epsilon_r a^2 p_1 - 2 epsilon_r a^2 [rho T(u_j - mu) + p_0 + p_2])]). $ <eq-explicit-ph>
 The last denominator must be nonzero for each retained root. For $r = "m"$ and $k = 0$, omit the root $s_j = a^2$ from the sum and from this nonvanishing requirement. Either sign of either $u_j$ gives the same vertex.
 ]
 
 #block(breakable: false)[
-*Diagonal entries.* For $n = m$, replace the two fractions containing $z_n^2 - z_m^2$ together by $-4 epsilon a^2 rho$ times the following explicit rational function:
+*Diagonal entries.* For $n = m$, replace the two fractions containing $z_n^2 - z_m^2$ together by $-4 epsilon_r a^2 rho$ times the following explicit rational function:
 $ & frac([(z_n + a)^2 + omega^2 slash 4][(z_n - a)^2 + omega^2 slash 4], 2 z_n (z_n^2 - s_1)(z_n^2 - s_2)) + frac(2 z_n (z_n^2 - a^2 + omega^2 slash 4), (z_n^2 - s_1)(z_n^2 - s_2)) \
 & - frac(z_n [(z_n + a)^2 + omega^2 slash 4][(z_n - a)^2 + omega^2 slash 4] (2 z_n^2 - s_1 - s_2), (z_n^2 - s_1)^2 (z_n^2 - s_2)^2). $ <eq-explicit-diag>
 The confluent-root and lattice-zero continuations are items 2 and 3 of @prop-special.
@@ -920,13 +920,13 @@ The confluent-root and lattice-zero continuations are items 2 and 3 of @prop-spe
 == Density and magnetic at half filling
 
 Set $mu = 0$. The input panel reduces to $rho = 0$, $p_2 = p_0 = 1 slash [2 (1 + e^(beta a))]$ and $p_1 = e^(beta a) slash [2 (1 + e^(beta a))]$. The roots are
-$ hat(s) := 4 epsilon a^2 (p_0 - p_1) - a^2 - omega^2 slash 4, quad hat(s)' := -4 epsilon a^2 (p_0 + p_1) - a^2 - omega^2 slash 4, quad hat(u) := sqrt(hat(s)). $
+$ hat(s) := 4 epsilon_r a^2 (p_0 - p_1) - a^2 - omega^2 slash 4, quad hat(s)' := -4 epsilon_r a^2 (p_0 + p_1) - a^2 - omega^2 slash 4, quad hat(u) := sqrt(hat(s)). $
 For $z_n^2 != hat(s), hat(s)'$ for every $n$,
 $ Gamma_(r, n m) = & beta [(z_n + a)^2 + omega^2 slash 4][(z_n - a)^2 + omega^2 slash 4] \
-& quad times [frac(1, z_n^2 + omega^2 slash 4) - frac(z_n^2 + a^2 + omega^2 slash 4 + 4 epsilon a^2 p_1, (z_n^2 - hat(s))(z_n^2 - hat(s)'))] delta_(n m) + 2 epsilon a \
-& - frac(4 epsilon a^2 beta p_0 [(z_n + a)^2 + omega^2 slash 4][(z_n - a)^2 + omega^2 slash 4], (z_n^2 - hat(s))(z_n^2 - hat(s)')) delta_(m overline(n)) \
-& - frac(2 epsilon a [(hat(s) + a^2 + omega^2 slash 4)^2 - 4 a^2 hat(s)], [1 + epsilon a T(hat(u)) slash hat(u)] (z_n^2 - hat(s))(z_m^2 - hat(s))). $ <eq-explicit-hf>
-The thermal denominator $1 + epsilon a T(hat(u)) slash hat(u)$ must be nonzero. Either sign of $hat(u)$ gives the same value. At $hat(u) = 0$ and even $k$, replace $T(hat(u)) slash hat(u)$ by $beta slash 2$. The lattice-zero and mirror-fixed-point continuations are item 4 of @prop-special.
+& quad times [frac(1, z_n^2 + omega^2 slash 4) - frac(z_n^2 + a^2 + omega^2 slash 4 + 4 epsilon_r a^2 p_1, (z_n^2 - hat(s))(z_n^2 - hat(s)'))] delta_(n m) + 2 epsilon_r a \
+& - frac(4 epsilon_r a^2 beta p_0 [(z_n + a)^2 + omega^2 slash 4][(z_n - a)^2 + omega^2 slash 4], (z_n^2 - hat(s))(z_n^2 - hat(s)')) delta_(m overline(n)) \
+& - frac(2 epsilon_r a [(hat(s) + a^2 + omega^2 slash 4)^2 - 4 a^2 hat(s)], [1 + epsilon_r a T(hat(u)) slash hat(u)] (z_n^2 - hat(s))(z_m^2 - hat(s))). $ <eq-explicit-hf>
+The thermal denominator $1 + epsilon_r a T(hat(u)) slash hat(u)$ must be nonzero. Either sign of $hat(u)$ gives the same value. At $hat(u) = 0$ and even $k$, replace $T(hat(u)) slash hat(u)$ by $beta slash 2$. The lattice-zero and mirror-fixed-point continuations are item 4 of @prop-special.
 
 = List of symbols <app-symbols>
 
@@ -980,7 +980,7 @@ Symbols introduced inside a proof or in @app-explicit are local to it and not li
 
 *Density and magnetic.*
 #sym-table(
-  ([$epsilon$], [$+1$ for $r = "d"$, $-1$ for $r = "m"$], [@sec-res-ph]),
+  ([$epsilon_r$], [channel sign, $epsilon_"d" = +1$, $epsilon_"m" = -1$], [@sec-res-ph]),
   ([$H$, $q_1$, $lambda$, $P$, $G_2$, $e$], [polynomials of the particle–hole channels], [@eq-HP, @eq-Delta]),
   ([$s_j$, $u_j$], [roots of $e$ in $z^2$; either square root], [@eq-Delta]),
   ([$alpha_k$], [thermal function $rho S_k - overline(c)$], [@eq-alpha-def]),
