@@ -70,4 +70,68 @@ for ax, ch in zip(axs, "dmst"):
 h, l = axs[0].get_legend_handles_labels()
 fig.legend(h, l, loc="lower center", ncol=5, fontsize=7, frameon=False, bbox_to_anchor=(0.5, -0.02))
 fig.tight_layout(pad=0.3, rect=(0, 0.08, 1, 1)); fig.savefig(os.path.join(here, "gamma_cuts.svg")); plt.close(fig)
+# ---------- Figure 4: divergence lines at omega = 0 (Appendix "Vertex divergences"), beta = 1 ----------
+def cu(s):   # cosh u for u^2 = s
+    y = np.sqrt(np.abs(s)); return np.where(s >= 0, np.cosh(y), np.cos(y))
+def su(s):   # sinh(u)/u
+    y = np.sqrt(np.abs(s)); ys = np.where(y == 0, 1.0, y)
+    return np.where(y == 0, 1.0, np.where(s > 0, np.sinh(ys), np.sin(ys))/ys)
+def fields(mu, U):
+    a = U/2; den = 2*np.cosh(mu) + 2*np.exp(a)
+    p0, p1, p2 = np.exp(-mu)/den, np.exp(a)/den, np.exp(mu)/den; rho = p2 - p0
+    out = {}
+    for ch, eps in (("d", 1), ("m", -1)):
+        q1 = a**2*(1 + 4*eps*p1); D = a**2*rho**4 - rho**2*q1 + 4*a**2*p0*p2
+        for j, sg in ((1, 2), (2, -2)):
+            s = np.where(D >= 0, 2*a**2*rho**2 - q1 + sg*a*np.sqrt(np.abs(D)), np.nan)
+            Phi = np.cosh(mu) + cu(s) + eps*a*su(s)
+            sigma = (s + q1)*eps*(1 + np.cosh(mu)*cu(s))/(cu(s) + np.cosh(mu))
+            out[ch, j] = (np.where(sigma >= 0, Phi, np.nan), s)   # sigma >= 0 on the divergence arcs
+    xi2 = mu**2 + 2*a*rho*mu + a**2*(1 - 8*p1)
+    dm = 4*a*p1 + 2*mu*(p0 + p1)            # K_s vanishes with d_- = t_- + A_s: no divergence there
+    out["s", 0] = (np.where(np.abs(dm) > 0.02*(1 + np.abs(a)), cu(xi2/4) + a*su(xi2/4)/2, np.nan), None)
+    return out
+mu1, U1 = np.meshgrid(np.linspace(0, 4, 1601), np.linspace(-25, 25, 4001))
+F4 = fields(mu1, U1)
+colors = {"d": "C3", "m": "#2a9d8f", "s": "#e9b100"}
+fig, ax = plt.subplots(figsize=(4.6, 3.6))
+eps_pts, ends = [], {"d": [], "m": []}
+for (ch, j), (Phi, _) in F4.items():
+    for sgn in (1, -1):
+        cs = ax.contour(sgn*mu1, U1, Phi, levels=[0], colors=colors[ch], linewidths=1.1)
+        if ch != "s":
+            ends[ch] += [((j, sgn, i), path[k]) for i, path in enumerate(cs.allsegs[0]) if len(path) for k in (0, -1)]
+    if ch == "s":
+        continue
+    eps = 1 if ch == "d" else -1
+    for path in cs.allsegs[0]:   # exceptional points: sum_n g_n^2 = T'(s_j) changes sign along the line
+        m_, u_ = np.abs(path[:, 0]), path[:, 1]
+        s_ = fields(m_, u_)[ch, j][1]
+        T = lambda s: -su(s)/(2*(cu(s) + np.cosh(m_))); h = 1e-6*(1 + np.abs(s_))
+        Tp = (T(s_ + h) - T(s_ - h))/(2*h)
+        for i in np.nonzero(np.sign(Tp[:-1]) != np.sign(Tp[1:]))[0]:
+            mu_ep, u_ep = (m_[i] + m_[i+1])/2, (u_[i] + u_[i+1])/2
+            # skip sign changes through a pole of T' (s_j at a lattice point, only at mu = 0) and repeats
+            if max(abs(Tp[i]), abs(Tp[i+1])) < 1 and all(abs(u_ep - q[1]) > 0.5 for q in eps_pts):
+                eps_pts.append((mu_ep, u_ep))
+for ch, pts in ends.items():   # near s_1 = s_2 (where a line passes from one root to the other) the contours break: join
+    dist = lambda p, q: np.hypot(q[0] - p[0], (q[1] - p[1])/8)
+    for j, p in pts:
+        for other, tol in ((lambda i: i != j, 0.03), (lambda i: i[0] != j[0], 0.1)):   # any path; the other root
+            q = min((q for i, q in pts if other(i)), key=lambda q: dist(p, q), default=None)
+            if q is not None and dist(p, q) < tol:
+                ax.plot([p[0], q[0]], [p[1], q[1]], color=colors[ch], lw=1.1)
+for m_, u_ in eps_pts:
+    ax.plot([m_, -m_], [u_, u_], "o", color="k", ms=3.2, zorder=5)
+n = np.arange(3); loc = 2*np.pi*(2*n + 1)/np.sqrt(3)
+ax.plot(np.zeros(6), np.concatenate([loc, -loc]), "o", ms=3.2, mfc="w", mec="C3", mew=1, zorder=6)
+ax.axvline(0, color="0.85", lw=0.6, zorder=0); ax.axhline(0, color="0.85", lw=0.6, zorder=0)
+ax.set_xlim(-4, 4); ax.set_ylim(-25, 25); ax.set_xlabel(r"$\beta\mu$"); ax.set_ylabel(r"$\beta U$")
+handles = [plt.Line2D([], [], color=colors["d"], lw=1.1, label=r"$\Gamma_\mathrm{d}$"),
+           plt.Line2D([], [], color=colors["m"], lw=1.1, label=r"$\Gamma_\mathrm{m}$"),
+           plt.Line2D([], [], color=colors["s"], lw=1.1, label=r"$\Gamma_\mathrm{s}$"),
+           plt.Line2D([], [], ls="", marker="o", ms=3.2, mfc="w", mec="C3", label=r"localized ($\mu = 0$)"),
+           plt.Line2D([], [], ls="", marker="o", ms=3.2, color="k", label="exceptional point")]
+ax.legend(handles=handles, loc="center left", bbox_to_anchor=(1.02, 0.5), fontsize=7.5, frameon=False)
+fig.tight_layout(); fig.savefig(os.path.join(here, "divergences.svg")); plt.close(fig)
 print("figures written")

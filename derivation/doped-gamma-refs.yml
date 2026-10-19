@@ -34,3 +34,12 @@ rohshap2023:
   genre: Master's thesis
   organization: TU Wien
   url: https://repositum.tuwien.at/handle/20.500.12708/176712
+
+essl2023:
+  type: thesis
+  title: Breakdown of the self-consistent perturbation theory beyond particle-hole symmetry
+  author: Eßl, H.
+  date: 2023
+  genre: Master's thesis
+  organization: TU Wien
+  url: https://repositum.tuwien.at/handle/20.500.12708/187566
