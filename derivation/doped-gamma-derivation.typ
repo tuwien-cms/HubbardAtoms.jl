@@ -5,33 +5,40 @@
 #set document(title: [Irreducible vertex of the Hubbard atom away from half filling])
 #set page(paper: "a4", margin: (x: 2.3cm, y: 2.4cm), numbering: "1")
 #set text(font: "New Computer Modern", size: 10.5pt)
-#set par(justify: true)
+#set par(justify: true, leading: 0.72em)
 #set heading(numbering: "1.1")
 #set math.equation(numbering: "(1)", supplement: [Eq.])
 #show heading.where(level: 1): set block(above: 1.6em, below: 0.9em)
 #show figure.caption: set text(size: 9.5pt)
+#show figure.where(kind: table): set block(breakable: true)
 
 // ---------- theorem-like environments (one shared counter, referenceable) ----------
 #let thm-kind = "thm"
+// `lean`: "yes" or "part" marks the statement as formalized (in part) in Lean, linking to the
+// table of App. E
+#let lean-tag(s) = box(inset: (x: 2.5pt), outset: (y: 1.5pt), radius: 2pt, fill: luma(232),
+  link(<tab-lean>, text(size: 7.5pt, fill: luma(50), if s == "part" [Lean, in part] else [Lean])))
+// Statements stay on one page unless created with `breakable: true`. The flag travels in the
+// figure's `gap` (unused, as the caption is printed in the header).
+#let breakable-gap = 0.66em
 #show figure.where(kind: thm-kind): set block(breakable: true)
 #show figure.where(kind: thm-kind): it => block(
+  breakable: it.gap == breakable-gap,
   width: 100%,
   inset: (left: 9pt, y: 4pt),
   stroke: (left: 1.2pt + luma(140)),
   align(left)[
-    *#it.supplement #context it.counter.display(it.numbering)*#if it.caption != none [ (#it.caption.body)]. #it.body
+    *#it.supplement #context it.counter.display(it.numbering)*#if it.caption != none [#it.caption.body]. #it.body
   ],
 )
-// `lean`: the status of the statement in the Lean formalization (App. E), printed below it
-#let env(supplement) = (body, title: none, lean: none) => figure(
-  if lean == none { body } else {
-    body + block(above: 0.7em, text(size: 9pt, fill: luma(70))[_Lean:_ #lean])
-  },
+#let env(supplement) = (body, title: none, lean: none, breakable: false) => figure(
+  body,
+  gap: if breakable { breakable-gap } else { 0.65em },
   kind: thm-kind,
   supplement: supplement,
   numbering: "1",
   outlined: false,
-  caption: title,
+  caption: if title == none and lean == none { none } else [#if title != none [ (#title)]#if lean != none [ #lean-tag(lean)]],
 )
 #let lemma = env[Lemma]
 #let proposition = env[Proposition]
@@ -39,6 +46,8 @@
 #let corollary = env[Corollary]
 #let proof(body, of: none) = block(width: 100%, inset: (left: 9pt))[_Proof#if of != none [ of #of]._ #body #h(1fr) $square$]
 #let example(body) = block(breakable: false, box(width: 100%, inset: 7pt, fill: luma(245), radius: 2pt)[*Example.* #body])
+// a short explanation next to a definition in a display
+#let gloss(body) = text(size: 9pt, fill: luma(80), body)
 
 // ---------- notation ----------
 #let PV = math.op("PV")
@@ -64,23 +73,22 @@
 
 = Overview <sec-overview>
 
-The irreducible vertex $Gamma_r$ of the Hubbard atom is known in closed form at half filling @thunstroem2018. Here we derive it at arbitrary filling (zero magnetic field) in all four channels $r in {"d", "m", "s", "t"}$. By definition $Gamma_r = beta^2 (chi_r^(-1) - eta_r chi_(0, r)^(-1))$, where $chi_r$ is the generalized susceptibility, an infinite matrix in two fermionic Matsubara frequencies. So the task is to invert $chi_r$ in closed form.
+The irreducible vertex $Gamma_r$ of the Hubbard atom is known in closed form at half filling @thunstroem2018. Here we derive it at arbitrary filling (zero magnetic field) in all four channels $r in {"d", "m", "s", "t"}$. By definition
+$ Gamma_r = beta^2 (chi_r^(-1) - eta_r chi_(0, r)^(-1)), $
+where $chi_r$ is the generalized susceptibility, an infinite matrix in two fermionic Matsubara frequencies, and $chi_(0, r)$ is its bare part. So the task is to invert $chi_r$ in closed form.
 
 At half filling $chi_r$ is a diagonal matrix plus a mirror term plus a matrix of rank at most two, and the inversion is elementary. Away from half filling the mirror term becomes a dense _Cauchy matrix_ $C_(n m) = rho slash (z_n + z_m)$ (@fig-structure). The particle–hole susceptibility is then no longer a finite-rank perturbation of an easily invertible matrix. Two properties of $C$ still allow a closed-form inverse:
-+ $C^2 = h^2 bb(1)$ for a number $h$: like the mirror it replaces, $C$ is a scaled involution.
-+ $C$ maps a simple pole to a simple pole: $sum_m C_(n m) slash (z_m - x) = alpha(x) slash (z_n + x)$, with a thermal factor obeying $alpha(x) alpha(-x) = h^2$.
++ Like the mirror it replaces, $C$ is a scaled involution: $C^2 = h^2 bb(1)$ for a number $h$.
++ $C$ maps a simple pole to a simple pole, with a thermal factor $alpha$:
+  $ sum_m frac(C_(n m), z_m - x) = frac(alpha(x), z_n + x), quad quad alpha(x) alpha(-x) = h^2. $
 
 After multiplication by a polynomial, $chi_r$ is a diagonal matrix plus $lambda C$ plus a matrix of rank two. Each column of $chi_r^(-1)$ is then built from a diagonal entry, one Cauchy column, a constant, and two pole pairs with one thermal denominator each. All coefficients follow from $2 times 2$ linear systems whose determinants are given by a single quartic.
-
-#figure(
-  image("doped-gamma/figures/chi_structure.svg", width: 58%),
-  caption: [Structure of $chi_"d"$ at $U = 2$, $beta = 3$, $omega = 0$, as moduli of matrix elements in the fermionic indices $n, m$. (a) At half filling the pair term is a mirror, nonzero only for $m = -n - 1$. (b) Away from half filling it becomes the dense Cauchy matrix $C$. (c) The remaining finite-rank part. (d) The full $chi_"d"$; the diagonal dominates.],
-) <fig-structure>
 
 *Results.*
 - *Triplet:* $Gamma_"t"$ is a diagonal-minus-mirror term (@thm-t).
 - *Singlet:* $Gamma_"s"$ is a diagonal-plus-mirror term, the constant $2U$, and one separable term with a single thermal denominator (@thm-s).
 - *Density and magnetic:* $Gamma_"d", Gamma_"m"$ have the same anatomy: a diagonal term, the constant $plus.minus U$, a dense term without thermal factors, and two separable terms with one thermal denominator each (@thm-ph). At half filling the dense term becomes a mirror term and one separable term remains (@cor-hf).
+- *Removable singularities:* where a denominator of these formulas vanishes without $Gamma_r$ diverging, the limits are given explicitly (@prop-special).
 
 The inverses are two-sided and agree with the limit of inverses on finite frequency boxes, i.e. with what numerical inversion converges to (@prop-box).
 
@@ -88,9 +96,10 @@ The inverses are two-sided and agree with the limit of inverses on finite freque
 - @sec-setup defines all quantities; @sec-input states the input, the susceptibility from the Lehmann representation.
 - @sec-results states all results. The rest of the note proves them.
 - @sec-sums evaluates the Matsubara sums; @sec-pp proves the particle–particle results, which need no Cauchy matrix.
-- @sec-cauchy develops the algebra of $C$, which @sec-ph uses for the particle–hole channels. The limit $mu -> 0$ and the finite-box statement are proved in @app-details.
+- @sec-cauchy develops the algebra of $C$, which @sec-ph uses for the particle–hole channels. The limit $mu -> 0$, the removable singularities and the finite-box statement are proved in @app-details.
+- @app-explicit writes the vertices out in terms of $U$, $beta$, $mu$ and the frequencies, for implementation; @app-symbols lists the symbols with the place where each is defined.
 
-*What is assumed.* Everything is proved from the input #eqrange(<eq-chi-uu>, <eq-pair>) (Ref. @essl2024) and the rational identities of @app-identities (checked by computer algebra). The Mathematica notebook `mathematica/doped_gamma.nb` derives the input from the Hamiltonian and replays the proofs step by step (@app-checks). Independent numerical checks are listed in @app-checks. Most of the proofs are also formalized in Lean 4, which also derives the input from the Hamiltonian (@app-lean); a note after each numbered statement says how much of it. Numerical stability in floating point is not discussed here.
+*What is assumed.* Everything is proved from the input #eqrange(<eq-chi-uu>, <eq-pair>) (Ref. @essl2024) and the rational identities of @app-identities (checked by computer algebra). The Mathematica notebook `mathematica/doped_gamma.nb` derives the input from the Hamiltonian and replays the proofs step by step (@app-checks). Independent numerical checks are listed in @app-checks. Most of the proofs are also formalized in Lean 4, which also derives the input from the Hamiltonian; statements marked #lean-tag("yes") or #lean-tag("part") are formalized, and the table in @app-lean says how much of each. Numerical stability in floating point is not discussed here.
 
 *Implementation.* The results are implemented as `DopedHubbardAtom` in the Julia package #link("https://github.com/tuwien-cms/HubbardAtoms.jl")[HubbardAtoms.jl], which also evaluates them stably at low temperatures and near the removable singularities, and is tested against exact diagonalization and finite-box inversion.
 
@@ -98,22 +107,47 @@ The inverses are two-sided and agree with the limit of inverses on finite freque
 
 == Model and thermal weights
 
+The atom is
 $ cal(H) = U (n_up - 1/2)(n_dn - 1/2) - mu (n_up + n_dn - 1), quad a := U/2, $ <eq-H>
-with real $U$, $mu$ (the chemical potential measured from half filling, $mu = 0$) and inverse temperature $beta > 0$. The four states $|0 chevron.r, |up chevron.r, |dn chevron.r, |up dn chevron.r$ have energies $U/4 + mu$, $-U/4$, $-U/4$, $U/4 - mu$ and Boltzmann weights $p_0, p_1, p_1, p_2$ ($p_1$ is the weight of _each_ singly occupied state). Hence
+with real interaction $U$, chemical potential $mu$ (measured from half filling, $mu = 0$) and inverse temperature $beta > 0$. Its four states have
+
+#block(breakable: false, align(center, table(
+  columns: 5, align: center, stroke: none, inset: (x: 9pt, y: 4pt),
+  table.hline(),
+  [state], [$|0 chevron.r$], [$|up chevron.r$], [$|dn chevron.r$], [$|up dn chevron.r$],
+  table.hline(stroke: 0.4pt),
+  [energy], [$U/4 + mu$], [$-U/4$], [$-U/4$], [$U/4 - mu$],
+  [Boltzmann weight], [$p_0$], [$p_1$], [$p_1$], [$p_2$],
+  table.hline(),
+)))
+
+Here $p_1$ is the weight of _each_ singly occupied state, so
 $ p_0 + 2 p_1 + p_2 = 1, quad quad p_2 / p_0 = e^(2 beta mu), quad quad p_1 / p_0 = e^(beta (a + mu)), quad quad p_1 / p_2 = e^(beta (a - mu)). $ <eq-weights>
-Define
-$ rho := p_2 - p_0 = chevron.l n_up + n_dn chevron.r - 1, quad quad h := beta sqrt(p_0 p_2), quad quad overline(c) := beta (p_0 + p_2) slash 2. $
-From @eq-weights, $p_1 + p_2 = (1 + rho) slash 2$, $p_0 + p_1 = (1 - rho) slash 2$, and
-$ rho^2 + 4 p_0 p_2 = (p_0 + p_2)^2, quad quad overline(c)^2 - h^2 = beta^2 rho^2 slash 4. $ <eq-weight-ids>
-For $mu != 0$, inserting $p_2 = p_0 e^(2 beta mu)$:
+Three combinations of the weights recur:
+$ rho &:= p_2 - p_0 = chevron.l n_up + n_dn chevron.r - 1, && quad #gloss[the filling; $rho = 0$ at half filling] \
+h &:= beta sqrt(p_0 p_2), && quad #gloss[$C^2 = h^2 bb(1)$ (@lem-C2)] \
+overline(c) &:= beta (p_0 + p_2) slash 2. && quad #gloss[$PV sum_m C_(n m) = overline(c)$ (@lem-calculus)] $ <eq-rho>
+By @eq-weights,
+$ p_1 + p_2 = (1 + rho) / 2, quad quad p_0 + p_1 = (1 - rho) / 2, quad quad rho^2 + 4 p_0 p_2 = (p_0 + p_2)^2, quad quad overline(c)^2 - h^2 = beta^2 rho^2 slash 4, $ <eq-weight-ids>
+and for $mu != 0$, inserting $p_2 = p_0 e^(2 beta mu)$,
 $ rho = 2 p_0 e^(beta mu) sinh(beta mu), quad p_0 + p_2 = 2 p_0 e^(beta mu) cosh(beta mu) \
 ==> quad rho coth(beta mu) = p_0 + p_2, quad rho^2 = 4 p_0 p_2 sinh^2(beta mu). $ <eq-weight-hyp>
 
+#figure(
+  placement: auto,
+  image("doped-gamma/figures/chi_structure.svg", width: 58%),
+  caption: [Structure of $chi_"d"$ at $U = 2$, $beta = 3$, $omega = 0$, as moduli of matrix elements in the fermionic indices $n, m$. (a) At half filling the pair term is a mirror, nonzero only for $m = -n - 1$. (b) Away from half filling it becomes the dense Cauchy matrix $C$. (c) The remaining finite-rank part. (d) The full $chi_"d"$; the diagonal dominates.],
+) <fig-structure>
+
 == Frequencies and propagator
 
-Fermionic and bosonic Matsubara frequencies are $nu_n = (2n + 1) pi slash beta$ and $Omega_ell = 2 ell pi slash beta$ ($n, ell in ZZ$). The bosonic transfer $omega_k := Omega_k$ is fixed throughout. Write
-$ x_n := mu + i nu_n, quad quad w := i omega_k, quad quad J(x) := 1 / (x^2 - a^2). $
-The propagator $G(nu) := -integral_0^beta dif tau thin e^(i nu tau) chevron.l T c_up (tau) c_up^dagger chevron.r$ follows from the Lehmann representation: $c_up^dagger$ maps $|0 chevron.r -> |up chevron.r$ (energy change $-a - mu$, weight $p_0 + p_1$) and $|dn chevron.r -> |up dn chevron.r$ (energy change $a - mu$, weight $p_1 + p_2$). So
+The fermionic and bosonic Matsubara frequencies are
+$ nu_n = (2n + 1) pi / beta, quad quad Omega_ell = (2 ell pi) / beta quad quad (n, ell in ZZ). $ <eq-freq>
+The bosonic transfer $omega_k := Omega_k$ is fixed throughout. Write
+$ x_n := mu + i nu_n, quad quad w := i omega_k, quad quad J(x) := 1 / (x^2 - a^2). $ <eq-x>
+The propagator
+$ G(nu) := -integral_0^beta dif tau thin e^(i nu tau) chevron.l T c_up (tau) c_up^dagger chevron.r $
+follows from the Lehmann representation: $c_up^dagger$ maps $|0 chevron.r -> |up chevron.r$ (energy change $-a - mu$, weight $p_0 + p_1$) and $|dn chevron.r -> |up dn chevron.r$ (energy change $a - mu$, weight $p_1 + p_2$). So
 $ G(nu_n) = (p_0 + p_1) / (x_n + a) + (p_1 + p_2) / (x_n - a) = G(x_n) := (x_n + a rho) / (x_n^2 - a^2), $ <eq-G>
 where we use the same letter for the rational function $G(x)$.
 
@@ -121,8 +155,10 @@ where we use the same letter for the rational function $G(x)$.
 
 Following Ref. @thunstroem2018, the generalized susceptibility is
 $ chi_(sigma sigma')(nu, nu', omega) := & integral.triple_0^beta dif tau_1 dif tau_2 dif tau_3 thin e^(-i nu tau_1 + i (nu + omega) tau_2 - i (nu' + omega) tau_3) \
-& times [chevron.l T c_sigma^dagger (tau_1) c_sigma (tau_2) c_(sigma')^dagger (tau_3) c_(sigma')(0) chevron.r - chevron.l T c_sigma^dagger (tau_1) c_sigma (tau_2) chevron.r chevron.l T c_(sigma')^dagger (tau_3) c_(sigma')(0) chevron.r]. $
-Its particle–particle form is $chi_("pp", sigma sigma')(nu, nu', omega) := chi_(sigma sigma')(nu, nu', -omega - nu - nu')$. The channels and bare susceptibilities are
+& times [chevron.l T c_sigma^dagger (tau_1) c_sigma (tau_2) c_(sigma')^dagger (tau_3) c_(sigma')(0) chevron.r - chevron.l T c_sigma^dagger (tau_1) c_sigma (tau_2) chevron.r chevron.l T c_(sigma')^dagger (tau_3) c_(sigma')(0) chevron.r], $ <eq-chi-def>
+and its particle–particle form is
+$ chi_("pp", sigma sigma')(nu, nu', omega) := chi_(sigma sigma')(nu, nu', -omega - nu - nu'). $
+The channels and bare susceptibilities are
 $ chi_"d" = chi_(up up) + chi_(up dn), quad chi_"m" = chi_(up up) - chi_(up dn), quad chi_"s" = (-chi_("pp", up up) + 2 chi_("pp", up dn) - 2 chi_(0, "pp")) / 4, quad chi_"t" = (chi_("pp", up up) + 2 chi_(0, "pp")) / 4, $
 $ chi_(0, r)(nu, nu', omega) = delta_(nu nu') B(nu), quad quad B(nu) = cases(-beta G(nu) G(nu + omega) & quad (r = "d", "m")",", -beta/2 thin G(nu) G(-nu - omega) & quad (r = "s", "t")",") $ <eq-B>
 with $chi_(0, "pp") := chi_(0, "s")$. At fixed $omega_k$ all of these are matrices indexed by $(n, m)$ with $nu = nu_n$, $nu' = nu_m$; we write $B_n := B(nu_n)$ and $bold(B) := diag(B_n)$. The channel-irreducible vertex is
@@ -133,7 +169,15 @@ $ Gamma_r = beta^2 (chi_r^(-1) - eta_r bold(B)^(-1)), quad quad eta_"d" = eta_"m
 Define the centered lattice and the mirror index
 $ z_n := x_n + w/2 = mu + i pi (2n + 1 + k) / beta, quad quad overline(n) := -n - k - 1, \
 z_(overline(n)) = 2 mu - z_n, quad quad x_(overline(n)) = 2 mu - w - x_n. $ <eq-z>
-The lattice lies on the line $"Re" z = mu$, and the mirror reflects it about the real axis (@fig-plane). The mirror matrix is $cal(M)_(n m) := delta_(m overline(n))$, with $cal(M)^2 = bb(1)$. Products of infinite matrices are taken entrywise. A sum $sum_n$ is the limit of partial sums over the mirror-symmetric boxes ${n : |2n + 1 + k| <= 2M + 1}$, $M -> oo$; we write $PV$ ("principal value") where it converges only in this sense. All transposes are ordinary, not Hermitian. Symbols introduced inside a proof are local to it. A function $phi$ on $CC$ is _proper rational_ if it is rational and $phi(t) -> 0$ for $t -> oo$.
+The lattice lies on the line $"Re" z = mu$, and the mirror reflects it about the real axis (@fig-plane).
+
+*Conventions.*
+- The mirror matrix is $cal(M)_(n m) := delta_(m overline(n))$, with $cal(M)^2 = bb(1)$. A _mirror fixed point_ is an $n$ with $n = overline(n)$; it exists only for odd $k$.
+- Products of infinite matrices are formed entry by entry, $(X Y)_(n m) = sum_l X_(n l) Y_(l m)$.
+- A sum $sum_n$ is the limit of partial sums over the mirror-symmetric boxes $|2n + 1 + k| <= 2M + 1$, $M -> oo$. We write $PV$ ("principal value") where it converges only in this sense.
+- Transposes are ordinary, not Hermitian.
+- A function $phi$ on $CC$ is _proper rational_ if it is rational and $phi(t) -> 0$ for $t -> oo$.
+- Symbols introduced inside a proof are local to it; all others are listed in @app-symbols.
 
 #figure(
   placement: auto,
@@ -153,19 +197,21 @@ The pair coefficient $c_ell$ stems from the transition $|0 chevron.r <-> |up dn 
 *Compact form.* Define the *Cauchy matrix* $C_(n m) := c_(n + m + k + 1)$. Since $2 mu + i Omega_(n + m + k + 1) = z_n + z_m$ by @eq-z,
 $ C_(n m) = rho / (z_n + z_m) quad (mu != 0), quad quad C_(n m) = beta p_0 delta_(m overline(n)) quad (mu = 0), $ <eq-C>
 and $z_n + z_m = 2 mu + i (dots.c) != 0$ for $mu != 0$. Further let
-$ Q_(plus.minus)(z) := (z plus.minus a)^2 - w^2/4, quad quad q_0 := a^2 - w^2/4 = (U^2 + omega_k^2) slash 4. $
+$ Q_(plus.minus)(z) := (z plus.minus a)^2 - w^2/4, quad quad q_0 := a^2 - w^2/4 = (U^2 + omega_k^2) slash 4. $ <eq-Q>
 Since $x_n = z_n - w slash 2$,
 $ (x_n - a)(x_n + w - a) = Q_(-)(z_n), quad quad (x_n + a)(x_n + w + a) = Q_(+)(z_n), quad quad Q_(plus.minus)(-z) = Q_(minus.plus)(z). $ <eq-Qfact>
 Neither $Q_(plus.minus)(z_n)$ vanishes: its factors have imaginary parts $nu_n$ and $nu_n + omega_k$, both nonzero.
 
-#lemma(title: [compact input], lean: [for $mu != 0$, `compact_input` (`PHInput.lean`).])[
+#lemma(title: [compact input], lean: "part")[
   With $z = z_n$ and $v = z_m$,
   $ cal(N)_(n m) = frac(4 a^2 C_(n m) - 2 a, Q_(-)(z) Q_(-)(v)) + frac(4 a^2 (1 - rho)(z + v + 2 a)(z v + q_0), Q_(+)(z) Q_(-)(z) Q_(+)(v) Q_(-)(v)). $ <eq-input>
 ] <lem-input>
 #proof[
   Put $y := z + v = x_n + x_m + w$. The two factors of $Pi$ combine to
   $ Pi(x_n, x_m) = (y - 2 a) / ((x_n + w - a)(x_m - a)) dot (y - 2 a) / ((x_m + w - a)(x_n - a)) = frac((y - 2 a)^2, Q_(-)(z) Q_(-)(v)) $
-  by @eq-Qfact. For $mu != 0$, $(y - 2 a)^2 slash y = y - 4 a + 4 a^2 slash y$, so $C_(n m)(y - 2 a)^2 = rho (y - 4 a) + 4 a^2 C_(n m)$. For $mu = 0$ this holds too, because $rho = 0$ and $C_(n m) != 0$ only where $y = 0$. Thus @eq-input is equivalent to
+  by @eq-Qfact. For $mu != 0$, $C_(n m) = rho slash y$ and $(y - 2 a)^2 slash y = y - 4 a + 4 a^2 slash y$, so
+  $ C_(n m) (y - 2 a)^2 = rho (y - 4 a) + 4 a^2 C_(n m). $
+  For $mu = 0$ this holds too, because $rho = 0$ and $C_(n m) != 0$ only where $y = 0$. Thus @eq-input is equivalent to
   $ Rreg (z - w/2, v - w/2) = frac(-2 a - rho (z + v - 4 a), Q_(-)(z) Q_(-)(v)) + frac(4 a^2 (1 - rho)(z + v + 2 a)(z v + q_0), Q_(+)(z) Q_(-)(z) Q_(+)(v) Q_(-)(v)), $
   which is the rational identity (A1) of @app-identities.
 ]
@@ -174,80 +220,128 @@ Neither $Q_(plus.minus)(z_n)$ vanishes: its factors have imaginary parts $nu_n$ 
 
 All lattice sums that occur below are expressed through
 $ S_k (x) := cases(-beta/2 thin tanh(beta (x - mu) slash 2) & quad k "even", -beta/2 thin coth(beta (x - mu) slash 2) & quad k "odd"), $ <eq-S>
-which equals $PV sum_n (z_n - x)^(-1)$ for $x$ off the lattice (@lem-S).
+which equals $PV sum_n (z_n - x)^(-1)$ for $x$ off the lattice (@lem-S). @app-explicit restates the regular vertex formulas with their coefficients written out.
 
 == Singlet and triplet <sec-res-pp>
 
-Let $b := 2 mu - w$ and $t_n := x_n (b - x_n)$; by @eq-z, $x_(overline(n)) = b - x_n$, so $t_(overline(n)) = t_n$. Define
-$ cal(P)(t) := (t + a^2)^2 - a^2 b^2, quad quad cal(G)(t) := t + a rho b + a^2 rho^2, quad quad As := a rho b + a^2 (1 - 8 p_1), $
-$ cal(T)_k (t) := -frac(S_k (mu + xi), xi), quad quad xi := sqrt(b^2 slash 4 - t). $ <eq-T>
-$cal(T)_k$ is even in $xi$, so either branch may be used (for $xi = 0$ and even $k$, take the limit $beta^2 slash 4$). It equals $sum_n (t_n - t)^(-1)$ (@lem-T).
+The particle–particle channels depend on the fermionic index $n$ only through
+$ b := 2 mu - w, quad quad t_n := x_n (b - x_n), $ <eq-bt>
+and $t_(overline(n)) = t_n$, because $x_(overline(n)) = b - x_n$ (@eq-z). Define
+$ cal(P)(t) &:= (t + a^2)^2 - a^2 b^2, \
+cal(G)(t) &:= t + a rho b + a^2 rho^2, \
+As &:= a rho b + a^2 (1 - 8 p_1), \
+cal(T)_k (t) &:= -frac(S_k (mu + xi), xi), quad xi := sqrt(b^2 slash 4 - t). $ <eq-T>
+In terms of these, the bubble is $B_n = -beta cal(G)(t_n) slash (2 cal(P)(t_n))$ (@eq-B-pp), and $cal(T)_k$ is the particle–particle sum (@lem-T),
+$ cal(T)_k (t) = sum_n frac(1, t_n - t). $
+It is even in $xi$, so either branch of the square root may be used; at $xi = 0$ (even $k$) it takes the limit value $beta^2 slash 4$.
 
-#theorem(title: [triplet], lean: [formalized as stated; moreover every right or left inverse of $chi_"t"$ gives @eq-Gamma-t, so $Gamma_"t"$ is unique (`Triplet.lean`: `exists_inverse_chiT`, `gammaT_of_isRightInverse`, `gammaT_of_isLeftInverse`, `gammaT_eq_zero_of_fixed`).])[
+#theorem(title: [triplet], lean: "yes")[
   Assume $t_n + a rho b + a^2 != 0$ for all $n != overline(n)$. Then for $n != overline(n)$
   $ Gamma_("t", n m) = frac(beta a^2 (1 - rho^2) cal(P)(t_n), cal(G)(t_n)(t_n + a rho b + a^2)) (delta_(n m) - delta_(m overline(n))). $ <eq-Gamma-t>
-  At a fixed point $n = overline(n)$ (odd $k$, $n = -(k + 1) slash 2$), $Gamma_("t", n m) = Gamma_("t", m n) = 0$ for all $m$.
+  At a mirror fixed point $n = overline(n)$, $Gamma_("t", n m) = Gamma_("t", m n) = 0$ for all $m$.
 ] <thm-t>
 
-#theorem(title: [singlet], lean: [formalized for all $b$ (including $b = 0, plus.minus 2 a$, $d_(plus.minus) = 0$, $xi = 0$) with $U != 0$: an inverse of $chi_"s"$ from both sides, and @eq-Gamma-s (`SingletZero.lean`: `SingletHyp.chiS_isRightInverse`, `SingletHyp.chiS_isLeftInverse`, `SingletHyp.gammaS_eq`). At a lattice zero $t_c + As = 0$ the values @eq-Gamma-s-lz are an inverse from both sides, for all $b$ (`SingletLZ.lean`: `SingletLZ.chiS_isRightInverse`, `SingletLZ.chiS_isLeftInverse`, `SingletLZ.gammaS_eq`); that they are the limits in $mu$ is not formalized. For $U = 0$, $Gamma_"s" = 0$ for every inverse (`UZero.lean`: `gammaS_zero_of_a_eq_zero`).])[
-  Assume
+#theorem(title: [singlet], lean: "yes")[
+  Assume $t_n + As != 0$ for all $n$ and
   $ K_"s" := 1 + frac(2 a, beta) cal(T)_k (-As) != 0. $
   Then
   $ Gamma_("s", n m) = frac(beta a^2 (rho^2 - 1 + 8 p_1) cal(P)(t_n), cal(G)(t_n)(t_n + As)) (delta_(n m) + delta_(m overline(n))) + 4 a - frac(4 a thin cal(P)(-As), K_"s" (t_n + As)(t_m + As)). $ <eq-Gamma-s>
-  If $t_c + As = 0$ for some $c$, the entries in the rows and columns $c$ and $overline(c)$ are the limits of @eq-Gamma-s as $mu$ approaches its value; the divergent parts cancel. Explicitly, with $O := {c, overline(c)}$ ($r in {1, 2}$ elements), $T' := sum_(l in.not O) (t_l + As)^(-1)$ and $K' := 1 + 2 a T' slash beta$, the separable term of @eq-Gamma-s drops out for $n, m in.not O$, and
-  $ Gamma_("s", n m) = 4 a - frac(2 beta cal(P)(-As), r (t_m + As)) quad (n in O, m in.not O), \
-  Gamma_("s", n m) = 4 a + frac(2 beta, r) [cal(P)'(-As) - frac(cal(P)(-As), cal(G)(-As))] + frac(beta^2 cal(P)(-As) K', a r^2) quad (n, m in O). $ <eq-Gamma-s-lz>
 ] <thm-s>
 
-At $mu = 0$ both formulas reduce to Eq. 19 of Ref. @thunstroem2018 (@app-checks).
+At $mu = 0$ both formulas reduce to Eq. 19 of Ref. @thunstroem2018 (@app-checks). If $t_c + As = 0$ for some $c$, @eq-Gamma-s has a removable singularity (@prop-special).
 
 == Density and magnetic <sec-res-ph>
 
-Let $epsilon := +1$ for $r = "d"$ and $epsilon := -1$ for $r = "m"$. Define
-$ H(z) := z^2 + 2 a rho z + q_1, quad quad q_1 := q_0 + 4 epsilon a^2 p_1, quad quad lambda := 4 epsilon a^2, \
-P(z) := Q_(+)(z) Q_(-)(z), quad quad G_2 (z) := (z + a rho)^2 - w^2/4, $
-$ e(z) := H(z) H(-z) - lambda^2 h^2 slash beta^2 = (z^2 + q_1)^2 - 4 a^2 rho^2 z^2 - 16 a^4 p_0 p_2 = (z^2 - s_1)(z^2 - s_2), $ <eq-Delta>
-where $s_(1, 2)$ are the roots of $s^2 + 2 (q_1 - 2 a^2 rho^2) s + q_1^2 - 16 a^4 p_0 p_2$, and $u_j$ is either square root of $s_j$. For $r = "m"$ and $k = 0$, $q_1 = a^2 (1 - 4 p_1)$, so $H(a) = 4 a^2 p_2$ and $H(-a) = 4 a^2 p_0$ by @eq-weights. Then $e(a) = 0$: one root is $s_1 = a^2$, at the double zeros $plus.minus a$ of $P$. We call this root pair _atomic_. With the thermal function
-$ alpha_k (x) := rho thin S_k (x) - overline(c), $ <eq-alpha-def>
-define
-$ F(z) := frac(P(z), e(z)), quad quad g_j (z) := frac(1, z^2 - s_j), \
-DD(z, v) := frac(z F(z) - v F(v), z^2 - v^2), quad quad DD(z, z) := frac(F(z) + z F'(z), 2 z), $
-$ K_j := beta H(-u_j) + lambda alpha_k (u_j), quad quad Z_j := frac(u_j P(u_j) [beta H(-u_j) - lambda alpha_k (u_j)], K_j), quad quad gamma_j := frac(lambda rho Z_j, s_j - s_ell), $
-with $ell != j$.
+Let $epsilon := +1$ for $r = "d"$ and $epsilon := -1$ for $r = "m"$. The particle–hole channels are built from the polynomials
+$ H(z) &:= z^2 + 2 a rho z + q_1, quad q_1 := q_0 + 4 epsilon a^2 p_1, quad lambda := 4 epsilon a^2, \
+P(z) &:= Q_(+)(z) Q_(-)(z), quad G_2 (z) := (z + a rho)^2 - w^2/4, $ <eq-HP>
+and
+$ e(z) := H(z) H(-z) - lambda^2 h^2 slash beta^2 = (z^2 + q_1)^2 - 4 a^2 rho^2 z^2 - 16 a^4 p_0 p_2 = (z^2 - s_1)(z^2 - s_2). $ <eq-Delta>
+Here $P(z_n)$ times row $n$ of $chi_r$ is $-beta H(z_n) delta_(n m) + lambda C_(n m)$ plus a finite-rank term (@prop-ph); the bubble is $B_n = -beta G_2 (z_n) slash P(z_n)$; and $beta^2 e$ is the determinant of the $2 times 2$ systems in the proof. The roots $s_1, s_2$ of $e$ in the variable $s = z^2$ solve
+$ s^2 + 2 (q_1 - 2 a^2 rho^2) s + q_1^2 - 16 a^4 p_0 p_2 = 0, $
+and $u_j$ denotes either square root of $s_j$.
 
-#theorem(title: [density and magnetic], lean: [formalized as stated, with $U != 0$: for $s_1 != s_2$, an inverse of $chi_r$ from both sides and @eq-Gamma-ph, including $DD(z, z)$, the case $r = "m"$, $k = 0$ and the independence of the sign of $u_j$ (`DensityMagnetic.lean`, `DMLifts.lean`: `DMHyp.toDMGeneric`, `DMGeneric.chiR_isRightInverse`, `DMGeneric.chiR_isLeftInverse`, `DMGeneric.gammaR_eq`, `DMGeneric.gammaR_neg₁`, `dmGeneric_static_magnetic`); for $s_1 = s_2$ the same, with $partial_s Z$ the $s$-derivative of $Z(s)$ (`Confluent.lean`: `DMConfHyp.toDMConf`, `DMConf.chiR_isRightInverse`, `DMConf.chiR_isLeftInverse`, `DMConf.gammaR_eq`, `DMConf.tendsto_Zeven`). For $U = 0$, $Gamma_r = 0$ for every inverse (`UZero.lean`: `gammaR_zero_of_a_eq_zero`). Not formalized: the lattice zeros of $e$ (below).])[
-  Let $mu != 0$, $e(z_n) != 0$ for all $n$, and $K_j != 0$. Then
+*The atomic pair.* For $r = "m"$ and $k = 0$, $q_1 = a^2 (1 - 4 p_1)$, so $H(a) = 4 a^2 p_2$ and $H(-a) = 4 a^2 p_0$ by @eq-weights. Then $e(a) = 0$: one root is $s_1 = a^2$, at the double zeros $plus.minus a$ of $P$. We call this root pair _atomic_.
+
+The temperature enters only through the thermal function
+$ alpha_k (x) := rho thin S_k (x) - overline(c), $ <eq-alpha-def>
+and the vertex is assembled from
+$ F(z) &:= frac(P(z), e(z)), quad g_j (z) := frac(1, z^2 - s_j), \
+DD(z, v) &:= frac(z F(z) - v F(v), z^2 - v^2), quad DD(z, z) := frac(F(z) + z F'(z), 2 z), \
+K_j &:= beta H(-u_j) + lambda alpha_k (u_j), quad Z_j := frac(u_j P(u_j) [beta H(-u_j) - lambda alpha_k (u_j)], K_j), \
+gamma_j &:= frac(lambda rho Z_j, s_j - s_ell) quad (ell != j). $ <eq-coeffs>
+$DD$ gives the dense term; $K_j$ is the thermal denominator and $gamma_j$ the weight of the separable term $j$.
+
+#theorem(title: [density and magnetic], lean: "yes")[
+  Let $mu != 0$, $e(z_n) != 0$ for all $n$, $s_1 != s_2$, and $K_j != 0$. Then
   $ Gamma_(r, n m) = beta P(z_n) [frac(1, G_2 (z_n)) - frac(H(-z_n), e(z_n))] delta_(n m) + 2 epsilon a - lambda rho DD(z_n, z_m) + sum_(j = 1)^2 gamma_j thin g_j (z_n) g_j (z_m). $ <eq-Gamma-ph>
-  If $s_1 = s_2$, the sum over $j$ is replaced by its limit $lambda rho thin partial_s [Z(s) slash ((z_n^2 - s)(z_m^2 - s))]$ at $s = s_1$, where $Z(s) := [Z(u) + Z(-u)] slash 2$ with $u^2 = s$, and $Z(u)$ is $Z_j$ with $u_j$ replaced by $u$. For $r = "m"$ and $k = 0$ the atomic pair is omitted, both from the sum and from the assumption $K_j != 0$. The formula does not depend on the sign chosen for $u_j$, and the inverse $chi_r^(-1)$ it represents is two-sided.
+  For $r = "m"$ and $k = 0$ the atomic pair is omitted, both from the sum and from the assumption $K_j != 0$. The formula does not depend on the sign chosen for $u_j$, and the inverse $chi_r^(-1)$ it represents is two-sided.
 ] <thm-ph>
 
-So $Gamma_"d"$ and $Gamma_"m"$ have the same anatomy as $Gamma_"s"$: a diagonal term, the constant $plus.minus U$, a dense term without thermal factors, and two separable terms with one thermal denominator $K_j$ each. Only $alpha_k (u_j)$, i.e. $tanh$ or $coth$ at the two roots, has to be evaluated. The assumption $e(z_n) != 0$ is not essential either. As $e$ has real coefficients and $z_(overline(n)) = z_n^*$, lattice zeros of $e$ come in mirror orbits ${n, overline(n)}$. If $e$ vanishes on one orbit, @eq-Gamma-ph still holds, with the entries in the rows and columns of the orbit taken as limits as $mu$ approaches its value (@app-details).
+So $Gamma_"d"$ and $Gamma_"m"$ have the same anatomy as $Gamma_"s"$: a diagonal term, the constant $plus.minus U$, a dense term without thermal factors, and two separable terms with one thermal denominator $K_j$ each. Only $alpha_k (u_j)$, i.e. $tanh$ or $coth$ at the two roots, has to be evaluated. At $s_1 = s_2$ and at lattice zeros of $e$ the formula has removable singularities (@prop-special).
 
-At $mu = 0$, $rho = 0$ and @thm-ph does not apply literally. Here the Cauchy matrix is the mirror, $C = h cal(M)$ with $h = overline(c) = beta p_0$, $H(z) = z^2 + q_1$ is even and $e(z) = (z^2 + q_1)^2 - 16 a^4 p_0^2 = (z^2 - hat(s))(z^2 - hat(s)')$ with
-$ hat(s) := 4 epsilon a^2 (p_0 - p_1) - q_0, quad hat(s)' := -4 epsilon a^2 (p_0 + p_1) - q_0, quad hat(g)(z) := frac(1, z^2 - hat(s)), quad hat(D) := beta - frac(2 epsilon a S_k (hat(u)), hat(u)), $
-where $hat(u)$ is either square root of $hat(s)$; $hat(D)$ is even in $hat(u)$. Explicitly, $hat(D) = beta [1 + epsilon a tanh(beta hat(u) slash 2) slash hat(u)]$ for even $k$, with the value $beta (1 + epsilon a beta slash 2)$ at $hat(u) = 0$; for odd $k$, $coth$ replaces $tanh$, and $hat(u) = 0$ means $e(0) = 0$ at the mirror fixed point $z_n = 0$ (see below).
+#figure(
+  placement: auto,
+  image("doped-gamma/figures/gamma_cuts.svg", width: 100%),
+  caption: [$Gamma_r (nu, pi slash beta, 0)$ from @eq-Gamma-ph (@eq-Gamma-hf at $mu = 0$), @eq-Gamma-s, @eq-Gamma-t at $U = 2$, $beta = 4$, for $mu = 0$ (half filling, real), $mu = 0.4$ and $mu = 1$. Away from half filling $Gamma_"d"$, $Gamma_"m"$ acquire imaginary parts; all $Gamma_r$ approach their bare values $U$, $-U$, $2U$, $0$ at large $|nu|$.],
+) <fig-cuts>
 
-#corollary(title: [half filling], lean: [formalized with $U != 0$, directly at $mu = 0$ rather than as a limit, including $hat(u) = 0$, under $z_n^2 != hat(s)$ and, off the mirror fixed points, $z_n^2 != hat(s)'$ (implied by $e(z_n) != 0$) (`HalfFilling.lean`: `HFHyp.of_eph`, `HFHyp.chiR_isRightInverse`, `HFHyp.chiR_isLeftInverse`, `HFHyp.gammaHF_eq`, `gammaHF_eq_note`); so it also holds at a fixed point with $beta H(0) = -lambda h$. At the zeros $z_c^2 = hat(s)$ the values @eq-Gamma-hf-lz are an inverse from both sides (`HalfFillingLZ.lean`: `HFLZ.chiR_isRightInverse`, `HFLZ.chiR_isLeftInverse`, `HFLZ.gammaHF_eq`); that they are the limits is not formalized.])[
+*Half filling.* At $mu = 0$, $rho = 0$ and @thm-ph does not apply literally. Here the Cauchy matrix is the mirror, $C = h cal(M)$ with $h = overline(c) = beta p_0$ (@eq-C), and $H(z) = z^2 + q_1$ is even. Then $e$ factorizes as
+$ e(z) = (z^2 - hat(s))(z^2 - hat(s)'), quad quad hat(s) := 4 epsilon a^2 (p_0 - p_1) - q_0, quad quad hat(s)' := -4 epsilon a^2 (p_0 + p_1) - q_0, $ <eq-hf-defs>
+and we define
+$ hat(g)(z) := frac(1, z^2 - hat(s)), quad quad hat(D) := beta - frac(2 epsilon a S_k (hat(u)), hat(u)), $ <eq-hf-D>
+where $hat(u)$ is either square root of $hat(s)$; $hat(D)$ is even in $hat(u)$. Explicitly, for even $k$,
+$ hat(D) = beta [1 + frac(epsilon a, hat(u)) tanh frac(beta hat(u), 2)], $
+with the value $beta (1 + epsilon a beta slash 2)$ at $hat(u) = 0$. For odd $k$, $coth$ replaces $tanh$, and $hat(u) = 0$ means $e(0) = 0$ at the mirror fixed point $z_n = 0$ (@prop-special).
+
+#corollary(title: [half filling], lean: "yes")[
   Let $mu = 0$, $e(z_n) != 0$ for all $n$, and $hat(D) != 0$. Then
   $ Gamma_(r, n m) = beta P(z_n) [frac(1, G_2 (z_n)) - frac(H(z_n), e(z_n))] delta_(n m) + 2 epsilon a - lambda h F(z_n) delta_(m overline(n)) - frac(2 epsilon a beta P(hat(u)), hat(D)) hat(g)(z_n) hat(g)(z_m), $ <eq-Gamma-hf>
   and the inverse $chi_r^(-1)$ it represents is two-sided.
 ] <cor-hf>
 
-This is Eq. 19 of Ref. @thunstroem2018 for $r = "d", "m"$ (@app-checks). Compared with @eq-Gamma-ph, the dense term has become a mirror term, and only one separable term with one thermal denominator remains. The corollary is the limit $mu -> 0$ of @thm-ph (proof in @app-details). The assumption $e(z_n) != 0$ matters only for $beta H(z_n) = -lambda h$ with $n != overline(n)$, a genuine divergence (@sec-res-box). At all other zeros of $e(z_n)$, including both signs at a mirror fixed point (odd $k$, $z_n = 0$), @eq-Gamma-hf holds after taking limits (@app-details). Explicitly, at the zeros $z_c^2 = hat(s)$ on an orbit $O = {c, overline(c)}$ ($r$ elements; $hat(u) = z_c$ and $hat(D)$ diverge), the separable term drops out for $n, m in.not O$, and with $hat(T)' := sum_(l in.not O) hat(g)(z_l)$ and $hat(D)' := beta - 2 epsilon a hat(T)'$,
-$ Gamma_(r, n m) = 2 epsilon a + frac(beta P(z_c) hat(g)(z_m), r) quad (n in O, m in.not O), \
-Gamma_(r, n m) = beta P(z_c) [frac(delta_(n m), G_2 (z_c)) - frac(delta_(n m) - delta_(m overline(n)), 2 (hat(s) - hat(s)'))] + 2 epsilon a + frac(beta P(z_c) hat(D)', 2 epsilon a r^2) - frac(2 beta (hat(s) + q_0 - 2 a^2), r) quad (n, m in O). $ <eq-Gamma-hf-lz>
+This is Eq. 19 of Ref. @thunstroem2018 for $r = "d", "m"$ (@app-checks). Compared with @eq-Gamma-ph, the dense term has become a mirror term, and only one separable term with one thermal denominator remains. The corollary is the limit $mu -> 0$ of @thm-ph (proof in @app-details). Its assumption $e(z_n) != 0$ matters only where $beta H(z_n) = -lambda h$ with $n != overline(n)$, a genuine divergence (@sec-res-box); at all other zeros of $e(z_n)$ the formula has a removable singularity (@prop-special).
 
+== Removable singularities <sec-res-special>
+
+At isolated parameters a denominator of @eq-Gamma-s, @eq-Gamma-ph or @eq-Gamma-hf vanishes, but the entries of $Gamma_r$ stay finite. Let $O := {c, overline(c)}$ denote a mirror orbit; it has $|O| = 2$ elements, or $|O| = 1$ at a mirror fixed point.
+
+#proposition(title: [removable singularities], lean: "part", breakable: true)[
+  In the following cases the entries of $Gamma_r$ are the limits of the closed forms as the parameters approach the given values, and the inverse $chi_r^(-1)$ they represent is two-sided.
+  + _Singlet, $t_c + As = 0$ for some $c$._ This happens on one orbit only, and $K_"s"$ diverges. With
+    $ T' := sum_(l in.not O) frac(1, t_l + As), quad quad K' := 1 + frac(2 a T', beta), $
+    the separable term of @eq-Gamma-s drops out for $n, m in.not O$, and
+    $ Gamma_("s", n m) = 4 a - frac(2 beta cal(P)(-As), |O| (t_m + As)) quad (n in O, m in.not O), \
+    Gamma_("s", n m) = 4 a + frac(2 beta, |O|) [cal(P)'(-As) - frac(cal(P)(-As), cal(G)(-As))] + frac(beta^2 cal(P)(-As) K', a |O|^2) quad (n, m in O), $ <eq-Gamma-s-lz>
+    and symmetrically for $n in.not O$, $m in O$.
+  + _Density and magnetic, $s_1 = s_2$_ (the other assumptions of @thm-ph holding). The sum over $j$ in @eq-Gamma-ph is replaced by
+    $ lambda rho thin partial_s [frac(Z(s), (z_n^2 - s)(z_m^2 - s))]_(s = s_1), quad quad Z(s) := frac(Z(u) + Z(-u), 2) quad (u^2 = s), $
+    where $Z(u)$ is $Z_j$ with $u_j$ replaced by $u$.
+  + _Density and magnetic, $e$ vanishing on one orbit $O$_ (at $mu != 0$, the other assumptions of @thm-ph holding). @eq-Gamma-ph holds, with the entries in the rows and columns of $O$ taken as limits as $mu$ approaches its value.
+  + _Half filling, $beta H(z_c) = lambda h$_, i.e. $z_c^2 = hat(s)$, with $beta H(z_n) != -lambda h$ for all $n != overline(n)$. Then $hat(u) = z_c$, and $hat(D)$ diverges. With
+    $ hat(T)' := sum_(l in.not O) hat(g)(z_l), quad quad hat(D)' := beta - 2 epsilon a hat(T)', $
+    the separable term of @eq-Gamma-hf drops out for $n, m in.not O$, and
+    $ Gamma_(r, n m) = 2 epsilon a + frac(beta P(z_c) hat(g)(z_m), |O|) quad (n in O, m in.not O), \
+    Gamma_(r, n m) = beta P(z_c) [frac(delta_(n m), G_2 (z_c)) - frac(delta_(n m) - delta_(m overline(n)), 2 (hat(s) - hat(s)'))] + 2 epsilon a + frac(beta P(z_c) hat(D)', 2 epsilon a |O|^2) - frac(2 beta (hat(s) + q_0 - 2 a^2), |O|) quad (n, m in O), $ <eq-Gamma-hf-lz>
+    and symmetrically for $n in.not O$, $m in O$. At a mirror fixed point with $beta H(0) = -lambda h$, @eq-Gamma-hf holds as a limit: its diagonal and mirror terms, which act on the same entry, stay finite together.
+] <prop-special>
+
+Item 1 is proved with @thm-s, item 2 in Step 5 of the proof of @thm-ph, and items 3 and 4 in @app-details.
 
 == Finite boxes and divergences <sec-res-box>
 
-#proposition(title: [finite boxes], lean: [not formalized.])[
-  Under the assumptions of @thm-t, @thm-s, @thm-ph or @cor-hf, the restrictions of $chi_r$ to the boxes $|2n + 1 + k| <= 2M + 1$ are invertible for all sufficiently large $M$, and their inverses converge entrywise to $chi_r^(-1) = Gamma_r slash beta^2 + eta_r bold(B)^(-1)$.
+#proposition(title: [finite boxes])[
+  Under the assumptions of @thm-t, @thm-s, @thm-ph or @cor-hf, or in the cases of @prop-special, the restrictions of $chi_r$ to the boxes $|2n + 1 + k| <= 2M + 1$ are invertible for all sufficiently large $M$, and their inverses converge entrywise to $chi_r^(-1) = Gamma_r slash beta^2 + eta_r bold(B)^(-1)$.
 ] <prop-box>
 
-*Divergences.* An entry of $Gamma_r$ can diverge only where a denominator in its closed form vanishes. Removable are the zeros of $t_n + As$ (@thm-s), of $s_1 - s_2$, and the lattice zeros of $e$ on one mirror orbit for $mu != 0$ (@thm-ph); at $mu = 0$, the zeros of $e(z_n)$ with $beta H(z_n) = lambda h$, and both kinds at a mirror fixed point (@app-details). Away from intersections of these exceptional sets, the remaining zeros are genuine poles under the following nonvanishing conditions:
-- $K_j = 0$ with $u_j P(u_j) != 0$ and $s_1 != s_2$ (d, m). Then $gamma_j K_j = 2 lambda rho beta u_j P(u_j) H(-u_j) slash (s_j - s_ell) != 0$, as $alpha_k (u_j) != 0$. At $u_j = 0$ the zero of $K_j$ can cancel, as at $hat(u) = 0$ in @cor-hf.
+*Divergences.* An entry of $Gamma_r$ can diverge only where a denominator in its closed form vanishes. Apart from the removable cases of @prop-special, and away from intersections of these exceptional sets, the remaining zeros are genuine poles under the following nonvanishing conditions:
+- $K_j = 0$ with $u_j P(u_j) != 0$ and $s_1 != s_2$ (d, m). Then, as $alpha_k (u_j) != 0$,
+  $ gamma_j K_j = frac(2 lambda rho beta u_j P(u_j) H(-u_j), s_j - s_ell) != 0. $
+  At $u_j = 0$ the zero of $K_j$ can cancel, as at $hat(u) = 0$ in @cor-hf.
 - $hat(D) = 0$ with $P(hat(u)) != 0$ (d, m at $mu = 0$).
-- $beta H(z_n) = -lambda h$ with $n != overline(n)$ (d, m at $mu = 0$). There $N(z, dot) slash P$ is even, so by @eq-chi-ph $P(z) chi_r (bold(e)_n - bold(e)_(overline(n))) = -(beta H(z_n) + lambda h)(bold(e)_n - bold(e)_(overline(n))) = 0$: the mirror-odd vector is a null vector. For $r = "d"$, $k = 0$, $n = 0$ this is $beta U = 2 pi slash sqrt(3)$.
+- $beta H(z_n) = -lambda h$ with $n != overline(n)$ (d, m at $mu = 0$). There $N(z, dot) slash P$ is even, so by @eq-chi-ph
+  $ P(z) chi_r (bold(e)_n - bold(e)_(overline(n))) = -(beta H(z_n) + lambda h)(bold(e)_n - bold(e)_(overline(n))) = 0. $
+  So the mirror-odd vector is a null vector. For $r = "d"$, $k = 0$, $n = 0$ this is $beta U = 2 pi slash sqrt(3)$.
 - $K_"s" = 0$ with $cal(P)(-As) != 0$ (s).
 - $t_n + a rho b + a^2 = 0$ with $n != overline(n)$ (t); the numerator is $a^2 (1 - rho^2) cal(P)(t_n) != 0$.
 
@@ -266,25 +360,29 @@ Gamma_(r, n m) = beta P(z_c) [frac(delta_(n m), G_2 (z_c)) - frac(delta_(n m) - 
 ]
 
 
-#figure(
-  placement: auto,
-  image("doped-gamma/figures/gamma_cuts.svg", width: 100%),
-  caption: [$Gamma_r (nu, pi slash beta, 0)$ from @eq-Gamma-ph (@eq-Gamma-hf at $mu = 0$), @eq-Gamma-s, @eq-Gamma-t at $U = 2$, $beta = 4$, for $mu = 0$ (half filling, real), $mu = 0.4$ and $mu = 1$. Away from half filling $Gamma_"d"$, $Gamma_"m"$ acquire imaginary parts; all $Gamma_r$ approach their bare values $U$, $-U$, $2U$, $0$ at large $|nu|$.],
-) <fig-cuts>
 
 
 = Matsubara sums <sec-sums>
 
-#lemma(title: [basic sum], lean: [for $j = 1$, along the boxes $|2 n + 1 + k| <= 2 M + 1$, and for $j = 2$, from Mathlib's expansion of the cotangent; with @eq-shift and $S_(plus.minus)$ (`Matsubara.lean`: `hasSum_S_even`, `hasSum_S_odd`, `hasSum_sq`; `Thermal.lean`: `S_shift`, `S₀_neg_a`, `S₀_a`; `PHSums.lean`: `S_shift'`).])[
-  For $x$ off the lattice, $PV sum_n (z_n - x)^(-1) = S_k (x)$ (@eq-S), and for $j >= 2$, $sum_n (z_n - x)^(-j) = S_k^((j - 1))(x) slash (j - 1)!$, absolutely convergent. Moreover, for all $k$,
+#lemma(title: [basic sum], lean: "part")[
+  For $x$ off the lattice, with $S_k$ from @eq-S,
+  $ PV sum_n frac(1, z_n - x) = S_k (x), quad quad sum_n frac(1, (z_n - x)^j) = frac(S_k^((j - 1))(x), (j - 1)!) quad (j >= 2), $
+  where the second sum converges absolutely. Moreover, for all $k$,
   $ S_k (x plus.minus w slash 2) = -beta/2 thin tanh(beta (x - mu) slash 2). $ <eq-shift>
-  In particular, $S_k$ takes the value $S_(plus.minus) := plus.minus (beta slash 2) tanh(beta (a plus.minus mu) slash 2)$ at both zeros $minus.plus a plus.minus w slash 2$ of $Q_(plus.minus)$; by @eq-weights, $S_+ = beta (p_1 - p_0) slash (2 (p_1 + p_0))$ and $S_- = beta (p_2 - p_1) slash (2 (p_1 + p_2))$.
+  In particular, $S_k$ takes the value $S_(plus.minus) := plus.minus (beta slash 2) tanh(beta (a plus.minus mu) slash 2)$ at both zeros $minus.plus a plus.minus w slash 2$ of $Q_(plus.minus)$; by @eq-weights,
+  $ S_+ = frac(beta (p_1 - p_0), 2 (p_1 + p_0)), quad quad S_- = frac(beta (p_2 - p_1), 2 (p_1 + p_2)). $
 ] <lem-S>
 #proof[
-  For even $k$, $2n + 1 + k = 2 n' + 1$ with $n' = n + k slash 2$, so $z_n - x = i nu_(n') - (x - mu)$. For odd $k$, $2n + 1 + k = 2 n''$, so $z_n - x = i Omega_(n'') - (x - mu)$. In both cases the box is symmetric in $n'$ (resp. $n''$). The symmetric Mittag-Leffler expansions $tanh y = sum_j (y - i pi (j + 1/2))^(-1)$ and $coth y = sum_j (y - i pi j)^(-1)$ at $y = beta (x - mu) slash 2$ read $tanh(beta (x - mu) slash 2) = (2 slash beta) sum_j (x - mu - i nu_j)^(-1)$ and $coth(beta (x - mu) slash 2) = (2 slash beta) sum_j (x - mu - i Omega_j)^(-1)$, which is @eq-S. For $j >= 2$ the $(j - 1)$-fold $x$-derivative of the series converges absolutely and uniformly on compact sets away from the lattice, so it may be differentiated term by term. For @eq-shift: $w slash 2 = i pi k slash beta$ shifts the argument of $tanh$ or $coth$ by $plus.minus i pi k slash 2$. For even $k$ this is a multiple of the period $i pi$; for odd $k$, $coth(y plus.minus i pi slash 2) = tanh y$.
+  Since $2n + 1 + k$ is odd for even $k$ and even for odd $k$,
+  $ z_n - x = cases(i nu_(n') - (x - mu) & quad k "even," quad n' := n + k slash 2, i Omega_(n'') - (x - mu) & quad k "odd," quad n'' := (2n + 1 + k) slash 2) $
+  and the box is symmetric in $n'$ (resp. $n''$). The symmetric Mittag-Leffler expansions
+  $ tanh y = sum_j frac(1, y - i pi (j + 1/2)), quad quad coth y = sum_j frac(1, y - i pi j) $
+  at $y = beta (x - mu) slash 2$ read
+  $ tanh frac(beta (x - mu), 2) = frac(2, beta) sum_j frac(1, x - mu - i nu_j), quad quad coth frac(beta (x - mu), 2) = frac(2, beta) sum_j frac(1, x - mu - i Omega_j), $
+  which is @eq-S. For $j >= 2$ the $(j - 1)$-fold $x$-derivative of the series converges absolutely and uniformly on compact sets away from the lattice, so it may be differentiated term by term. For @eq-shift: $w slash 2 = i pi k slash beta$ shifts the argument of $tanh$ or $coth$ by $plus.minus i pi k slash 2$. For even $k$ this is a multiple of the period $i pi$; for odd $k$ use $coth(y plus.minus i pi slash 2) = tanh y$.
 ]
 
-#lemma(title: [residue rule], lean: [not formalized as such. The sums it serves, with the denominators $P(t)$ and $P(t)(t - x)$, are evaluated by splitting $P = Q_+ Q_-$, for all $k$ at once (`PHSums.lean`: `hasSum_Q_sub`, `hasSum_inv_Q`, `hasSum_cubic`).])[
+#lemma(title: [residue rule])[
   Let $phi$ be proper rational without poles on the lattice. Then
   $ sum_n phi(z_n) = sum_(x in "poles"(phi)) Res_(t = x) [phi(t) S_k (t)], $ <eq-res>
   absolutely convergent if $phi = O(t^(-2))$, and as a PV sum if $phi tilde t^(-1)$. ($Res_(t = x)$ of a function is the coefficient of $(t - x)^(-1)$ in its Laurent expansion at $x$.)
@@ -293,13 +391,19 @@ Gamma_(r, n m) = beta P(z_c) [frac(delta_(n m), G_2 (z_c)) - frac(delta_(n m) - 
   Partial fractions write $phi$ as a finite sum of constants times $(t - x)^(-j)$, $j >= 1$, over its poles $x$. By @lem-S each $(t - x)^(-j)$ sums to $S_k^((j - 1))(x) slash (j - 1)!$, which is the residue of $(t - x)^(-j) S_k (t)$ at $x$, since $S_k$ is analytic there.
 ]
 
-#lemma(title: [particle–particle sum], lean: [formalized, including $xi = 0$ (`Matsubara.lean`: `hasSum_Tpp`, `hasSum_one_div_t_sub`; `Singlet.lean`: `hasSum_gp`, `hasSum_gm`, `Tpp_tp`, `Tpp_tm`).])[
-  For $t != t_n$ ($forall n$), $sum_n (t_n - t)^(-1) = cal(T)_k (t)$ (@eq-T), absolutely convergent. At the two points $t_(plus.minus) := -a^2 plus.minus a b$, for $b != plus.minus 2 a$,
+#lemma(title: [particle–particle sum], lean: "yes")[
+  For $t != t_n$ for all $n$, the sum converges absolutely to $cal(T)_k$ of @eq-T,
+  $ sum_n frac(1, t_n - t) = cal(T)_k (t). $
+  At the two points $t_(plus.minus) := -a^2 plus.minus a b$, for $b != plus.minus 2 a$,
   $ cal(T)_k (t_+) = -frac(2 S_-, 2 a - b), quad quad cal(T)_k (t_-) = frac(2 S_+, 2 a + b). $ <eq-T-atomic>
   If $b = plus.minus 2 a$ (which needs $k = 0$), then $t_(plus.minus) = b^2 slash 4$, i.e. $xi = 0$, and $cal(T)_k (t_(plus.minus)) = beta^2 slash 4$.
 ] <lem-T>
 #proof[
-  Since $x_n = z_n - w slash 2$ and $b slash 2 = mu - w slash 2$, $t_n = b^2 slash 4 - (z_n - mu)^2$, so for $xi != 0$, $(t_n - t)^(-1) = [(z_n - mu + xi)^(-1) - (z_n - mu - xi)^(-1)] slash (2 xi)$. By @lem-S and the oddness of $tanh$ and $coth$, the sum is $(S_k (mu - xi) - S_k (mu + xi)) slash (2 xi) = -S_k (mu + xi) slash xi$; it converges absolutely, as $t_n tilde n^2$. For $xi = 0$, $(t_n - t)^(-1) = -(z_n - mu)^(-2)$ sums to $-S'_k (mu) = beta^2 slash 4$ by @lem-S. This occurs only for even $k$: for odd $k$, $t = b^2 slash 4$ is $t_n$ at the mirror fixed point. At $t_(plus.minus)$, $xi^2 = (a minus.plus b slash 2)^2$. At $t_+$ take $xi = a - b slash 2$: then $mu + xi = a + w slash 2$, and $S_k (mu + xi) = S_-$ by @eq-shift. At $t_-$ take $xi = -a - b slash 2$: then $mu + xi = -a + w slash 2$, and $S_k (mu + xi) = S_+$.
+  Since $x_n = z_n - w slash 2$ and $b slash 2 = mu - w slash 2$, $t_n = b^2 slash 4 - (z_n - mu)^2$. So for $xi != 0$, by @lem-S and the oddness of $tanh$ and $coth$,
+  $ sum_n frac(1, t_n - t) = frac(1, 2 xi) sum_n [frac(1, z_n - mu + xi) - frac(1, z_n - mu - xi)] = frac(S_k (mu - xi) - S_k (mu + xi), 2 xi) = -frac(S_k (mu + xi), xi); $
+  the sum converges absolutely, as $t_n tilde n^2$. For $xi = 0$, $(t_n - t)^(-1) = -(z_n - mu)^(-2)$ sums to $-S'_k (mu) = beta^2 slash 4$ by @lem-S. This occurs only for even $k$: for odd $k$, $t = b^2 slash 4$ is $t_n$ at the mirror fixed point.
+
+  At $t_(plus.minus)$, $xi^2 = (a minus.plus b slash 2)^2$. At $t_+$ take $xi = a - b slash 2$: then $mu + xi = a + w slash 2$, and $S_k (mu + xi) = S_-$ by @eq-shift. At $t_-$ take $xi = -a - b slash 2$: then $mu + xi = -a + w slash 2$, and $S_k (mu + xi) = S_+$.
 ]
 
 = Proofs for the singlet and triplet channels <sec-pp>
@@ -307,24 +411,28 @@ Gamma_(r, n m) = beta P(z_c) [frac(delta_(n m), G_2 (z_c)) - frac(delta_(n m) - 
 == Variables
 
 With $t_(plus.minus)$ from @lem-T, $cal(P)(t) = (t - t_+)(t - t_-)$. Define
-$ d_(plus.minus) := As + t_(plus.minus), quad quad c := c_(-k) = cases(rho slash b & quad (mu, k) != (0, 0), beta p_0 & quad mu = k = 0). $
+$ d_(plus.minus) := As + t_(plus.minus), quad quad c := c_(-k) = cases(rho slash b & quad (mu, k) != (0, 0), beta p_0 & quad mu = k = 0). $ <eq-dc>
 Then $d_+ d_- = cal(P)(-As)$. For $t = x (b - x)$, direct expansion gives
 $ (x - a)(b - x - a) = t - t_+, quad quad (x + a)(b - x + a) = t - t_-, \
 (x + a rho)(b - x + a rho) = cal(G)(t), $ <eq-pp-ids>
 and the product of the first two is $(x^2 - a^2)((b - x)^2 - a^2) = cal(P)(t)$. Hence, by @eq-B,
 $ B_n = -beta/2 thin frac(cal(G)(t_n), cal(P)(t_n)) = B_(overline(n)). $ <eq-B-pp>
 
-The pp entry $(n, m)$ at transfer $k$ is the ph entry at bosonic index $k' := -k - n - m - 1$, with frequency $w' := i omega_(k') = b - x_n - x_m$. Then $delta_(k' 0) = delta_(m overline(n))$, and the pair coefficient becomes $c_(n + m + k' + 1) = c$. In the variables of @lem-input at transfer $w'$, $z + v = x_n + x_m + w' = b$. By @eq-Qfact and @eq-pp-ids,
+*From particle–hole to particle–particle.* The pp entry $(n, m)$ at transfer $k$ is the ph entry at the bosonic index and frequency
+$ k' := -k - n - m - 1, quad quad w' := i omega_(k') = b - x_n - x_m. $
+Then $delta_(k' 0) = delta_(m overline(n))$, and the pair coefficient becomes $c_(n + m + k' + 1) = c$. In the variables of @lem-input at transfer $w'$, $z + v = x_n + x_m + w' = b$. By @eq-Qfact and @eq-pp-ids,
 $ Q_(-)(z) Q_(-)(v) = (x_n - a)(b - x_n - a)(x_m - a)(b - x_m - a) = (t_n - t_+)(t_m - t_+), $ <eq-QQ-pp>
 and likewise $Q_(+)(z) Q_(+)(v) = (t_n - t_-)(t_m - t_-)$.
 
 == Structure
 
-Let $cal(M)_(plus.minus) := (bb(1) plus.minus cal(M)) slash 2$ be the projectors onto mirror-even and mirror-odd vectors. A diagonal matrix whose entries depend on $n$ only through $t_n$ commutes with the mirror $cal(M)$. Define
-$ L_"t" (t) := -beta/2 thin frac(t + a rho b + a^2, cal(P)(t)), quad L_"s" (t) := beta/2 thin frac(t + As, cal(P)(t)), quad g_(plus.minus)(t) := frac(1, t - t_(plus.minus)), quad gamma_(plus.minus) := frac(a (rho plus.minus 1)(2 a minus.plus b), 2 b), $
+A diagonal matrix whose entries depend on $n$ only through $t_n$ commutes with the mirror $cal(M)$. Define
+$ cal(M)_(plus.minus) &:= (bb(1) plus.minus cal(M)) slash 2, && quad #gloss[projectors onto mirror-even and mirror-odd vectors] \
+L_"t" (t) &:= -beta/2 thin frac(t + a rho b + a^2, cal(P)(t)), quad L_"s" (t) := beta/2 thin frac(t + As, cal(P)(t)), \
+g_(plus.minus)(t) &:= frac(1, t - t_(plus.minus)), quad gamma_(plus.minus) := frac(a (rho plus.minus 1)(2 a minus.plus b), 2 b), $ <eq-L>
 and $bold(L)_("s", "t") := diag(L_("s", "t")(t_n))$.
 
-#proposition(lean: [@eq-chi-pp, for $chi_"s"$ with $b != 0$ and $chi_("s", "reg")$ in the form @eq-chi-s-reg (`Triplet.lean`: `chiT_eq_mirrorBlock`; `SingletInput.lean`: `chiS_eq`).])[
+#proposition(title: [pp], lean: "yes")[
   $ chi_"t" = bold(B) cal(M)_+ + bold(L)_"t" cal(M)_-, quad quad chi_"s" = bold(L)_"s" cal(M)_+ - bold(B) cal(M)_- + chi_("s", "reg"), $ <eq-chi-pp>
   where
   $ (chi_("s", "reg"))_(n m) = frac(a (2 a c - 1)(t_n - t_-)(t_m - t_-) + a^2 (1 - rho)(b + 2 a)(t_n + t_m + 2 a^2), cal(P)(t_n) cal(P)(t_m)), $ <eq-chi-s-num>
@@ -332,70 +440,110 @@ and $bold(L)_("s", "t") := diag(L_("s", "t")(t_n))$.
   $ (chi_("s", "reg"))_(n m) = gamma_+ g_+ (t_n) g_+ (t_m) + gamma_- g_- (t_n) g_- (t_m). $ <eq-chi-s-reg>
 ] <prop-pp>
 #proof[
-  Insert $w -> w'$ into @eq-chi-uu and @eq-chi-ud. In the $delta_(n m)$ terms, $x_n + w' = b - x_m = x_(overline(n))$; in the $delta_(k' 0) = delta_(m overline(n))$ terms, $x_m = x_(overline(n))$ and $x_n + w' = x_n$. With @eq-pp-ids (abbreviating $cal(P) := cal(P)(t_n)$),
+  Insert $w -> w'$ into @eq-chi-uu and @eq-chi-ud, using
+  $ x_n + w' = b - x_m = x_(overline(n)) quad (delta_(n m) "terms"), quad quad x_m = x_(overline(n)), quad x_n + w' = x_n quad (delta_(k' 0) = delta_(m overline(n)) "terms"). $
+  With @eq-pp-ids (abbreviating $cal(P) := cal(P)(t_n)$),
   $ chi_("pp", up up) &= 2 B_n delta_(n m) - (beta a^2 (1 - rho^2)) / cal(P) (delta_(n m) - delta_(m overline(n))), \
   chi_("pp", up dn) &= -(4 beta a^2 p_1) / cal(P) delta_(n m) + (4 beta a^2 (p_0 p_2 - p_1^2)) / cal(P) delta_(m overline(n)) + cal(N)|_(w = w'). $
 
-  _Triplet._ $(chi_("pp", up up) + 2 bold(B)) slash 4$ has $delta_(n m)$ coefficient $B_n - beta a^2 (1 - rho^2) slash (4 cal(P))$ and $delta_(m overline(n))$ coefficient $beta a^2 (1 - rho^2) slash (4 cal(P))$. Using @eq-B-pp, these equal $(B + L_"t") slash 2$ and $(B - L_"t") slash 2$. As $B$ and $L_"t"$ commute with $cal(M)$, $1/2 (B + L_"t") + 1/2 (B - L_"t") cal(M) = B cal(M)_+ + L_"t" cal(M)_-$.
+  _Triplet._ By @eq-B-pp,
+  $ frac(chi_("pp", up up) + 2 bold(B), 4) = [B_n - frac(beta a^2 (1 - rho^2), 4 cal(P))] delta_(n m) + frac(beta a^2 (1 - rho^2), 4 cal(P)) delta_(m overline(n)) = frac(B_n + L_"t", 2) delta_(n m) + frac(B_n - L_"t", 2) delta_(m overline(n)), $
+  with $L_"t" = L_"t" (t_n)$. As $bold(B)$ and $bold(L)_"t"$ commute with $cal(M)$, this is $bold(B) cal(M)_+ + bold(L)_"t" cal(M)_-$.
 
-  _Singlet, delta terms._ The $delta_(n m)$ coefficient of $(-chi_("pp", up up) + 2 chi_("pp", up dn) - 2 bold(B)) slash 4$ is $-B_n + beta a^2 (1 - rho^2 - 8 p_1) slash (4 cal(P)) = (L_"s" - B) slash 2$. The $delta_(m overline(n))$ coefficient is $beta a^2 [-(1 - rho^2) + 8 (p_0 p_2 - p_1^2)] slash (4 cal(P))$. By @eq-weight-ids and $p_0 + p_2 = 1 - 2 p_1$, the bracket is $1 - 8 p_1 - rho^2$, and the coefficient is $(L_"s" + B) slash 2$. Together: $L_"s" cal(M)_+ - B cal(M)_-$.
+  _Singlet, delta terms._ The $delta_(n m)$ and $delta_(m overline(n))$ terms of $(-chi_("pp", up up) + 2 chi_("pp", up dn) - 2 bold(B)) slash 4$ are
+  $ [-B_n + frac(beta a^2 (1 - rho^2 - 8 p_1), 4 cal(P))] delta_(n m) + frac(beta a^2 [8 (p_0 p_2 - p_1^2) - (1 - rho^2)], 4 cal(P)) delta_(m overline(n)). $
+  The first coefficient is $(L_"s" - B_n) slash 2$. By @eq-weight-ids and $p_0 + p_2 = 1 - 2 p_1$, the bracket of the second is $1 - 8 p_1 - rho^2$, so it is $(L_"s" + B_n) slash 2$. Together: $bold(L)_"s" cal(M)_+ - bold(B) cal(M)_-$.
 
-  _Singlet, remaining terms:_ $(2 slash 4) cal(N)|_(w = w')$. Insert into @eq-input: $4 a^2 C -> 4 a^2 c$, $z + v = b$, $z v + q_0 = a^2 + (t_n + t_m) slash 2$ at transfer $w'$ (identity (A3)), and @eq-QQ-pp. This gives @eq-chi-s-num; for $b != 0$, its partial fractions in $t_n$ and $t_m$ are @eq-chi-s-reg (identity (A3)).
+  _Singlet, remaining terms._ They are $cal(N)|_(w = w') slash 2$. In @eq-input at transfer $w'$,
+  $ 4 a^2 C_(n m) -> 4 a^2 c, quad quad z + v = b, quad quad z v + q_0 = a^2 + (t_n + t_m) slash 2 quad "(identity (A3))", $
+  and the denominators are @eq-QQ-pp. This gives @eq-chi-s-num; for $b != 0$, its partial fractions in $t_n$ and $t_m$ are @eq-chi-s-reg (identity (A3)).
 ]
 
 == Proofs
 
 #proof(of: [@thm-t])[
-  $chi_"t"$ and $bold(B)$ act on each orbit ${n, overline(n)}$ separately. For $n != overline(n)$ the orbit carries a $2 times 2$ block with eigenvalue $B_n$ on the even vector and $L_"t" (t_n)$ on the odd vector; $L_"t" (t_n) != 0$ is the assumption $t_n + a rho b + a^2 != 0$, which must hold on every orbit for $chi_"t"$ to be invertible. So $chi_"t"^(-1) = bold(B)^(-1) cal(M)_+ + bold(L)_"t"^(-1) cal(M)_-$, and $Gamma_"t" = beta^2 (bold(L)_"t"^(-1) - bold(B)^(-1)) cal(M)_-$ by @eq-Gamma-def. Further, $(beta^2 slash 2)(1 slash L_"t" - 1 slash B) = -beta cal(P) [cal(G) - (t + a rho b + a^2)] slash ((t + a rho b + a^2) cal(G))$ with $cal(G) - (t + a rho b + a^2) = -a^2 (1 - rho^2)$. At a fixed point the orbit is ${n}$ with $cal(M)_- = 0$; then $chi_("t", n n) = B_n$, $Gamma_("t", n n) = 0$, and $L_"t" (t_n)$ does not enter.
+  $chi_"t"$ and $bold(B)$ act on each orbit ${n, overline(n)}$ separately. For $n != overline(n)$ the orbit carries a $2 times 2$ block with eigenvalue $B_n$ on the even vector and $L_"t" (t_n)$ on the odd vector; $L_"t" (t_n) != 0$ is the assumption $t_n + a rho b + a^2 != 0$, which must hold on every orbit for $chi_"t"$ to be invertible. So
+  $ chi_"t"^(-1) = bold(B)^(-1) cal(M)_+ + bold(L)_"t"^(-1) cal(M)_-, quad quad Gamma_"t" = beta^2 (bold(L)_"t"^(-1) - bold(B)^(-1)) cal(M)_- $
+  by @eq-Gamma-def. With $cal(G) - (t + a rho b + a^2) = -a^2 (1 - rho^2)$,
+  $ frac(beta^2, 2) (frac(1, L_"t") - frac(1, B)) = -frac(beta cal(P) [cal(G) - (t + a rho b + a^2)], (t + a rho b + a^2) cal(G)) = frac(beta a^2 (1 - rho^2) cal(P), (t + a rho b + a^2) cal(G)), $
+  which is @eq-Gamma-t. At a fixed point the orbit is ${n}$ with $cal(M)_- = 0$; then $chi_("t", n n) = B_n$, $Gamma_("t", n n) = 0$, and $L_"t" (t_n)$ does not enter.
 ]
 
 #proof(of: [@thm-s])[
   _Idea._ $chi_"s"$ is an easily invertible matrix plus the rank-two term @eq-chi-s-reg, so the Woodbury formula applies. Its $2 times 2$ matrix becomes diagonal in a suitable basis.
 
-  For $U = 0$ both sides vanish ($L_"s" = -B$, $chi_("s", "reg") = 0$). Let $U != 0$, and first assume $b != 0$, $b != plus.minus 2 a$, $d_(plus.minus) != 0$ and $t_n + As != 0$ for all $n$. Then $gamma_(plus.minus) != 0$, since $|rho| < 1$.
+  For $U = 0$ both sides vanish ($L_"s" = -B$, $chi_("s", "reg") = 0$). Let $U != 0$, and first assume $b != 0$, $b != plus.minus 2 a$ and $d_(plus.minus) != 0$. Then $gamma_(plus.minus) != 0$, since $|rho| < 1$.
 
-  _Woodbury._ Let $bold(g)$ be the $oo times 2$ matrix with rows $(g_+ (t_n), g_- (t_n))$ and $gamma := diag(gamma_+, gamma_-)$, so $chi_("s", "reg") = bold(g) gamma bold(g)^top$ and $cal(M)_+ bold(g) = bold(g)$. The matrix $bold(X) := bold(L)_"s" cal(M)_+ - bold(B) cal(M)_-$ has inverse $bold(X)^(-1) = bold(L)_"s"^(-1) cal(M)_+ - bold(B)^(-1) cal(M)_-$ (all products are finite sums). Set $bold(V)_"s" := bold(X)^(-1) bold(g) = bold(L)_"s"^(-1) bold(g)$ and $Psi := bold(g)^top bold(V)_"s" = sum_n (g_+, g_-)^top (g_+, g_-)(t_n) slash L_"s" (t_n)$, absolutely convergent (terms $O(t_n^(-1)) = O(n^(-2))$). If $gamma^(-1) + Psi$ is invertible, then
+  _Woodbury._ Let $bold(g)$ be the $oo times 2$ matrix with rows $(g_+ (t_n), g_- (t_n))$ and $gamma := diag(gamma_+, gamma_-)$, so that
+  $ chi_("s", "reg") = bold(g) gamma bold(g)^top, quad quad cal(M)_+ bold(g) = bold(g). $
+  The matrix
+  $ bold(X) := bold(L)_"s" cal(M)_+ - bold(B) cal(M)_- quad "has the inverse" quad bold(X)^(-1) = bold(L)_"s"^(-1) cal(M)_+ - bold(B)^(-1) cal(M)_- $
+  (all products are finite sums). Set
+  $ bold(V)_"s" := bold(X)^(-1) bold(g) = bold(L)_"s"^(-1) bold(g), quad quad Psi := bold(g)^top bold(V)_"s" = sum_n frac((g_+, g_-)^top (g_+, g_-), L_"s") (t_n), $
+  absolutely convergent (terms $O(t_n^(-1)) = O(n^(-2))$). If $gamma^(-1) + Psi$ is invertible, then
   $ Y := bold(X)^(-1) - bold(V)_"s" (gamma^(-1) + Psi)^(-1) bold(V)_"s"^top $
-  satisfies $chi_"s" Y = bb(1) + bold(g) [gamma - (bb(1) + gamma Psi)(gamma^(-1) + Psi)^(-1)] bold(V)_"s"^top = bb(1)$. $Y$ is symmetric, so also $Y chi_"s" = bb(1)$. By @eq-Gamma-def ($eta_"s" = -1$),
+  satisfies
+  $ chi_"s" Y = bb(1) + bold(g) [gamma - (bb(1) + gamma Psi)(gamma^(-1) + Psi)^(-1)] bold(V)_"s"^top = bb(1). $
+  $Y$ is symmetric, so also $Y chi_"s" = bb(1)$. By @eq-Gamma-def ($eta_"s" = -1$),
   $ Gamma_"s" = beta^2 (bold(L)_"s"^(-1) + bold(B)^(-1)) cal(M)_+ - beta^2 bold(V)_"s" (gamma^(-1) + Psi)^(-1) bold(V)_"s"^top. $
-  The first term gives the first term of @eq-Gamma-s: $(beta^2 slash 2)(1 slash L_"s" + 1 slash B) = beta cal(P) [1 slash (t + As) - 1 slash cal(G)]$ and $cal(G) - t - As = a^2 (rho^2 - 1 + 8 p_1)$.
+  The first term gives the first term of @eq-Gamma-s, since $cal(G) - t - As = a^2 (rho^2 - 1 + 8 p_1)$ and
+  $ frac(beta^2, 2) (frac(1, L_"s") + frac(1, B)) = beta cal(P) [frac(1, t + As) - frac(1, cal(G))]. $
 
   _Change of basis._ Let $kappa_n := 1 slash (t_n + As)$. Since $cal(P) = (t - t_+)(t - t_-)$ and $t - t_(minus.plus) = (t + As) - d_(minus.plus)$,
   $ frac(g_(plus.minus)(t_n), L_"s" (t_n)) = 2/beta (1 - d_(minus.plus) kappa_n), quad "i.e." quad (bold(V)_"s")_(n, :)^top = 2/beta thin Theta^top (1, kappa_n)^top, quad Theta := mat(1, 1; -d_-, -d_+). $
-  Hence $(bold(V)_"s" (gamma^(-1) + Psi)^(-1) bold(V)_"s"^top)_(n m) = (2 slash beta)^2 (1, kappa_n) Xi^(-1) (1, kappa_m)^top$ with $Xi := Theta^(-top) (gamma^(-1) + Psi) Theta^(-1)$. Inserting $Psi = sum_n (2 slash beta)^2 L_"s" (t_n) Theta^top (1, kappa_n)^top (1, kappa_n) Theta$ and $(2 slash beta)^2 L_"s" = (2 slash beta)(t + As) slash cal(P)$,
+  Hence
+  $ (bold(V)_"s" (gamma^(-1) + Psi)^(-1) bold(V)_"s"^top)_(n m) = (2/beta)^2 (1, kappa_n) Xi^(-1) (1, kappa_m)^top, quad quad Xi := Theta^(-top) (gamma^(-1) + Psi) Theta^(-1). $
+  Insert
+  $ Psi = sum_n (2/beta)^2 L_"s" (t_n) Theta^top (1, kappa_n)^top (1, kappa_n) Theta, quad quad (2/beta)^2 L_"s" = 2/beta frac(t + As, cal(P)). $
+  Then
   $ Xi = Theta^(-top) gamma^(-1) Theta^(-1) + 2/beta sum_n frac(1, cal(P)(t_n)) mat(t_n + As, 1; 1, 1 slash (t_n + As)). $
   By partial fractions over $t_+, t_-, -As$, the three sums are combinations of $cal(T)_k (t_+)$, $cal(T)_k (t_-)$ and $cal(T)_k (-As)$. Inserting @eq-T-atomic, the off-diagonal entries of the two terms cancel, and (identity (A4))
   $ Xi = diag(-frac(1, a), frac(K_"s", a d_+ d_-)). $
-  So $gamma^(-1) + Psi$ is invertible iff $K_"s" != 0$, and
+  So $gamma^(-1) + Psi$ is invertible if and only if $K_"s" != 0$, and
   $ -beta^2 (2/beta)^2 (1, kappa_n) Xi^(-1) (1, kappa_m)^top = -4 [-a + frac(a d_+ d_- kappa_n kappa_m, K_"s")] = 4 a - frac(4 a thin cal(P)(-As), K_"s" (t_n + As)(t_m + As)). $
 
-  _Excluded cases._ Fix $k$. The values of $mu$ where $b = 0$, $b = plus.minus 2 a$, $d_(plus.minus) = 0$ or $t_n + As = 0$ for some $n$ are isolated, since these are nonconstant analytic functions of $mu$. @eq-Gamma-s contains no $b$, $2 a plus.minus b$ or $d_(plus.minus)$ in a denominator, and its divergent parts at $q := t_n + As -> 0$ cancel. Indeed, the orbit ${n, overline(n)}$ has $r in {1, 2}$ elements, so $cal(T)_k (-As) = r slash q + O(1)$ and $K_"s" = 2 a r slash (beta q) + O(1)$. Since $a^2 (rho^2 - 1 + 8 p_1) = cal(G)(t_n) - q$ and $cal(G)(t_n) != 0$ (@eq-pp-ids), the first term of @eq-Gamma-s is $beta cal(P)(-As)(delta_(n m) + delta_(m overline(n))) slash q + O(1)$, and the last one is $-2 beta cal(P)(-As) slash (r q) + O(1)$ for $m in {n, overline(n)}$ and $O(1)$ otherwise. For $m in {n, overline(n)}$, $delta_(n m) + delta_(m overline(n)) = 2 slash r$, so the $1 slash q$ terms cancel. The next order ($cal(P)(t_n) = cal(P)(-As) + q cal(P)'(-As) + O(q^2)$, $cal(T)_k (-As) = r slash q + T' + O(q)$) gives @eq-Gamma-s-lz. Near all these values, $(chi_"s")_(n l) = O(|t_l|^(-1))$ and $Y_(l m)$ is bounded for $l in.not {n, overline(n), m, overline(m)}$, uniformly, where $Y = Gamma_"s" slash beta^2 - bold(B)^(-1)$ with @eq-Gamma-s. As $|t_l| tilde l^2$, @lem-cont extends $chi_"s" Y = bb(1)$ to these values.
+  _Excluded values._ Fix $k$. The values of $mu$ where $b = 0$, $b = plus.minus 2 a$ or $d_(plus.minus) = 0$, and those where $t_n + As = 0$ for some $n$ (@prop-special), are isolated, since these are zeros of nonconstant analytic functions of $mu$. @eq-Gamma-s contains no $b$, $2 a plus.minus b$ or $d_(plus.minus)$ in a denominator, so it is continuous at the first kind.
+
+  _Lattice zeros ($t_n + As -> 0$; item 1 of @prop-special)._ Put $q := t_n + As$, and let $O := {n, overline(n)}$, on which $t_n$ is constant. Then
+  $ cal(T)_k (-As) = frac(|O|, q) + T' + O(q), quad quad K_"s" = frac(2 a |O|, beta q) + O(1). $
+  Since $a^2 (rho^2 - 1 + 8 p_1) = cal(G)(t_n) - q$ and $cal(G)(t_n) != 0$ (@eq-pp-ids), the first and the last term of @eq-Gamma-s are
+  $ frac(beta cal(P)(-As), q) (delta_(n m) + delta_(m overline(n))) + O(1), quad quad -frac(2 beta cal(P)(-As), |O| q) + O(1) quad (m in O), $
+  and the last one is $O(1)$ for $m in.not O$. For $m in O$, $delta_(n m) + delta_(m overline(n)) = 2 slash |O|$, so the $1 slash q$ terms cancel. The next order, with $cal(P)(t_n) = cal(P)(-As) + q cal(P)'(-As) + O(q^2)$, gives @eq-Gamma-s-lz.
+
+  _Two-sidedness at the excluded values._ Near all these values, $(chi_"s")_(n l) = O(|t_l|^(-1))$ and $Y_(l m)$ is bounded for $l in.not {n, overline(n), m, overline(m)}$, uniformly, where $Y = Gamma_"s" slash beta^2 - bold(B)^(-1)$ with @eq-Gamma-s. As $|t_l| tilde l^2$, @lem-cont extends $chi_"s" Y = bb(1)$ to these values.
 ]
 
 = The Cauchy matrix <sec-cauchy>
 
 Throughout this section $mu != 0$.
 
-#lemma(title: [values on the reflected lattice], lean: [the last identity, `rho_mul_S_neg_z` (`PHSums.lean`); the value of $S'_k$ enters `hasSum_square`.])[
+#lemma(title: [values on the reflected lattice], lean: "part")[
   For every $n$,
   $ S_k (-z_n) = beta/2 coth(beta mu), quad quad S'_k (-z_n) = beta^2 / (4 sinh^2(beta mu)), quad quad rho thin S_k (-z_n) = overline(c). $ <eq-mirror>
 ] <lem-mirror>
 #proof[
-  Write $-z_n = x - w slash 2$ with $x := -mu - i pi (2n + 1) slash beta$. By @eq-shift, $S_k (-z_n) = -(beta slash 2) tanh(-beta mu - i pi (2n + 1) slash 2) = (beta slash 2) coth(beta mu)$, as $tanh$ has period $i pi$ and $tanh(y - i pi slash 2) = coth y$. Differentiating @eq-shift in $x$ gives $S'_k (-z_n) = -(beta^2 slash 4) cosh^(-2)(-beta mu - i pi (2n + 1) slash 2) = beta^2 slash (4 sinh^2(beta mu))$. The last identity is @eq-weight-hyp.
+  Write $-z_n = x - w slash 2$ with $x := -mu - i pi (2n + 1) slash beta$. By @eq-shift,
+  $ S_k (-z_n) = -beta/2 tanh(-beta mu - i pi (2n + 1) slash 2) = beta/2 coth(beta mu), $
+  as $tanh$ has period $i pi$ and $tanh(y - i pi slash 2) = coth y$. Differentiating @eq-shift in $x$ gives
+  $ S'_k (-z_n) = -beta^2/4 cosh^(-2)(-beta mu - i pi (2n + 1) slash 2) = beta^2 / (4 sinh^2(beta mu)). $
+  The last identity is @eq-weight-hyp.
 ]
 
 So $S_k$ is _constant_ on the reflected lattice (@fig-plane). This is the source of all simplifications below.
 
-#lemma(title: [square], lean: [`hasSum_square` (`PHSums.lean`).])[
+#lemma(title: [square], lean: "yes")[
   $sum_l C_(n l) C_(l m) = h^2 delta_(n m)$, absolutely convergent.
 ] <lem-C2>
 #proof[
-  $C_(n l) C_(l m) = O(|z_l|^(-2))$. For $n != m$, partial fractions $[(z_n + z_l)(z_l + z_m)]^(-1) = (z_m - z_n)^(-1) [(z_l + z_n)^(-1) - (z_l + z_m)^(-1)]$ and @lem-S give $rho^2 [S_k (-z_n) - S_k (-z_m)] slash (z_m - z_n) = 0$ by @lem-mirror. For $n = m$, $rho^2 sum_l (z_l + z_n)^(-2) = rho^2 S'_k (-z_n) = h^2$ by @lem-mirror and @eq-weight-hyp.
+  $C_(n l) C_(l m) = O(|z_l|^(-2))$. For $n != m$, partial fractions in $z_l$ and @lem-S give
+  $ sum_l C_(n l) C_(l m) = frac(rho^2, z_m - z_n) sum_l [frac(1, z_l + z_n) - frac(1, z_l + z_m)] = rho^2 frac(S_k (-z_n) - S_k (-z_m), z_m - z_n) = 0 $
+  by @lem-mirror. For $n = m$, by @lem-mirror and @eq-weight-hyp,
+  $ sum_l C_(n l) C_(l n) = rho^2 sum_l frac(1, (z_l + z_n)^2) = rho^2 S'_k (-z_n) = h^2. $
 ]
 
 The action of $C$ on rational functions is governed by the thermal function $alpha_k$ of @eq-alpha-def.
 
-#lemma(title: [thermal function], lean: [`αeven_eq`, `αodd_eq` (`Thermal.lean`), `α_mul_α_neg` (`PHSums.lean`).])[
+#lemma(title: [thermal function], lean: "yes")[
   With $y_(plus.minus) := beta (x plus.minus mu) slash 2$,
   $ alpha_k (x) = cases(-h cosh(y_+) slash cosh(y_-) & quad k "even", -h sinh(y_+) slash sinh(y_-) & quad k "odd"), \
   alpha_k (x) alpha_k (-x) = h^2. $ <eq-alpha>
@@ -408,7 +556,7 @@ The action of $C$ on rational functions is governed by the thermal function $alp
 
 Let $cC$ be the action of $C$ on functions sampled on the lattice, $(cC phi)(z_m) := sum_n C_(m n) phi(z_n)$.
 
-#lemma(title: [Cauchy calculus], lean: [for simple poles, `hasSum_cauchy`; the constant rule only together with the sum of @lem-U, in `hasSum_const` (`PHSums.lean`). Higher poles are not needed.])[
+#lemma(title: [Cauchy calculus], lean: "part")[
   For $x$ with $x$ and $-x$ off the lattice, and every lattice point $z$,
   $ cC[(t - x)^(-1)](z) = frac(alpha_k (x), z + x), quad quad cC[1](z) = overline(c) quad (PV). $ <eq-resolvent>
   Higher poles follow by applying $(1 slash j!) partial_x^j$; so $cC$ maps every proper rational function whose poles $x$ satisfy this condition to an explicit proper rational function.
@@ -428,27 +576,37 @@ $ zeta_r := beta a^2 [1 - rho^2 + 4 epsilon (p_0 p_2 - p_1^2)], quad quad N_2 (v
 $ N_0 (v) := (v^2 + 2 q_0 - 4 a^2) N_2 (v) + (2 epsilon a - delta zeta_r) P(v), quad quad N(z, v) := N_0 (v) + z^2 N_2 (v). $ <eq-N>
 $P$ is even by @eq-Qfact and has no zeros on the lattice. In $N_0$ the terms of degree four cancel, so $N_0 (v) slash P(v) = O(v^(-1))$ and $N_2 (v) slash P(v) = O(v^(-2))$. We identify a function $phi$ on the lattice with the vector $(phi(z_n))_n$ and write $(chi_r phi)(z_n) := sum_m chi_(r, n m) phi(z_m)$.
 
-#proposition(title: [structure], lean: [`Pph_mul_chiR` (`PHInput.lean`); at $mu = 0$, where $C = h cal(M)$, `Pph_mul_chiR_hf` (`HalfFilling.lean`).])[
+#proposition(title: [structure], lean: "yes")[
   $ P(z_n) chi_(r, n m) = -beta H(z_n) delta_(n m) + lambda C_(n m) + frac(N(z_n, z_m), P(z_m)). $ <eq-chi-ph>
 ] <prop-ph>
 #proof[
   Write $z := z_n$, $v := z_m$, and collect the terms of $chi_r = chi_(up up) + epsilon chi_(up dn)$ (@eq-chi-uu, @eq-chi-ud).
 
-  _(a) $delta_(n m)$ terms:_ $-beta [G(x_n) G(x_n + w) + a^2 (1 - rho^2 + 4 epsilon p_1) J(x_n) J(x_n + w)]$. By @eq-G and @eq-Qfact, $G(x_n) G(x_n + w) = [(z + a rho)^2 - w^2 slash 4] slash P(z)$ and $J(x_n) J(x_n + w) = 1 slash P(z)$. The numerators add up to $(z + a rho)^2 - w^2 slash 4 + a^2 (1 - rho^2) + 4 epsilon a^2 p_1 = H(z)$.
+  _(a) The $delta_(n m)$ terms_ are
+  $ -beta [G(x_n) G(x_n + w) + a^2 (1 - rho^2 + 4 epsilon p_1) J(x_n) J(x_n + w)]. $
+  By @eq-G and @eq-Qfact,
+  $ G(x_n) G(x_n + w) = frac((z + a rho)^2 - w^2 slash 4, P(z)), quad quad J(x_n) J(x_n + w) = frac(1, P(z)), $
+  and the numerators add up to $(z + a rho)^2 - w^2 slash 4 + a^2 (1 - rho^2) + 4 epsilon a^2 p_1 = H(z)$.
 
-  _(b) $delta_(k 0)$ terms_ (only for $k = 0$, where $w = 0$, $x_n = z$ and $P(z) = (z^2 - a^2)^2$): $zeta_r J(z) J(v)$, and $P(z) J(z) J(v) = (z^2 - a^2)(v^2 - a^2) slash P(v)$.
+  _(b) The $delta_(k 0)$ terms_ occur only for $k = 0$, where $w = 0$, $x_n = z$ and $P(z) = (z^2 - a^2)^2$. They are $zeta_r J(z) J(v)$, and $P(z) J(z) J(v) = (z^2 - a^2)(v^2 - a^2) slash P(v)$.
 
-  _(c) Remaining terms:_ $epsilon cal(N)_(n m)$ with @eq-input. Since $C_(n m)(z + v) = rho$ and $Q_(+)(z) - Q_(-)(v) = (z + v)(z - v + 2 a)$, we have $Q_(+)(z) C_(n m) = Q_(-)(v) C_(n m) + rho (z - v + 2 a)$. With $1 slash Q_(-)(v) = Q_(+)(v) slash P(v)$ this gives
+  _(c) The remaining terms_ are $epsilon cal(N)_(n m)$ with @eq-input. Since $C_(n m)(z + v) = rho$ and $Q_(+)(z) - Q_(-)(v) = (z + v)(z - v + 2 a)$,
+  $ Q_(+)(z) C_(n m) = Q_(-)(v) C_(n m) + rho (z - v + 2 a). $
+  With $1 slash Q_(-)(v) = Q_(+)(v) slash P(v)$ this gives
   $ P(z) cal(N)_(n m) = 4 a^2 C_(n m) + frac(1, P(v)) [& 4 a^2 rho (z - v + 2 a) Q_(+)(v) - 2 a Q_(+)(z) Q_(+)(v) \
   & + 4 a^2 (1 - rho)(z + v + 2 a)(z v + q_0)]. $
-  The numerator is quadratic in $z$. Its $z$ coefficient is $4 a^2 Q_(+)(v) [rho - 1 + (1 - rho)] = 0$, because $v^2 + 2 a v + q_0 = Q_(+)(v)$. Its $z^2$ coefficient is $-2 a Q_(+)(v) + 4 a^2 (1 - rho) v = -2 a (v^2 + 2 a rho v + q_0)$, and its $z^0$ coefficient is $-2 a (v^2 + 2 q_0 - 4 a^2)(v^2 + 2 a rho v + q_0) + 2 a P(v)$ (identity (A2)). Times $epsilon$, this is the part of @eq-N without $zeta_r$. The term (b) is the rest, since $(v^2 - 2 a^2)(v^2 - a^2) - P(v) = -a^2 (v^2 - a^2)$ at $k = 0$.
+  The bracket is quadratic in $z$. Using $v^2 + 2 a v + q_0 = Q_(+)(v)$, its coefficients are
+  $ z^1: quad & 4 a^2 Q_(+)(v) [rho - 1 + (1 - rho)] = 0, \
+  z^2: quad & -2 a Q_(+)(v) + 4 a^2 (1 - rho) v = -2 a (v^2 + 2 a rho v + q_0), \
+  z^0: quad & -2 a (v^2 + 2 q_0 - 4 a^2)(v^2 + 2 a rho v + q_0) + 2 a P(v) quad "(identity (A2))". $
+  Times $epsilon$, this is the part of @eq-N without $zeta_r$. The term (b) is the rest, since $(v^2 - 2 a^2)(v^2 - a^2) - P(v) = -a^2 (v^2 - a^2)$ at $k = 0$.
 ]
 
 So, after multiplication by $P$, the finite-rank part of $chi_r$ has only two output directions, $1$ and $z^2$.
 
 == Rank-two sums
 
-#lemma(title: [rank-two sums], lean: [`hasSum_rank_two` (`PHSums.lean`), with the residues at the zeros of $P$ written out (`Rhat`).])[
+#lemma(title: [rank-two sums], lean: "yes")[
   For $x$ off the lattice with $P(x) != 0$, and every $z$,
   $ cal(I)(z; x) := sum_l frac(N(z, z_l), P(z_l)(z_l - x)) = overline(cal(I))(z; x) + alpha_k (x) frac(N(z, x), rho P(x)), $ <eq-U>
   absolutely convergent, where
@@ -463,12 +621,18 @@ So, after multiplication by $P$, the finite-rank part of $chi_r$ has only two ou
 
 _Strategy._ For $U = 0$, $chi_r = bold(B)$ and $Gamma_"d" = Gamma_"m" = 0$; let $U != 0$. Fix a lattice point $v = z_m$. We construct a bounded function $y_v$ on the lattice with $chi_r y_v = bold(e)_m$, the $m$-th unit vector. By @eq-chi-ph this means, for every lattice point $z$,
 $ -beta H(z) y_v (z) + lambda (cC y_v)(z) + sum_l frac(N(z, z_l), P(z_l)) y_v (z_l) = P(v) delta_(z v). $ <eq-column>
-For $l != n$, $chi_(r, n l) = O(|z_l|^(-2))$ by @eq-chi-uu, @eq-chi-ud and @eq-input, so $sum_l chi_(r, n l) y_v (z_l)$ converges absolutely. Its parts in @eq-column converge at least as PV sums (@lem-calculus, @lem-res), so they may be evaluated separately. We use @lem-U at $x = -v$, and @lem-calculus and @lem-U at $x = plus.minus u_j$. These points are off the lattice ($mu != 0$, $e(z_n) != 0$), and $P(-v) = P(v) != 0$. We first assume that $P(u_j) != 0$ for the non-atomic pairs; Step 5 removes this assumption.
+For $l != n$, $chi_(r, n l) = O(|z_l|^(-2))$ by @eq-chi-uu, @eq-chi-ud and @eq-input, so $sum_l chi_(r, n l) y_v (z_l)$ converges absolutely. Its parts in @eq-column converge at least as PV sums (@lem-calculus, @lem-res), so they may be evaluated separately.
 
-_Step 1 (the Cauchy column)._ Through $C$, a unit vector at $v$ produces the column $lambda rho slash (z + v)$. Conversely, $C$ maps $1 slash (t + v)$ back to a unit vector: $cC[(t + v)^(-1)](z) = rho^(-1) sum_l C(z, z_l) C(z_l, v) = (h^2 slash rho) delta_(z v)$ by @lem-C2. So try $y = D_v delta_(z v) + E_v slash (z + v)$. Insert it into the left side of @eq-column. Use $H(z) = H(-v) + (z + v)(z - v + 2 a rho)$, and @eq-U at $x = -v$, where $alpha_k (-v) = 0$ (@lem-mirror). The left side becomes
+We use @lem-U at $x = -v$, and @lem-calculus and @lem-U at $x = plus.minus u_j$. These points are off the lattice ($mu != 0$, $e(z_n) != 0$), and $P(-v) = P(v) != 0$. We first assume that $P(u_j) != 0$ for the non-atomic pairs; Step 5 removes this assumption.
+
+_Step 1 (the Cauchy column)._ Through $C$, a unit vector at $v$ produces the column $lambda rho slash (z + v)$. Conversely, $C$ maps $1 slash (t + v)$ back to a unit vector: by @lem-C2,
+$ cC[(t + v)^(-1)](z) = rho^(-1) sum_l C(z, z_l) C(z_l, v) = (h^2 slash rho) delta_(z v). $
+So try $y = D_v delta_(z v) + E_v slash (z + v)$. Insert it into the left side of @eq-column, using $H(z) = H(-v) + (z + v)(z - v + 2 a rho)$, and @eq-U at $x = -v$, where $alpha_k (-v) = 0$ (@lem-mirror). The left side becomes
 $ [-beta H(v) D_v + frac(lambda h^2, rho) E_v] delta_(z v) + frac(lambda rho D_v - beta H(-v) E_v, z + v) \
 - beta E_v (z - v + 2 a rho) + D_v frac(N(z, v), P(v)) + E_v overline(cal(I))(z; -v). $
-We choose $D_v$, $E_v$ such that the first term is $P(v) delta_(z v)$ and the second vanishes. The determinant of these two linear equations is $beta^2 H(v) H(-v) - lambda^2 h^2 = beta^2 e(v) != 0$, and the solution is
+We choose $D_v$, $E_v$ such that the first term is $P(v) delta_(z v)$ and the second vanishes:
+$ -beta H(v) D_v + frac(lambda h^2, rho) E_v = P(v), quad quad lambda rho D_v - beta H(-v) E_v = 0. $
+The determinant of this system is $beta^2 H(v) H(-v) - lambda^2 h^2 = beta^2 e(v) != 0$, and the solution is
 $ D_v = -frac(H(-v) P(v), beta e(v)), quad quad E_v = -frac(lambda rho F(v), beta^2). $
 With these values the remaining terms are $1 slash (beta e(v))$ times the left side of the identity (A7),
 $ lambda rho (z - v + 2 a rho) P(v) - H(-v) N(z, v) - frac(lambda rho, beta) P(v) overline(cal(I))(z; -v) \
@@ -476,11 +640,15 @@ $ lambda rho (z - v + 2 a rho) P(v) - H(-v) N(z, v) - frac(lambda rho, beta) P(v
 Here $W(z; s) := W_0 (s) + z^2 W_2 (s)$ with polynomials $W_0$, $W_2$ of degree one in $s$, given in @app-identities. Both sides of @eq-source are polynomials in $z$ and $v$ (@lem-U). So the remaining terms are the polynomial
 $ frac(1, beta) [-N_2 (z) + lambda rho z (F(v) - 1) + lambda frac(W(z; v^2), e(v))]. $ <eq-defect>
 
-_Step 2 (the constant)._ For $y = 1$ the left side of @eq-column is $-beta H(z) + lambda overline(c) + PV sum_l N(z, z_l) slash P(z_l) = beta N_2 (z) slash (2 epsilon a)$, by $cC[1] = overline(c)$ (@lem-calculus) and identity (A6). So adding the constant $2 epsilon a slash beta^2$ to $y$ removes the first term of @eq-defect.
+_Step 2 (the constant)._ For $y = 1$ the left side of @eq-column is
+$ -beta H(z) + lambda overline(c) + PV sum_l frac(N(z, z_l), P(z_l)) = frac(beta N_2 (z), 2 epsilon a), $
+by $cC[1] = overline(c)$ (@lem-calculus) and identity (A6). So adding the constant $2 epsilon a slash beta^2$ to $y$ removes the first term of @eq-defect.
 
 _Step 3 (pole pairs)._ The rest of @eq-defect must be removed by functions that are mapped to polynomials. A simple pole $1 slash (t - x)$ is mapped by $-beta H + lambda cC$ to poles at $x$ and at $-x$ (@lem-calculus). So consider $phi = f_+ slash (t - x) + f_- slash (t + x)$. For it, the left side of @eq-column is a polynomial plus
 $ frac(-beta H(x) f_+ + lambda alpha_k (-x) f_-, z - x) + frac(lambda alpha_k (x) f_+ - beta H(-x) f_-, z + x). $
-For $x != 0$, both residues vanish for some $(f_+, f_-) != 0$ iff the determinant $beta^2 H(x) H(-x) - lambda^2 alpha_k (x) alpha_k (-x) = beta^2 e(x)$ vanishes (@eq-alpha), i.e. iff $x = plus.minus u_j$. For $x = u_j$ we take
+For $x != 0$, both residues vanish for some $(f_+, f_-) != 0$ if and only if the determinant
+$ beta^2 H(x) H(-x) - lambda^2 alpha_k (x) alpha_k (-x) = beta^2 e(x) $
+vanishes (@eq-alpha), i.e. if and only if $x = plus.minus u_j$. For $x = u_j$ we take
 $ phi_j (t) := frac(beta H(-u_j), t - u_j) + frac(lambda alpha_j, t + u_j) = frac(K_j t + u_j [beta H(-u_j) - lambda alpha_j], t^2 - s_j), quad quad alpha_j := alpha_k (u_j). $ <eq-mode>
 (For $u_j = 0$ the two poles coincide, $phi_j = K_j slash t$, and what follows holds unchanged.) With $H(z) - H(plus.minus u_j) = (z minus.plus u_j)(z plus.minus u_j + 2 a rho)$, the polynomial part is
 $ -beta [K_j (z + 2 a rho) + u_j (beta H(-u_j) - lambda alpha_j)] + beta H(-u_j) cal(I)(z; u_j) + lambda alpha_j cal(I)(z; -u_j). $
@@ -495,23 +663,30 @@ $ P(z) (chi_r phi_j)(z) = -beta K_j [z + frac(W(z; s_j), rho P(u_j))]. $ <eq-mod
 
 _Step 4 (solving)._ $P$ and $e$ are monic and even of degree four, and $W(z; s)$ has degree one in $s$. Partial fractions in $v^2$ therefore give
 $ F(v) - 1 = sum_j F_j g_j (v), quad quad frac(W(z; v^2), e(v)) = sum_j frac(W(z; s_j), s_j - s_ell) g_j (v), quad quad F_j := frac(P(u_j), s_j - s_ell). $
-So the last two terms of @eq-defect are $beta^(-1) sum_j lambda rho F_j g_j (v) [z + W(z; s_j) slash (rho P(u_j))]$. By Steps 1–3 and @eq-mode-image,
+So the last two terms of @eq-defect are
+$ frac(1, beta) sum_j lambda rho F_j g_j (v) [z + frac(W(z; s_j), rho P(u_j))]. $
+By Steps 1–3 and @eq-mode-image,
 $ y_v (z) := D_v delta_(z v) + frac(E_v, z + v) + frac(1, beta^2) [2 epsilon a + lambda rho sum_j frac(F_j g_j (v), K_j) phi_j (z)] $
-solves @eq-column. To read off $Gamma_r$, note that $lambda rho F_j g_j (v) phi_j (z) slash K_j = lambda rho F_j z g_j (z) g_j (v) + gamma_j g_j (z) g_j (v)$ by @eq-mode. Further, $F(z) - F(v) = -(z^2 - v^2) sum_j F_j g_j (z) g_j (v)$ gives
+solves @eq-column. To read off $Gamma_r$, note that by @eq-mode
+$ frac(lambda rho F_j g_j (v) phi_j (z), K_j) = lambda rho F_j z g_j (z) g_j (v) + gamma_j g_j (z) g_j (v), $
+and that $F(z) - F(v) = -(z^2 - v^2) sum_j F_j g_j (z) g_j (v)$ gives
 $ DD(z, v) = frac(F(v), z + v) - z sum_j F_j g_j (z) g_j (v). $ <eq-defect-dd>
 Hence
 $ y_v (z) = -frac(H(-z) P(z), beta e(z)) delta_(z v) + frac(1, beta^2) [2 epsilon a - lambda rho DD(z, v) + sum_j gamma_j g_j (z) g_j (v)]. $
 By @eq-G and @eq-Qfact, $B_n = -beta G_2 (z_n) slash P(z_n)$; so by @eq-Gamma-def, $beta^2 [y_(z_m)(z_n) - delta_(n m) slash B_n]$ is the right side of @eq-Gamma-ph.
 
 _Step 5 (two-sidedness, branches, special cases)._
-- Let $Y_(n m) := y_(z_m)(z_n)$, so that $chi_r Y = bb(1)$. $Y$ is symmetric because $DD$ is, and so is $chi_r$ (@eq-chi-uu, @eq-chi-ud, @eq-input). Hence $(Y chi_r)_(n m) = sum_l chi_(r, m l) Y_(l n) = (chi_r Y)_(m n) = delta_(n m)$, the same absolutely convergent series.
-- Let $K(u) := beta H(-u) + lambda alpha_k (u)$. Since $alpha_k (u) alpha_k (-u) = h^2$ (@eq-alpha), for every $u$
+- _Two-sidedness._ Let $Y_(n m) := y_(z_m)(z_n)$, so that $chi_r Y = bb(1)$. $Y$ is symmetric because $DD$ is, and so is $chi_r$ (@eq-chi-uu, @eq-chi-ud, @eq-input). Hence, with the same absolutely convergent series,
+  $ (Y chi_r)_(n m) = sum_l chi_(r, m l) Y_(l n) = (chi_r Y)_(m n) = delta_(n m). $
+- _Branches._ Let $K(u) := beta H(-u) + lambda alpha_k (u)$. Since $alpha_k (u) alpha_k (-u) = h^2$ (@eq-alpha), for every $u$
   $ frac(beta H(-u) - lambda alpha_k (u), K(u)) + frac(beta H(u) - lambda alpha_k (-u), K(-u)) = frac(2 beta^2 e(u), K(u) K(-u)). $ <eq-branch>
   At a root the right side vanishes, so $Z_j$ and $gamma_j$ do not depend on the sign of $u_j$.
-- _Confluent roots._ By @eq-branch, the odd part $[Z(u) - Z(-u)] slash 2 = beta^2 u P(u) e(u) slash (K(u) K(-u))$ vanishes at the roots, so $Z(s_j) = Z_j$ for the even part $Z(s)$ of @thm-ph. Hence the sum over $j$ in @eq-Gamma-ph is $lambda rho$ times the divided difference of $s |-> Z(s) slash ((z_n^2 - s)(z_m^2 - s))$ at $s_1$, $s_2$. Near a double root $u_star^2$, $Z(u)$ is analytic in $u$ at $plus.minus u_star$: $K(u_star) != 0$, and at a root $K(u) = 0$ iff $K(-u) = 0$ (@eq-alpha, @eq-Delta). So $Z(s)$, an even analytic function of $u$, is analytic in $s$, also for $u_star = 0$. As $mu$ approaches a value where $s_1 = s_2$ (a zero of the discriminant of $e$, a nonconstant analytic function of $mu$), the divided difference converges to the derivative stated in @thm-ph, and @lem-cont extends $chi_r Y = bb(1)$.
-- For $r = "m"$ and $k = 0$ the atomic pair has $F_1 = P(a) slash (a^2 - s_2) = 0$ and $W(z; a^2) = 0$ (@app-identities). So its terms in Step 4 vanish, and Step 3 is needed only for the non-atomic pair.
+- _Confluent roots (item 2 of @prop-special)._ By @eq-branch, the odd part
+  $ frac(Z(u) - Z(-u), 2) = frac(beta^2 u P(u) e(u), K(u) K(-u)) $
+  vanishes at the roots, so $Z(s_j) = Z_j$ for the even part $Z(s)$. Hence the sum over $j$ in @eq-Gamma-ph is $lambda rho$ times the divided difference of $s |-> Z(s) slash ((z_n^2 - s)(z_m^2 - s))$ at $s_1$, $s_2$. Near a double root $u_star^2$, $Z(u)$ is analytic in $u$ at $plus.minus u_star$: $K(u_star) != 0$, and at a root $K(u) = 0$ if and only if $K(-u) = 0$ (@eq-alpha, @eq-Delta). So $Z(s)$, an even analytic function of $u$, is analytic in $s$, also for $u_star = 0$. As $mu$ approaches a value where $s_1 = s_2$ (a zero of the discriminant of $e$, a nonconstant analytic function of $mu$), the divided difference converges to the derivative, and @lem-cont extends $chi_r Y = bb(1)$.
+- _The atomic pair._ For $r = "m"$ and $k = 0$ the atomic pair has $F_1 = P(a) slash (a^2 - s_2) = 0$ and $W(z; a^2) = 0$ (@app-identities). So its terms in Step 4 vanish, and Step 3 is needed only for the non-atomic pair.
 - _Excluded cases._ Steps 1–4 assumed $P(u_j) != 0$ for the non-atomic pairs; they hold for $u_j = 0$ as well. For $r = "m"$, $k = 0$, $P(u_2) = 0$ would mean $s_2 = a^2 = s_1$, which is excluded. Otherwise, fix $k$: the values of $mu$ where the assumption fails are zeros of the resultant of $e$ and $P$, a nonconstant analytic function of $mu$, so such values are isolated. @eq-Gamma-ph has no $P(u_j)$ in a denominator and depends on $s_j$ only. Near such a value, $chi_(r, n l) = O(|z_l|^(-2))$ for $l != n$ and $Y_(l m)$ is bounded, uniformly; so @lem-cont extends $chi_r Y = bb(1)$.
-- _Lattice roots._ The case $e(z_n) = 0$ is treated in @app-details. $square$
+- _Lattice roots._ The case $e(z_n) = 0$ (item 3 of @prop-special) is treated in @app-details. $square$
 
 *Acknowledgment.* The derivations, proofs and verification scripts were developed with the help of AI assistants (Anthropic's Claude and OpenAI's GPT models). Every identity is checked by computer algebra (@app-identities) and every result numerically (@app-checks); @app-lean lists what is formalized in Lean.
 
@@ -522,14 +697,17 @@ _Step 5 (two-sidedness, branches, special cases)._
 
 = Rational identities <app-identities>
 
-Each identity is checked exactly with SymPy: (A1)–(A5) by `doped-gamma/verify_identities.py`, (A6) and (A7) by `doped-gamma/verify_dm.py` (both channels, $k != 0$ and $k = 0$, all parameters free). In Lean (@app-lean), (A1) and (A3) are proved as `compact_input` and `regular_pp`, (A4) as `singlet_A4`, (A6) as `identity_A6` and (A7) as `identity_A7`; (A2) and the first part of (A5) are proved within `Pph_mul_chiR`, and the consequences $e(a) = 0$ and $W_0 (a^2) = W_2 (a^2) = 0$ for $r = "m"$, $k = 0$ are `atomic_root`.
+Each identity is checked exactly with SymPy: (A1)–(A5) by `doped-gamma/verify_identities.py`, (A6) and (A7) by `doped-gamma/verify_dm.py` (both channels, $k != 0$ and $k = 0$, all parameters free). Lean proves them too (@tab-lean).
 
 / (A1): the twelve terms of @app-R equal the two-term form in the proof of @lem-input; and $Pi(x_n, x_m) = (z + v - 2 a)^2 slash (Q_(-)(z) Q_(-)(v))$.
-/ (A2): the $z^0$ coefficient in the proof of @prop-ph: $4 a^2 rho (2 a - v) Q_(+)(v) - 2 a q_0 Q_(+)(v) + 4 a^2 (1 - rho) q_0 (v + 2 a) = -2 a (v^2 + 2 q_0 - 4 a^2)(v^2 + 2 a rho v + q_0) + 2 a P(v)$.
+/ (A2): the $z^0$ coefficient in the proof of @prop-ph:
+  $ & 4 a^2 rho (2 a - v) Q_(+)(v) - 2 a q_0 Q_(+)(v) + 4 a^2 (1 - rho) q_0 (v + 2 a) \
+  & = -2 a (v^2 + 2 q_0 - 4 a^2)(v^2 + 2 a rho v + q_0) + 2 a P(v). $
 / (A3): @eq-pp-ids; $z v + q_0 = a^2 + (t_n + t_m) slash 2$ at transfer $w' = b - x_n - x_m$; @eq-chi-s-num and @eq-chi-s-reg from the twelve terms of @app-R at $w'$ with $c = rho slash b$.
 / (A4): $Xi = diag(-1 slash a, K_"s" slash (a d_+ d_-))$ in the proof of @thm-s, and $d_+ d_- = cal(P)(-As)$.
 / (A5): the $delta_(n m)$ and $delta_(k 0)$ identities in the proof of @prop-ph, and $H(a) = 4 a^2 p_2$, $H(-a) = 4 a^2 p_0$ for $r = "m"$, $k = 0$.
-/ (A6): Step 2 of the proof of @thm-ph: $-beta H(z) + lambda overline(c) + PV sum_l N(z, z_l) slash P(z_l) = beta N_2 (z) slash (2 epsilon a)$, the sum evaluated by @lem-res and @lem-U.
+/ (A6): Step 2 of the proof of @thm-ph, the sum evaluated by @lem-res and @lem-U:
+  $ -beta H(z) + lambda overline(c) + PV sum_l frac(N(z, z_l), P(z_l)) = frac(beta N_2 (z), 2 epsilon a). $
 / (A7): @eq-source, where $overline(cal(I))$ is evaluated by @lem-U and, with $pi.alt := 4 (p_0 p_2 - p_1^2)$,
   $ W_0 (s) &:= epsilon a q_0 [pi.alt - 2 epsilon (1 - rho^2)] (s + q_0 + 2 epsilon a^2) + delta beta a^4 psi(s), \
   W_2 (s) &:= epsilon a pi.alt (s + q_0 + 2 epsilon a^2) - delta beta a^2 psi(s), \
@@ -538,41 +716,71 @@ Each identity is checked exactly with SymPy: (A1)–(A5) by `doped-gamma/verify_
 
 = Analytic details <app-details>
 
-#lemma(title: [continuity], lean: [not formalized. Lean does without it: at the lattice zeros of @thm-s and @cor-hf it verifies the limiting inverses @eq-Gamma-s-lz, @eq-Gamma-hf-lz directly, and it proves the case $s_1 = s_2$ of @thm-ph by differentiating the lattice sums termwise.])[
-  Let $chi(p)$ and $Y(p)$ be matrices indexed by the lattice, depending on a real parameter $p$ ($mu$ or $beta$) near $p_0$, with entries continuous at $p_0$. Suppose that for all $n$, $m$ there are $c_(n m)$ and a finite set of indices $l$ outside of which $|chi(p)_(n l) Y(p)_(l m)| <= c_(n m) (1 + l^2)^(-1)$ for all these $p$. If $chi(p) Y(p) = bb(1)$ for $p != p_0$, then also $chi(p_0) Y(p_0) = bb(1)$.
+#lemma(title: [continuity])[
+  Let $chi(p)$ and $Y(p)$ be matrices indexed by the lattice, depending on a real parameter $p$ ($mu$ or $beta$) near $p_0$, with entries continuous at $p_0$. Suppose that for all $n$, $m$ there are $c_(n m)$ and a finite set of indices $l$ outside of which, for all these $p$,
+  $ |chi(p)_(n l) Y(p)_(l m)| <= frac(c_(n m), 1 + l^2). $ If $chi(p) Y(p) = bb(1)$ for $p != p_0$, then also $chi(p_0) Y(p_0) = bb(1)$.
 ] <lem-cont>
 #proof[
   For fixed $n$, $m$, the finitely many exceptional terms of $sum_l chi_(n l) Y_(l m)$ are continuous at $p_0$, and the sum of the others is continuous by dominated convergence.
 ]
 
-*Zeros of $e(z_n)$ at $mu != 0$.* Since $e$ has real coefficients and $z_(overline(n)) = z_n^*$, $e(z_(overline(n))) = e(z_n)^*$: lattice zeros of $e$ come in mirror orbits $O = {n, overline(n)}$, with one element if $n = overline(n)$. Let $e$ vanish on one orbit $O$ at $mu = mu_0 != 0$, the other assumptions of @thm-ph holding (with $s_1 != s_2$ at $mu_0$). As $e(z_n)$ is a nonconstant analytic function of $mu$, @thm-ph holds for $mu != mu_0$ near $mu_0$. Each root $u_j$ that tends to a point $z_c$, $c in O$, has $(z_c - u_j) alpha_j -> rho != 0$ and $K_j -> oo$, since $(z_c - u) S_k (u) -> 1$ as $u -> z_c$ (@lem-S). In the column $y_v$ of Step 4 with $v = z_m$, $m in.not O$, the coefficients $D_v$, $E_v$ and $F_j g_j (v)$ stay bounded. By @eq-mode, for $c in O$,
-$ frac(phi_j (z_c), K_j) = frac(beta H(-u_j) slash (z_c - u_j) + lambda alpha_j slash (z_c + u_j), beta H(-u_j) + lambda alpha_j) -> frac(beta H(-z_c), lambda rho) + frac(1, 2 z_c) quad (u_j -> z_c), $
-it tends to $1 slash (z_c + z_(c'))$ if $u_j -> z_(c')$ with $c' != c$, and it stays bounded otherwise. So $Y_(c m) = y_(z_m)(z_c) = Y_(m c)$ converges for $c in O$, $m in.not O$, boundedly in $m$. For the block $(Y_(c c'))_(c, c' in O)$, row $l in.not O$ of $chi_r Y = bb(1)$ gives $sum_(c in O) chi_(r, l c) Y_(c c') = -sum_(l' in.not O) chi_(r, l l') Y_(l' c')$, whose right side converges by dominated convergence. The columns $P(z_l) chi_(r, l c) = lambda rho slash (z_l + z_c) + N(z_l, z_c) slash P(z_c)$, $c in O$ (@eq-chi-ph), are linearly independent rational functions of $z_l$, with distinct poles at $-z_c$. So $|O|$ rows $l in.not O$ can be chosen for which the matrix $(chi_(r, l c)(mu_0))$ is invertible, and the block converges. All entries of $Y$ converge, boundedly off the diagonal, and @lem-cont gives $chi_r Y = bb(1)$ at $mu_0$.
+*Lattice zeros at $mu != 0$ (item 3 of @prop-special).* Since $e$ has real coefficients and $z_(overline(n)) = z_n^*$, $e(z_(overline(n))) = e(z_n)^*$: lattice zeros of $e$ come in mirror orbits $O = {n, overline(n)}$. Let $e$ vanish on one orbit $O$ at $mu = mu_0 != 0$, the other assumptions of @thm-ph holding at $mu_0$. As $e(z_n)$ is a nonconstant analytic function of $mu$, @thm-ph holds for $mu != mu_0$ near $mu_0$. We show that the entries of its inverse $Y$ (Step 4) converge as $mu -> mu_0$, boundedly off the diagonal; then @lem-cont gives $chi_r Y = bb(1)$ at $mu_0$.
+- _Roots near the lattice._ Each root $u_j$ that tends to a point $z_c$, $c in O$, has $(z_c - u_j) alpha_j -> rho != 0$ and $K_j -> oo$, since $(z_c - u) S_k (u) -> 1$ as $u -> z_c$ (@lem-S).
+- _Columns off the orbit._ In the column $y_v$ of Step 4 with $v = z_m$, $m in.not O$, the coefficients $D_v$, $E_v$ and $F_j g_j (v)$ stay bounded. By @eq-mode, for $c in O$,
+  $ frac(phi_j (z_c), K_j) = frac(beta H(-u_j) slash (z_c - u_j) + lambda alpha_j slash (z_c + u_j), beta H(-u_j) + lambda alpha_j) -> frac(beta H(-z_c), lambda rho) + frac(1, 2 z_c) quad (u_j -> z_c); $
+  it tends to $1 slash (z_c + z_(c'))$ if $u_j -> z_(c')$ with $c' != c$, and it stays bounded otherwise. So $Y_(c m) = y_(z_m)(z_c) = Y_(m c)$ converges for $c in O$, $m in.not O$, boundedly in $m$.
+- _The block on the orbit._ Row $l in.not O$ of $chi_r Y = bb(1)$ gives
+  $ sum_(c in O) chi_(r, l c) Y_(c c') = -sum_(l' in.not O) chi_(r, l l') Y_(l' c'), $
+  whose right side converges by dominated convergence. By @eq-chi-ph, the columns
+  $ P(z_l) chi_(r, l c) = frac(lambda rho, z_l + z_c) + frac(N(z_l, z_c), P(z_c)), quad c in O, $
+  are linearly independent rational functions of $z_l$, with distinct poles at $-z_c$. So $|O|$ rows $l in.not O$ can be chosen for which the matrix $(chi_(r, l c)(mu_0))$ is invertible, and the block converges.
 
-*Zeros of $e(z_n)$ at $mu = 0$.* Let $beta H(z_n) = lambda h$ with $n != overline(n)$ at $beta = beta_0$, so that $z_n^2 = hat(s)$ and $e(z) = (z^2 - hat(s))(z^2 - hat(s) + 2 lambda h slash beta)$. As $beta -> beta_0$, $hat(u) -> z_n$. The diagonal and mirror terms of @eq-Gamma-hf contribute $-lambda h P(z_n) slash e(z_n) + O(1) = -beta P(z_n) slash (2 (z_n^2 - hat(s))) + O(1)$ to each of the entries $(n, n)$ and $(n, overline(n))$. Since $S_k (hat(u)) = 1 slash (z_n - hat(u)) + O(1)$, $hat(D) = 2 epsilon a slash (hat(u)(hat(u) - z_n)) + O(1)$, so the separable term contributes $beta P(z_n) slash (2 (z_n^2 - hat(s))) + O(1)$ to the same entries and $O(1)$ to the others. The singular parts cancel.
+*Lattice zeros at $mu = 0$ (item 4 of @prop-special).* Let $beta H(z_n) = lambda h$ with $n != overline(n)$ at $beta = beta_0$, so that $z_n^2 = hat(s)$ and
+$ e(z) = (z^2 - hat(s))(z^2 - hat(s) + 2 lambda h slash beta). $
+As $beta -> beta_0$, $hat(u) -> z_n$. The diagonal and mirror terms of @eq-Gamma-hf contribute
+$ -frac(lambda h P(z_n), e(z_n)) + O(1) = -frac(beta P(z_n), 2 (z_n^2 - hat(s))) + O(1) $
+to each of the entries $(n, n)$ and $(n, overline(n))$. Since $S_k (hat(u)) = 1 slash (z_n - hat(u)) + O(1)$,
+$ hat(D) = frac(2 epsilon a, hat(u)(hat(u) - z_n)) + O(1), $
+so the separable term contributes $beta P(z_n) slash (2 (z_n^2 - hat(s))) + O(1)$ to the same entries and $O(1)$ to the others. The singular parts cancel.
 
-At a mirror fixed point $n = overline(n)$ (odd $k$, $z_n = 0$), let $e(0) = 0$ at $beta = beta_0$. The diagonal and mirror terms of @eq-Gamma-hf act on the same entry $(n, n)$. As $beta^2 e(0) = (beta H(0) - lambda h)(beta H(0) + lambda h)$, they combine to $beta P(0) slash G_2 (0) - beta^2 P(0) slash (beta H(0) - lambda h)$. If $beta H(0) = -lambda h$ at $beta_0$, this stays finite, and under the remaining assumptions of @cor-hf nothing else is singular. If $beta H(0) = lambda h$, then $s := hat(s) -> 0$, and the combination is $beta P(0) slash s + O(1)$, as $beta H(0) - lambda h = -beta s$. For odd $k$, $coth(beta hat(u) slash 2) slash hat(u) = 2 slash (beta s) + O(1)$, so $hat(D) = 2 epsilon a slash s + O(1)$, and the separable term is $-2 epsilon a beta P(hat(u)) hat(g)(0)^2 slash hat(D) = -beta P(0) slash s + O(1)$ at $(n, n)$ and $O(1)$ elsewhere. The singular parts cancel again.
-
+At a mirror fixed point $n = overline(n)$ (odd $k$, $z_n = 0$), let $e(0) = 0$ at $beta = beta_0$. The diagonal and mirror terms of @eq-Gamma-hf act on the same entry $(n, n)$. As $beta^2 e(0) = (beta H(0) - lambda h)(beta H(0) + lambda h)$, they combine to
+$ frac(beta P(0), G_2 (0)) - frac(beta^2 P(0), beta H(0) - lambda h). $
+- If $beta H(0) = -lambda h$ at $beta_0$, this stays finite, and under the remaining assumptions of @cor-hf nothing else is singular.
+- If $beta H(0) = lambda h$, then $hat(s) -> 0$, and the combination is $beta P(0) slash hat(s) + O(1)$, as $beta H(0) - lambda h = -beta hat(s)$. For odd $k$, $coth(beta hat(u) slash 2) slash hat(u) = 2 slash (beta hat(s)) + O(1)$, so $hat(D) = 2 epsilon a slash hat(s) + O(1)$, and the separable term is
+  $ -frac(2 epsilon a beta P(hat(u)), hat(D)) hat(g)(0)^2 = -frac(beta P(0), hat(s)) + O(1) $
+  at $(n, n)$ and $O(1)$ elsewhere. The singular parts cancel again.
 In all these cases @eq-Gamma-hf extends continuously, and @lem-cont (with $p = beta$) gives $chi_r Y = bb(1)$ at $beta_0$.
 
-
 #proof(of: [@cor-hf])[
-  Take $mu -> 0$ at fixed $k$ in @eq-Gamma-ph. Then $rho -> 0$, $overline(c) -> h$ and $C_(n m) -> h delta_(m overline(n))$ (@eq-C). One root $s_j$ of $e$ tends to $hat(s)$, the other, $s_ell$, to $-4 epsilon a^2 (p_0 + p_1) - q_0$. At a root $u_j$ put $X_(plus.minus) := beta H(plus.minus u_j)$. Then $X_+ X_- = lambda^2 h^2$ (@eq-Delta) and $X_+ - X_- = 4 a beta rho u_j$. With $overline(c)^2 = h^2 + beta^2 rho^2 slash 4$ (@eq-weight-ids) this gives
+  Take $mu -> 0$ at fixed $k$ in @eq-Gamma-ph. Then $rho -> 0$, $overline(c) -> h$ and $C_(n m) -> h delta_(m overline(n))$ (@eq-C). One root $s_j$ of $e$ tends to $hat(s)$, the other, $s_ell$, to $hat(s)'$. At a root $u_j$ put $X_(plus.minus) := beta H(plus.minus u_j)$. Then, by @eq-Delta,
+  $ X_+ X_- = lambda^2 h^2, quad quad X_+ - X_- = 4 a beta rho u_j, $
+  and with $overline(c)^2 = h^2 + beta^2 rho^2 slash 4$ (@eq-weight-ids) this gives
   $ (X_- - lambda overline(c))(X_- + lambda overline(c)) = -rho (4 a beta u_j X_- + lambda^2 beta^2 rho slash 4). $
-  By @eq-alpha-def, $K_j = X_- - lambda overline(c) + lambda rho S_k (u_j)$ and $X_- - lambda alpha_k (u_j) = X_- + lambda overline(c) - lambda rho S_k (u_j)$.
-  - _The pair $j$._ Here $X_(plus.minus) -> lambda h$, so the identity gives $(X_- - lambda overline(c)) slash rho -> -2 a beta hat(u)$. Hence $K_j slash rho -> lambda S_k (hat(u)) - 2 a beta hat(u) = -2 a hat(u) hat(D)$, $X_- - lambda alpha_k (u_j) -> 2 lambda h$ and $s_j - s_ell -> 2 lambda h slash beta$. So $gamma_j -> -2 epsilon a beta P(hat(u)) slash hat(D)$ if $hat(u) != 0$.
+  By @eq-alpha-def,
+  $ K_j = X_- - lambda overline(c) + lambda rho S_k (u_j), quad quad X_- - lambda alpha_k (u_j) = X_- + lambda overline(c) - lambda rho S_k (u_j). $
+  - _The pair $j$._ Here $X_(plus.minus) -> lambda h$, so the identity gives $(X_- - lambda overline(c)) slash rho -> -2 a beta hat(u)$. Hence
+    $ frac(K_j, rho) -> lambda S_k (hat(u)) - 2 a beta hat(u) = -2 a hat(u) hat(D), quad quad X_- - lambda alpha_k (u_j) -> 2 lambda h, quad quad s_j - s_ell -> frac(2 lambda h, beta), $
+    so $gamma_j -> -2 epsilon a beta P(hat(u)) slash hat(D)$ if $hat(u) != 0$.
   - _The pair $ell$._ Here $X_(plus.minus) -> -lambda h$, so $K_ell -> -2 lambda h$, $X_- - lambda alpha_k (u_ell) -> 0$ and $gamma_ell -> 0$. (For $r = "m"$, $k = 0$ this is the atomic pair, absent anyway.)
-  - _The dense term._ By @eq-defect-dd, $lambda rho DD(z_n, z_m) = lambda C_(n m) F(z_m) - lambda rho z_n sum_j F_j g_j (z_n) g_j (z_m) -> lambda h F(z_n) delta_(m overline(n))$, since $z_(overline(n)) = -z_n$ at $mu = 0$ and $F$ is even.
-  So @eq-Gamma-ph tends entrywise to @eq-Gamma-hf. For small $mu != 0$ the assumptions of @thm-ph hold: $e(z_n) != 0$ by continuity (automatically for large $|n|$), $s_1 != s_2$, $K_ell != 0$, and $K_j != 0$ because $K_j slash rho -> -2 a hat(u) hat(D) != 0$ (for $hat(u) != 0$). The entries of $C$ are bounded uniformly near $mu = 0$ (by $beta rho slash (2 pi)$ for $m != overline(n)$, and $rho slash (2 mu) -> beta p_0$). So $chi_(r, n l) = O(|z_l|^(-2))$ for $l != n$, and the entries of $Y = Gamma_r slash beta^2 + bold(B)^(-1)$, with $Gamma_r$ from @eq-Gamma-ph, are bounded off the diagonal, uniformly near $mu = 0$. So @lem-cont gives $chi_r Y = bb(1)$ at $mu = 0$; $Y$ stays symmetric. Finally, for even $k$, $hat(u) = 0$ occurs at isolated $beta$, where @eq-Gamma-hf is continuous in $beta$ (as $hat(D) != 0$); @lem-cont with $p = beta$ covers it. For odd $k$, $hat(u) = 0$ means $e(0) = 0$ at the mirror fixed point, treated above.
+  - _The dense term._ By @eq-defect-dd, since $z_(overline(n)) = -z_n$ at $mu = 0$ and $F$ is even,
+    $ lambda rho DD(z_n, z_m) = lambda C_(n m) F(z_m) - lambda rho z_n sum_j F_j g_j (z_n) g_j (z_m) -> lambda h F(z_n) delta_(m overline(n)). $
+  So @eq-Gamma-ph tends entrywise to @eq-Gamma-hf.
+
+  It remains to show that the limit is an inverse. For small $mu != 0$ the assumptions of @thm-ph hold: $e(z_n) != 0$ by continuity (automatically for large $|n|$), $s_1 != s_2$, $K_ell != 0$, and $K_j != 0$ because $K_j slash rho -> -2 a hat(u) hat(D) != 0$ (for $hat(u) != 0$). The entries of $C$ are bounded uniformly near $mu = 0$ (by $beta rho slash (2 pi)$ for $m != overline(n)$, and $rho slash (2 mu) -> beta p_0$). So $chi_(r, n l) = O(|z_l|^(-2))$ for $l != n$, and the entries of $Y = Gamma_r slash beta^2 + bold(B)^(-1)$, with $Gamma_r$ from @eq-Gamma-ph, are bounded off the diagonal, uniformly near $mu = 0$. So @lem-cont gives $chi_r Y = bb(1)$ at $mu = 0$; $Y$ stays symmetric. Finally, for even $k$, $hat(u) = 0$ occurs at isolated $beta$, where @eq-Gamma-hf is continuous in $beta$ (as $hat(D) != 0$); @lem-cont with $p = beta$ covers it. For odd $k$, $hat(u) = 0$ means $e(0) = 0$ at the mirror fixed point, treated above.
 ]
 
 #proof(of: [@prop-box])[
-  Let $theta.alt_n := (1 + |z_n - mu|^2)^(1 slash 2)$, $bold(theta.alt) := diag(theta.alt_n)$, and $hat(chi) := bold(theta.alt) chi_r bold(theta.alt)$ on $ell^2$.
+  Rescale $chi_r$ to an operator on $ell^2$,
+  $ hat(chi) := bold(theta.alt) chi_r bold(theta.alt), quad quad bold(theta.alt) := diag(theta.alt_n), quad quad theta.alt_n := (1 + |z_n - mu|^2)^(1 slash 2). $
   - _$hat(chi) = kappa_r bb(1) + hat(chi)_c$ with $hat(chi)_c$ compact_, where $kappa_"d" = kappa_"m" = beta$ and $kappa_"s" = -kappa_"t" = beta slash 2$.
     - $r = "d", "m"$: by @eq-chi-ph, $chi_(r, n n) = -beta H(z_n) slash P(z_n) + O(z_n^(-4))$, so $theta.alt_n^2 chi_(r, n n) -> beta$. Off the diagonal, $chi_(r, n m) = O(|z_n|^(-2) |z_m|^(-2))$ by @eq-chi-uu, @eq-chi-ud and @eq-input. So these entries of $hat(chi)$ are square-summable, i.e. Hilbert–Schmidt.
-    - $r = "s", "t"$: $t_n slash theta.alt_n^2 -> 1$, so $theta.alt_n^2 B_n -> -beta slash 2$, $theta.alt_n^2 L_"s" (t_n) -> beta slash 2$ and $theta.alt_n^2 L_"t" (t_n) -> -beta slash 2$ (@eq-B-pp). By @eq-chi-pp, $hat(chi) - kappa_r bb(1)$ is a matrix supported on the diagonal and the mirror with entries tending to zero, which is compact, plus (for $r = "s"$) $bold(theta.alt) chi_("s", "reg") bold(theta.alt)$, which is Hilbert–Schmidt by @eq-chi-s-num.
+    - $r = "s", "t"$: $t_n slash theta.alt_n^2 -> 1$, so by @eq-B-pp
+      $ theta.alt_n^2 B_n -> -beta/2, quad quad theta.alt_n^2 L_"s" (t_n) -> beta/2, quad quad theta.alt_n^2 L_"t" (t_n) -> -beta/2. $
+      By @eq-chi-pp, $hat(chi) - kappa_r bb(1)$ is a matrix supported on the diagonal and the mirror with entries tending to zero, which is compact, plus (for $r = "s"$) $bold(theta.alt) chi_("s", "reg") bold(theta.alt)$, which is Hilbert–Schmidt by @eq-chi-s-num.
   - _$hat(chi)$ is invertible._ For each $m$, $hat(chi)$ maps $bold(theta.alt)^(-1) chi_r^(-1) bold(e)_m$ to $theta.alt_m bold(e)_m$: the $n$-th entry of the image is $theta.alt_n sum_l chi_(r, n l) (chi_r^(-1))_(l m) = theta.alt_n delta_(n m)$, an absolutely convergent series. The vector $bold(theta.alt)^(-1) chi_r^(-1) bold(e)_m$ lies in $ell^2$, because by the explicit formulas $(chi_r^(-1))_(n m)$ is bounded in $n$ for $n in.not {m, overline(m)}$. So the range of $hat(chi)$ contains all basis vectors; being closed (a compact perturbation of $kappa_r bb(1)$ has closed range), it is all of $ell^2$. A compact perturbation of $kappa_r bb(1)$ that is onto is also injective (Fredholm alternative), hence invertible.
-  _Convergence._ Let $bb(1)_M$ be the projection onto the box. Then $hat(chi)_M := bb(1)_M hat(chi) bb(1)_M + kappa_r (bb(1) - bb(1)_M)$ converges to $hat(chi)$ in norm, since $(bb(1) - bb(1)_M) hat(chi)_c -> 0$ and $hat(chi)_c (bb(1) - bb(1)_M) -> 0$ for compact $hat(chi)_c$. So $hat(chi)_M$ is invertible for all sufficiently large $M$, and $hat(chi)_M^(-1) -> hat(chi)^(-1)$ in norm. On the box, $hat(chi)_M^(-1) = bold(theta.alt)^(-1) (bb(1)_M chi_r bb(1)_M)^(-1) bold(theta.alt)^(-1)$.
+  - _Convergence._ Let $bb(1)_M$ be the projection onto the box. Then
+    $ hat(chi)_M := bb(1)_M hat(chi) bb(1)_M + kappa_r (bb(1) - bb(1)_M) $
+    converges to $hat(chi)$ in norm, since $(bb(1) - bb(1)_M) hat(chi)_c -> 0$ and $hat(chi)_c (bb(1) - bb(1)_M) -> 0$ for compact $hat(chi)_c$. So $hat(chi)_M$ is invertible for all sufficiently large $M$, and $hat(chi)_M^(-1) -> hat(chi)^(-1)$ in norm. On the box, $hat(chi)_M^(-1) = bold(theta.alt)^(-1) (bb(1)_M chi_r bb(1)_M)^(-1) bold(theta.alt)^(-1)$.
 ]
 
 #pagebreak(weak: true)
@@ -592,19 +800,205 @@ The regular part in @eq-pair is [Ref. @essl2024, Eq. (D3), at zero field]
 
 - *Mathematica:* `mathematica/doped_gamma.nb` derives #eqrange(<eq-chi-uu>, <eq-pair>) exactly from the Lehmann representation of @eq-H, checks @lem-input, @prop-pp, @prop-ph, the lemmas of @sec-sums and @sec-cauchy, @thm-t, @thm-s, Steps 1–4 of the proof of @thm-ph and (A2)–(A4), (A6), (A7) symbolically, and compares @thm-ph, @thm-s, @thm-t and @cor-hf with finite-box inversion (62 checks).
 - *Vertices* (`doped-gamma/check_vertices.jl`): @eq-Gamma-t and @eq-Gamma-s agree with an independent residue-based BigFloat evaluator (`doped-gamma/doped_gamma.jl`) to $3 times 10^(-15)$, @eq-Gamma-ph at 256 bits to $10^(-65)$ (300 entries, $k = 0, 1, 2, -3, 5$, $|mu| <= 2 |U|$); at $mu = 0$, @eq-Gamma-t, @eq-Gamma-s and @eq-Gamma-hf agree with `HubbardAtoms.jl` (Eq. 19 of Ref. @thunstroem2018) to $3 times 10^(-14)$.
-- *Implementation:* the test suite of `HubbardAtoms.jl` compares `DopedHubbardAtom` with exact diagonalization, with finite-box inversion and with `BigFloat` evaluation, including the removable singularities listed under _Divergences_.
+- *Expanded formulas* (`doped-gamma/check_explicit.jl`): @app-explicit is transcribed without the main text's polynomial and thermal coefficients and compared with `DopedHubbardAtom` at 256 bits, including diagonal entries, mirror fixed points, both signs of each particle–hole square root and the static magnetic atomic root.
+- *Implementation:* the test suite of `HubbardAtoms.jl` compares `DopedHubbardAtom` with exact diagonalization, with finite-box inversion and with `BigFloat` evaluation, including the removable singularities of @prop-special.
 
 
 = Formalization in Lean <app-lean>
 
-The Lean 4 project `lean/`, next to this note in the repository of HubbardAtoms.jl, builds on Mathlib, derives the input of @sec-input from the Hamiltonian, and formalizes @thm-t, @thm-s, @thm-ph (except at the lattice zeros of $e$) and @cor-hf, and the statements their proofs use. Each numbered statement above is marked with its status. The names are declarations in the namespace `HubbardAtom.Params`, the auxiliary rational identities in `HubbardAtom`; the versions of Lean and Mathlib are pinned in the project. Its script `scripts/check.sh` builds it from scratch, fails on any warning (an unfinished proof, `sorry`, is one), and checks that every declaration depends only on Lean's three standard axioms.
+The Lean 4 project `lean/`, next to this note in the repository of HubbardAtoms.jl, builds on Mathlib. It derives the input of @sec-input from the Hamiltonian, and formalizes @thm-t, @thm-s, @thm-ph, @cor-hf and most of @prop-special, together with the statements their proofs use. @tab-lean lists each numbered statement with what is formalized and where. The names are declarations in the namespace `HubbardAtom.Params`, the auxiliary rational identities in `HubbardAtom`; the versions of Lean and Mathlib are pinned in the project. Its script `scripts/check.sh` builds it from scratch, fails on any warning (an unfinished proof, `sorry`, is one), and checks that every declaration depends only on Lean's three standard axioms.
 
 *Taken as given.* The theorems are statements about definitions, which the reader has to compare with this note:
-- the model of @sec-setup: @eq-H on the four states, with $c_up$, $c_dn$ as $4 times 4$ matrices (Lean checks their anticommutation relations), $O(tau) = e^(tau cal(H)) O e^(-tau cal(H))$, the thermal average $"Tr"(e^(-beta cal(H)) X) slash "Tr" e^(-beta cal(H))$, the fermionic time ordering, and the integrals defining $G$ and $chi_(sigma sigma')$; the frequencies and the lattice of @sec-lattice. From these, Lean derives the weights, @eq-G and the input #eqrange(<eq-chi-uu>, <eq-pair>) with @app-R, for all $U$, $mu$ and $n$, $m$, $k$ (`propagator_eq`, `chiLehmann_upUp`, `chiLehmann_upDn`);
+- the model of @sec-setup: @eq-H on the four states, with $c_up$, $c_dn$ as $4 times 4$ matrices (Lean checks their anticommutation relations), $O(tau) = e^(tau cal(H)) O e^(-tau cal(H))$, the thermal average $"Tr"(e^(-beta cal(H)) X) slash "Tr" e^(-beta cal(H))$, the fermionic time ordering, and the integrals defining $G$ and $chi_(sigma sigma')$; the frequencies and the lattice of @sec-lattice. From these, Lean derives the weights, @eq-G and the input #eqrange(<eq-chi-uu>, <eq-pair>) with @app-R, for all $U$, $mu$ and $n$, $m$, $k$;
 - the particle–particle form, the channel combinations, @eq-B and @eq-Gamma-def. A right inverse $Y$ of $chi$ means $sum_l chi_(n l) Y_(l m) = delta_(n m)$ for all $n$, $m$, with unconditionally, i.e. absolutely, convergent sums; likewise for left inverses;
-- the closed forms @eq-Gamma-t, @eq-Gamma-s, @eq-Gamma-s-lz, @eq-Gamma-ph with its limit for $s_1 = s_2$ (where $partial_s Z$ is written out and shown to be the $s$-derivative of $Z(s)$, `DMConf.tendsto_Zeven`), @eq-Gamma-hf (in a form combining the diagonal and mirror terms, equal to @eq-Gamma-hf where $e(z_n) != 0$, `gammaHF_eq_note`) and @eq-Gamma-hf-lz, with $DD(z, z)$ through the derivative of $F$, and the assumptions, as typed in Lean.
+- the closed forms @eq-Gamma-t, @eq-Gamma-s, @eq-Gamma-s-lz, @eq-Gamma-ph with its limit in item 2 of @prop-special (where $partial_s Z$ is written out and shown to be the $s$-derivative of $Z(s)$), @eq-Gamma-hf (in a form combining the diagonal and mirror terms, equal to @eq-Gamma-hf where $e(z_n) != 0$) and @eq-Gamma-hf-lz, with $DD(z, z)$ through the derivative of $F$, and the assumptions, as typed in Lean.
 The inverses constructed in the proofs need no trust: Lean proves that they are inverses from both sides.
 
-*Proofs.* For the input, Lean splits the integral over $[0, beta]^3$ into the six orderings of the times, sums each ordering over the paths through the four states, and evaluates the integrals over the ordered simplex in closed form, also where a partial sum of the rates vanishes: at $k = 0$, at $n = m$, and at $mu = 0$, $n + m + k + 1 = 0$ (`chiLehmann_eq`, `orderedTerm_eq`, `pathTerm_eq`). Besides the marked statements, Lean proves Steps 1–4 of the proof of @thm-ph (`DMGeneric.hasSum_step1`, `DMGeneric.hasSum_step2`, `DMGeneric.hasSum_step3`, `step4_identity`, and `DMGeneric.DD_eq` for @eq-defect-dd), and of Step 5 the two-sidedness (`chiR_symm`, `DMGeneric.invR_symm`) and the atomic pair (`atomic_root`); further the identities of @app-identities. Two arguments differ from this note. Lattice sums with the denominator $P$ are evaluated by splitting $P = Q_+ Q_-$ instead of by @lem-res, which needs no separate treatment of the double zeros at $k = 0$. And the inverse of $chi_"s"$ is verified directly; the cancellation of the Woodbury step is `woodbury_identity`. Where this note takes limits, Lean argues directly. @cor-hf is proved at $mu = 0$ (`HalfFilling.lean`). At the lattice zeros of @thm-s and @cor-hf the limiting inverses are verified with lattice sums from which the orbit is removed (`SingletLZ.hasSum_g_kappa`, `HFLZ.hasSum_Nph_ghat`). For $s_1 = s_2$, Step 3 holds for every $u$ up to a remainder proportional to $e(u)$ (`step3_general`), which vanishes to second order at a double root; the image of the $u$-derivative of the mode then follows by differentiating the lattice sums termwise (`hasSum_deriv_of_bound`, from Mathlib's `Complex.hasSum_deriv_of_summable_norm`), and at $s = 0$ from difference quotients by Tannery's theorem (`DMConf.hasSum_M₁_zero`).
+#let lean-row(stmt, what, names) = (stmt, what, text(size: 7.5pt, names))
+#figure(
+  kind: table,
+  caption: [What the Lean project proves, statement by statement (files in `lean/HubbardAtomLean/`).],
+  text(size: 8.5pt, {
+  set par(justify: false)
+  table(
+    columns: (19%, 39%, 42%),
+    align: left,
+    stroke: none,
+    fill: (_, y) => if calc.even(y) and y > 0 { luma(242) },
+    inset: (x: 4pt, y: 3.5pt),
+    table.hline(),
+    table.header([*Statement*], [*In Lean*], [*Declarations*]),
+    table.hline(stroke: 0.4pt),
+    ..lean-row([Input, #eqrange(<eq-chi-uu>, <eq-pair>), @eq-G, @app-R], [derived from @eq-H for all $U$, $mu$, $n$, $m$, $k$], [`propagator_eq`, `chiLehmann_upUp`, `chiLehmann_upDn` (`LehmannInput.lean`)]),
+    ..lean-row([@lem-input (compact input)], [for $mu != 0$], [`compact_input` (`PHInput.lean`)]),
+    ..lean-row([@thm-t (triplet)], [as stated; moreover every right or left inverse of $chi_"t"$ gives @eq-Gamma-t, so $Gamma_"t"$ is unique], [`exists_inverse_chiT`, `gammaT_of_isRightInverse`, `gammaT_of_isLeftInverse`, `gammaT_eq_zero_of_fixed` (`Triplet.lean`)]),
+    ..lean-row([@thm-s (singlet)], [as stated, for all $b$ (including $b = 0, plus.minus 2 a$, $d_(plus.minus) = 0$, $xi = 0$): an inverse of $chi_"s"$ from both sides, and @eq-Gamma-s; for $U = 0$, $Gamma_"s" = 0$ for every inverse], [`SingletHyp.chiS_isRightInverse`, `SingletHyp.chiS_isLeftInverse`, `SingletHyp.gammaS_eq` (`SingletZero.lean`); `gammaS_zero_of_a_eq_zero` (`UZero.lean`)]),
+    ..lean-row([@thm-ph (density and magnetic)], [as stated: an inverse of $chi_r$ from both sides and @eq-Gamma-ph, including $DD(z, z)$, the case $r = "m"$, $k = 0$, and the independence of the sign of $u_j$; for $U = 0$, $Gamma_r = 0$ for every inverse], [`DMHyp.toDMGeneric`, `DMGeneric.chiR_isRightInverse`, `DMGeneric.chiR_isLeftInverse`, `DMGeneric.gammaR_eq`, `DMGeneric.gammaR_neg₁`, `dmGeneric_static_magnetic` (`DensityMagnetic.lean`, `DMLifts.lean`); `gammaR_zero_of_a_eq_zero` (`UZero.lean`)]),
+    ..lean-row([@cor-hf (half filling)], [for $U != 0$, directly at $mu = 0$ rather than as a limit, including $hat(u) = 0$, assuming instead of $e(z_n) != 0$ only $z_n^2 != hat(s)$ for all $n$ and $z_n^2 != hat(s)'$ off the mirror fixed points; so it also holds at a fixed point with $beta H(0) = -lambda h$], [`HFHyp.of_eph`, `HFHyp.chiR_isRightInverse`, `HFHyp.chiR_isLeftInverse`, `HFHyp.gammaHF_eq`, `gammaHF_eq_note` (`HalfFilling.lean`)]),
+    ..lean-row([@prop-special (removable singularities)], [items 1 and 4: the values @eq-Gamma-s-lz (for all $b$) and @eq-Gamma-hf-lz (including $hat(s) = 0$ at a fixed point) give inverses from both sides; that they are the limits is not formalized. Item 2: as stated, including $s_1 = s_2 = 0$. Item 3: not formalized], [item 1: `SingletLZ.chiS_isRightInverse`, `SingletLZ.chiS_isLeftInverse`, `SingletLZ.gammaS_eq` (`SingletLZ.lean`); item 2: `DMConfHyp.toDMConf`, `DMConf.chiR_isRightInverse`, `DMConf.chiR_isLeftInverse`, `DMConf.gammaR_eq`, `DMConf.tendsto_Zeven` (`Confluent.lean`); item 4: `HFLZ.chiR_isRightInverse`, `HFLZ.chiR_isLeftInverse`, `HFLZ.gammaHF_eq` (`HalfFillingLZ.lean`)]),
+    ..lean-row([@prop-box (finite boxes)], [not formalized], []),
+    ..lean-row([@lem-S (basic sum)], [for $j = 1$ along the boxes $|2 n + 1 + k| <= 2 M + 1$, and for $j = 2$, from Mathlib's expansion of the cotangent; @eq-shift and $S_(plus.minus)$], [`hasSum_S_even`, `hasSum_S_odd`, `hasSum_sq` (`Matsubara.lean`); `S_shift`, `S₀_neg_a`, `S₀_a` (`Thermal.lean`); `S_shift'` (`PHSums.lean`)]),
+    ..lean-row([@lem-res (residue rule)], [not as such: the sums it serves, with the denominators $P(t)$ and $P(t)(t - x)$, are evaluated by splitting $P = Q_+ Q_-$, for all $k$ at once], [`hasSum_Q_sub`, `hasSum_inv_Q`, `hasSum_cubic` (`PHSums.lean`)]),
+    ..lean-row([@lem-T (particle–particle sum)], [as stated, including $xi = 0$], [`hasSum_Tpp`, `hasSum_one_div_t_sub` (`Matsubara.lean`); `hasSum_gp`, `hasSum_gm`, `Tpp_tp`, `Tpp_tm` (`Singlet.lean`)]),
+    ..lean-row([@prop-pp (pp)], [as stated, with $chi_("s", "reg")$ in the form @eq-chi-s-reg for $b != 0$, and as the partial fractions of @eq-chi-s-num for $b = 0$], [`chiT_eq_mirrorBlock` (`Triplet.lean`); `chiS_eq` (`SingletInput.lean`); `chiS_eq_zero` (`SingletZero.lean`)]),
+    ..lean-row([@lem-mirror (values on the reflected lattice)], [the last identity; the value of $S'_k$ enters @lem-C2], [`rho_mul_S_neg_z` (`PHSums.lean`)]),
+    ..lean-row([@lem-C2 (square)], [as stated], [`hasSum_square` (`PHSums.lean`)]),
+    ..lean-row([@lem-alpha (thermal function)], [as stated], [`αeven_eq`, `αodd_eq` (`Thermal.lean`); `α_mul_α_neg` (`PHSums.lean`)]),
+    ..lean-row([@lem-calculus (Cauchy calculus)], [for simple poles; the constant rule only together with the sum of @lem-U. Higher poles are not needed], [`hasSum_cauchy`, `hasSum_const` (`PHSums.lean`)]),
+    ..lean-row([@prop-ph (structure)], [as stated, for $mu != 0$ and at $mu = 0$, where $C = h cal(M)$], [`Pph_mul_chiR` (`PHInput.lean`); `Pph_mul_chiR_hf` (`HalfFilling.lean`)]),
+    ..lean-row([@lem-U (rank-two sums)], [as stated, with the residues at the zeros of $P$ written out], [`hasSum_rank_two`, `Rhat` (`PHSums.lean`)]),
+    ..lean-row([Proof of @thm-ph], [Steps 1–4 with @eq-defect-dd; of Step 5 the two-sidedness, @eq-branch and the atomic pair], [`DMGeneric.hasSum_step1`, `DMGeneric.hasSum_step2`, `DMGeneric.hasSum_step3`, `step4_identity`, `DMGeneric.DD_eq`, `chiR_symm`, `DMGeneric.invR_symm`, `atomic_root` (`DensityMagnetic.lean`); `Zph_sub_Zph_neg` (`Confluent.lean`)]),
+    ..lean-row([@lem-cont (continuity)], [not formalized; Lean does without it (see below)], []),
+    ..lean-row([(A1)–(A7) (@app-identities)], [all; (A2) and the first part of (A5) within `Pph_mul_chiR`, and the consequences $e(a) = 0$, $W_0 (a^2) = W_2 (a^2) = 0$ for $r = "m"$, $k = 0$ in `atomic_root`], [(A1) `compact_input`, (A3) `regular_pp`, (A4) `singlet_A4`, (A6) `identity_A6`, (A7) `identity_A7`]),
+    table.hline(),
+  )}),
+) <tab-lean>
 
-*Not formalized.* @prop-box, @lem-cont and the rest of @app-details: the lattice zeros of $e$ for $mu != 0$ (after @thm-ph), and that @eq-Gamma-s-lz and @eq-Gamma-hf-lz are the limits of @eq-Gamma-s and @eq-Gamma-hf; that the inverses of $chi_"s"$, $chi_"d"$ and $chi_"m"$ are unique (for $chi_"t"$ it is proved, and for $U = 0$ in all channels); and floating-point evaluation.
+*Proofs.* For the input, Lean splits the integral over $[0, beta]^3$ into the six orderings of the times, sums each ordering over the paths through the four states, and evaluates the integrals over the ordered simplex in closed form, also where a partial sum of the rates vanishes: at $k = 0$, at $n = m$, and at $mu = 0$, $n + m + k + 1 = 0$ (`chiLehmann_eq`, `orderedTerm_eq`, `pathTerm_eq`). Two arguments differ from this note. Lattice sums with the denominator $P$ are evaluated by splitting $P = Q_+ Q_-$ instead of by @lem-res, which needs no separate treatment of the double zeros at $k = 0$. And the inverse of $chi_"s"$ is verified directly; the cancellation of the Woodbury step is `woodbury_identity`. Where this note takes limits, Lean argues directly. @cor-hf is proved at $mu = 0$. At the lattice zeros of items 1 and 4 of @prop-special the limiting inverses are verified with lattice sums from which the orbit is removed (`SingletLZ.hasSum_g_kappa`, `HFLZ.hasSum_Nph_ghat`). For $s_1 = s_2$, Step 3 holds for every $u$ up to a remainder proportional to $e(u)$ (`step3_general`), which vanishes to second order at a double root; the image of the $u$-derivative of the mode then follows by differentiating the lattice sums termwise (`hasSum_deriv_of_bound`, from Mathlib's `Complex.hasSum_deriv_of_summable_norm`), and at $s = 0$ from difference quotients by Tannery's theorem (`DMConf.hasSum_M₁_zero`).
+
+*Not formalized.* @prop-box, @lem-cont and the rest of @app-details: item 3 of @prop-special (the lattice zeros of $e$ for $mu != 0$), and that the values in items 1 and 4 are the limits of @eq-Gamma-s and @eq-Gamma-hf; that the inverses of $chi_"s"$, $chi_"d"$ and $chi_"m"$ are unique (for $chi_"t"$ it is proved, and for $U = 0$ in all channels); and floating-point evaluation.
+
+#pagebreak(weak: true)
+= The vertices written out <app-explicit>
+
+This appendix gives the regular formulas of @thm-t, @thm-s, @thm-ph and @cor-hf without the nested coefficient definitions used in the proofs. The input panel below fixes the notation; $Gamma_(r, n m)$ denotes $Gamma_r (nu_n, nu_m, omega)$ in the channel convention of @eq-Gamma-def. Only square roots and their explicit values are introduced in the individual channels; every polynomial and thermal coefficient is expanded inside the vertex. These are exact identities, not numerically stabilized evaluation rules.
+
+== Input panel
+
+Take $U, mu in RR$, $beta > 0$ and $n, m, k in ZZ$. For $U = 0$, all four vertices vanish. For $U != 0$ use
+$ a := U/2, quad omega := frac(2 pi k, beta), quad nu_n := frac((2n + 1) pi, beta), quad overline(n) := -n - k - 1, $
+$ x_n := mu + i frac((2n + 1) pi, beta), quad overline(x)_n := mu - i frac((2n + 1 + 2k) pi, beta), $
+$ z_n := mu + i frac((2n + 1 + k) pi, beta), quad b := 2 mu - i frac(2 pi k, beta). $
+The normalized weights and filling parameter are
+$ p_0 := frac(e^(-beta mu), 2 cosh(beta mu) + 2 e^(beta a)), quad p_1 := frac(e^(beta a), 2 cosh(beta mu) + 2 e^(beta a)), quad p_2 := frac(e^(beta mu), 2 cosh(beta mu) + 2 e^(beta a)), $
+$ rho := frac(sinh(beta mu), cosh(beta mu) + e^(beta a)) = p_2 - p_0. $
+Use the parity-dependent function
+$ T(y) := cases(tanh(beta y slash 2) & quad k "even,", coth(beta y slash 2) & quad k "odd.") $
+Here $delta_(n m)$ is the Kronecker delta. The two particle–hole channels use $epsilon = +1$ for density and $epsilon = -1$ for magnetic.
+
+== Triplet
+
+For $n != overline(n)$,
+$ Gamma_("t", n m) = frac(beta a^2 (1 - rho^2) (x_n^2 - a^2)(overline(x)_n^2 - a^2), (x_n + a rho)(overline(x)_n + a rho) [(x_n + a rho)(overline(x)_n + a rho) + a^2 (1 - rho^2)]) (delta_(n m) - delta_(m overline(n))). $ <eq-explicit-t>
+The last bracket in the denominator must be nonzero for every $n != overline(n)$. At a mirror fixed point, $n = overline(n)$, the entire row and column vanish: $Gamma_("t", n m) = Gamma_("t", m n) = 0$ for every $m$.
+
+#block(breakable: false)[
+== Singlet
+
+The only additional input is the square root
+$ xi := sqrt(b^2 slash 4 + a rho b + a^2 (1 - 8 p_1)). $
+Then
+$ Gamma_("s", n m) = & frac(beta a^2 (rho^2 - 1 + 8 p_1) (x_n^2 - a^2)(overline(x)_n^2 - a^2), (x_n + a rho)(overline(x)_n + a rho) [(x_n + a rho)(overline(x)_n + a rho) + a^2 (1 - rho^2 - 8 p_1)]) (delta_(n m) + delta_(m overline(n))) \
+& + 4 a - frac(16 a^3 [4 a p_1 - (p_1 + p_2) b] [4 a p_1 + (p_0 + p_1) b], 1 + a T(xi) slash xi) \
+& quad times frac(1, [(x_n + a rho)(overline(x)_n + a rho) + a^2 (1 - rho^2 - 8 p_1)] [(x_m + a rho)(overline(x)_m + a rho) + a^2 (1 - rho^2 - 8 p_1)]). $ <eq-explicit-s>
+The brackets depending on a fermionic index must be nonzero for every index, and $1 + a T(xi) slash xi != 0$. Either sign of $xi$ gives the same value. At $xi = 0$ and even $k$, replace $T(xi) slash xi$ by $beta slash 2$. The lattice-zero continuation is item 1 of @prop-special.
+]
+
+#block(breakable: false)[
+== Density and magnetic away from half filling
+
+Take $mu != 0$. The roots needed for this formula are explicitly
+$ s_(1, 2) := & 2 a^2 rho^2 - a^2 - omega^2 slash 4 - 4 epsilon a^2 p_1 \
+& plus.minus 2 a sqrt(a^2 rho^4 - rho^2 (a^2 + omega^2 slash 4 + 4 epsilon a^2 p_1) + 4 a^2 p_0 p_2), quad u_j := sqrt(s_j). $
+For $s_1 != s_2$ and $z_n^2 != s_j$ for every $n$ and $j$,
+$ Gamma_(r, n m) = & beta ([(z_n + a)^2 + omega^2 slash 4][(z_n - a)^2 + omega^2 slash 4]) \
+& quad times [frac(1, (z_n + a rho)^2 + omega^2 slash 4) - frac(z_n^2 - 2 a rho z_n + a^2 + omega^2 slash 4 + 4 epsilon a^2 p_1, (z_n^2 - s_1)(z_n^2 - s_2))] delta_(n m) + 2 epsilon a \
+& - frac(4 epsilon a^2 rho z_n [(z_n + a)^2 + omega^2 slash 4][(z_n - a)^2 + omega^2 slash 4], (z_n^2 - z_m^2)(z_n^2 - s_1)(z_n^2 - s_2)) \
+& + frac(4 epsilon a^2 rho z_m [(z_m + a)^2 + omega^2 slash 4][(z_m - a)^2 + omega^2 slash 4], (z_n^2 - z_m^2)(z_m^2 - s_1)(z_m^2 - s_2)) \
+& + 4 epsilon a^2 rho sum_(j = 1)^2 lr([frac(u_j [(u_j + a)^2 + omega^2 slash 4][(u_j - a)^2 + omega^2 slash 4], (s_j - s_(3-j))(z_n^2 - s_j)(z_m^2 - s_j)) \
+& quad times frac(s_j - 2 a rho u_j + a^2 + omega^2 slash 4 + 4 epsilon a^2 p_1 + 2 epsilon a^2 [rho T(u_j - mu) + p_0 + p_2], s_j - 2 a rho u_j + a^2 + omega^2 slash 4 + 4 epsilon a^2 p_1 - 2 epsilon a^2 [rho T(u_j - mu) + p_0 + p_2])]). $ <eq-explicit-ph>
+The last denominator must be nonzero for each retained root. For $r = "m"$ and $k = 0$, omit the root $s_j = a^2$ from the sum and from this nonvanishing requirement. Either sign of either $u_j$ gives the same vertex.
+]
+
+#block(breakable: false)[
+*Diagonal entries.* For $n = m$, replace the two fractions containing $z_n^2 - z_m^2$ together by $-4 epsilon a^2 rho$ times the following explicit rational function:
+$ & frac([(z_n + a)^2 + omega^2 slash 4][(z_n - a)^2 + omega^2 slash 4], 2 z_n (z_n^2 - s_1)(z_n^2 - s_2)) + frac(2 z_n (z_n^2 - a^2 + omega^2 slash 4), (z_n^2 - s_1)(z_n^2 - s_2)) \
+& - frac(z_n [(z_n + a)^2 + omega^2 slash 4][(z_n - a)^2 + omega^2 slash 4] (2 z_n^2 - s_1 - s_2), (z_n^2 - s_1)^2 (z_n^2 - s_2)^2). $ <eq-explicit-diag>
+The confluent-root and lattice-zero continuations are items 2 and 3 of @prop-special.
+]
+
+== Density and magnetic at half filling
+
+Set $mu = 0$. The input panel reduces to $rho = 0$, $p_2 = p_0 = 1 slash [2 (1 + e^(beta a))]$ and $p_1 = e^(beta a) slash [2 (1 + e^(beta a))]$. The roots are
+$ hat(s) := 4 epsilon a^2 (p_0 - p_1) - a^2 - omega^2 slash 4, quad hat(s)' := -4 epsilon a^2 (p_0 + p_1) - a^2 - omega^2 slash 4, quad hat(u) := sqrt(hat(s)). $
+For $z_n^2 != hat(s), hat(s)'$ for every $n$,
+$ Gamma_(r, n m) = & beta [(z_n + a)^2 + omega^2 slash 4][(z_n - a)^2 + omega^2 slash 4] \
+& quad times [frac(1, z_n^2 + omega^2 slash 4) - frac(z_n^2 + a^2 + omega^2 slash 4 + 4 epsilon a^2 p_1, (z_n^2 - hat(s))(z_n^2 - hat(s)'))] delta_(n m) + 2 epsilon a \
+& - frac(4 epsilon a^2 beta p_0 [(z_n + a)^2 + omega^2 slash 4][(z_n - a)^2 + omega^2 slash 4], (z_n^2 - hat(s))(z_n^2 - hat(s)')) delta_(m overline(n)) \
+& - frac(2 epsilon a [(hat(s) + a^2 + omega^2 slash 4)^2 - 4 a^2 hat(s)], [1 + epsilon a T(hat(u)) slash hat(u)] (z_n^2 - hat(s))(z_m^2 - hat(s))). $ <eq-explicit-hf>
+The thermal denominator $1 + epsilon a T(hat(u)) slash hat(u)$ must be nonzero. Either sign of $hat(u)$ gives the same value. At $hat(u) = 0$ and even $k$, replace $T(hat(u)) slash hat(u)$ by $beta slash 2$. The lattice-zero and mirror-fixed-point continuations are item 4 of @prop-special.
+
+= List of symbols <app-symbols>
+
+Symbols introduced inside a proof or in @app-explicit are local to it and not listed, except those of the proof of @thm-ph that @app-details uses.
+
+#let sym-table(..rows) = text(size: 9pt, {
+  set par(justify: false)
+  table(
+  columns: (21%, 1fr, 22%),
+  align: (left, left, left),
+  stroke: none,
+  inset: (x: 4pt, y: 3.5pt),
+  fill: (_, y) => if calc.even(y) and y > 0 { luma(242) },
+  table.hline(),
+  table.header([*Symbol*], [*Meaning*], [*Defined in*]),
+  table.hline(stroke: 0.4pt),
+  ..rows.pos().flatten(),
+  table.hline(),
+)})
+
+*Setup and input.*
+#sym-table(
+  ([$U$, $mu$, $beta$, $a$], [interaction, chemical potential (zero at half filling), inverse temperature; $a = U slash 2$], [@eq-H]),
+  ([$p_0$, $p_1$, $p_2$], [Boltzmann weights of $|0 chevron.r$, of each singly occupied state, of $|up dn chevron.r$], [@eq-weights]),
+  ([$rho$, $h$, $overline(c)$], [$p_2 - p_0$ (filling), $beta sqrt(p_0 p_2)$, $beta (p_0 + p_2) slash 2$], [@eq-rho]),
+  ([$nu_n$, $Omega_ell$, $omega_k$], [fermionic and bosonic Matsubara frequencies; the fixed transfer $omega_k = Omega_k$], [@eq-freq]),
+  ([$x_n$, $w$, $J$], [$mu + i nu_n$, $i omega_k$, $J(x) = 1 slash (x^2 - a^2)$], [@eq-x]),
+  ([$G$], [propagator, as a function of $nu$ and as the rational function $G(x)$], [@eq-G]),
+  ([$chi_(sigma sigma')$, $chi_("pp", sigma sigma')$], [generalized susceptibility and its particle–particle form], [@eq-chi-def]),
+  ([$chi_r$, $chi_(0, r)$, $B$, $B_n$, $bold(B)$], [channels $r = "d", "m", "s", "t"$, bare susceptibility, bubble], [@eq-B]),
+  ([$Gamma_r$, $eta_r$], [channel-irreducible vertex, sign of the bubble term], [@eq-Gamma-def]),
+  ([$z_n$, $overline(n)$], [centered lattice, mirror index], [@eq-z]),
+  ([$cal(M)$, $PV$], [mirror matrix; principal value along symmetric boxes], [@sec-lattice]),
+  ([$cal(N)$, $c_ell$, $Pi$, $Rreg$], [the part of $chi_(up dn)$ with the pair coefficient $c_ell$, and its regular part], [@eq-pair]),
+  ([$C$, $cC$], [Cauchy matrix; its action on functions on the lattice], [@eq-C, @lem-calculus]),
+  ([$Q_(plus.minus)$, $q_0$], [$Q_(plus.minus)(z) = (z plus.minus a)^2 - w^2 slash 4$, $q_0 = a^2 - w^2 slash 4$], [@eq-Q]),
+  ([$S_k$, $S_(plus.minus)$], [thermal sum $PV sum_n (z_n - x)^(-1)$; its values at the zeros of $Q_(plus.minus)$], [@eq-S, @lem-S]),
+)
+
+*Singlet and triplet.*
+#sym-table(
+  ([$b$, $t_n$], [$2 mu - w$; $x_n (b - x_n) = t_(overline(n))$], [@eq-bt]),
+  ([$cal(P)$, $cal(G)$, $As$], [polynomials of the particle–particle channels], [@eq-T]),
+  ([$cal(T)_k$, $xi$], [particle–particle sum $sum_n (t_n - t)^(-1)$], [@eq-T]),
+  ([$K_"s"$], [thermal denominator of the singlet], [@thm-s]),
+  ([$t_(plus.minus)$], [zeros of $cal(P)$], [@lem-T]),
+  ([$d_(plus.minus)$, $c$], [$As + t_(plus.minus)$; the pair coefficient $c_(-k)$], [@eq-dc]),
+  ([$cal(M)_(plus.minus)$, $L_"s"$, $L_"t"$, $g_(plus.minus)$, $gamma_(plus.minus)$], [mirror projectors; eigenvalues and rank-two part of $chi_"s"$, $chi_"t"$], [@eq-L]),
+  ([$chi_("s", "reg")$], [rank-two part of $chi_"s"$], [@eq-chi-s-num]),
+)
+
+*Density and magnetic.*
+#sym-table(
+  ([$epsilon$], [$+1$ for $r = "d"$, $-1$ for $r = "m"$], [@sec-res-ph]),
+  ([$H$, $q_1$, $lambda$, $P$, $G_2$, $e$], [polynomials of the particle–hole channels], [@eq-HP, @eq-Delta]),
+  ([$s_j$, $u_j$], [roots of $e$ in $z^2$; either square root], [@eq-Delta]),
+  ([$alpha_k$], [thermal function $rho S_k - overline(c)$], [@eq-alpha-def]),
+  ([$F$, $g_j$, $DD$], [ingredients of the dense and separable terms], [@eq-coeffs]),
+  ([$K_j$, $Z_j$, $gamma_j$], [thermal denominator, numerator and weight of the separable term $j$], [@eq-coeffs]),
+  ([$delta$, $zeta_r$, $N_2$, $N_0$, $N$], [finite-rank part of $P chi_r$], [@eq-N]),
+  ([$cal(I)$, $overline(cal(I))$], [rank-two sums], [@eq-U]),
+  ([$y_v$, $D_v$, $E_v$, $F_j$], [column of $chi_r^(-1)$ and its coefficients], [proof of @thm-ph]),
+  ([$phi_j$, $alpha_j$], [pole pair (mode) at the root $u_j$], [@eq-mode]),
+  ([$W$, $W_0$, $W_2$], [remainder polynomials of Step 1], [@eq-source, (A7)]),
+  ([$K(u)$, $Z(u)$, $Z(s)$], [$K_j$, $Z_j$ as functions of the root; even part of $Z$], [@eq-branch, @prop-special]),
+)
+
+*Half filling and removable singularities.*
+#sym-table(
+  ([$hat(s)$, $hat(s)'$], [roots of $e$ in $z^2$ at $mu = 0$], [@eq-hf-defs]),
+  ([$hat(g)$, $hat(D)$, $hat(u)$], [separable factor, thermal denominator, $hat(u)^2 = hat(s)$], [@eq-hf-D]),
+  ([$O$, $c$], [mirror orbit ${c, overline(c)}$ with $|O|$ elements], [@sec-res-special]),
+  ([$T'$, $K'$], [$cal(T)_k (-As)$ and $K_"s"$ without the orbit], [@eq-Gamma-s-lz]),
+  ([$hat(T)'$, $hat(D)'$], [$sum_l hat(g)(z_l)$ and $hat(D)$ without the orbit], [@eq-Gamma-hf-lz]),
+)
