@@ -86,7 +86,7 @@ def fields(mu, U):
             s = np.where(D >= 0, 2*a**2*rho**2 - q1 + sg*a*np.sqrt(np.abs(D)), np.nan)
             Phi = np.cosh(mu) + cu(s) + eps*a*su(s)
             sigma = (s + q1)*eps*(1 + np.cosh(mu)*cu(s))/(cu(s) + np.cosh(mu))
-            out[ch, j] = (np.where(sigma > 0, Phi, np.nan), s)
+            out[ch, j] = (np.where(sigma >= 0, Phi, np.nan), s)   # sigma >= 0 on the divergence arcs
     xi2 = mu**2 + 2*a*rho*mu + a**2*(1 - 8*p1)
     dm = 4*a*p1 + 2*mu*(p0 + p1)            # K_s vanishes with d_- = t_- + A_s: no divergence there
     out["s", 0] = (np.where(np.abs(dm) > 0.02*(1 + np.abs(a)), cu(xi2/4) + a*su(xi2/4)/2, np.nan), None)

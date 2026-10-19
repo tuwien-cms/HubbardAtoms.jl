@@ -7,7 +7,8 @@ wts(U, μ) = (e=(exp(-μ), exp(U / 2), exp(μ)); e ./ (e[1] + 2 * e[2] + e[3]))
 cu(s) = s >= 0 ? cosh(sqrt(s)) : cos(sqrt(-s))                                  # cosh u, u² = s
 su(s) = s > 0 ? sinh(sqrt(s)) / sqrt(s) : s < 0 ? sin(sqrt(-s)) / sqrt(-s) : 1.0  # sinh(u)/u
 
-# Density (ε = 1) and magnetic (ε = -1): the real roots s_j of e, Φ(s_j) and the sign of the branch test
+# Density (ε = 1) and magnetic (ε = -1): the real roots s_j of e, Φ(s_j) and σ, with σ ≥ 0 on the
+# divergence arcs of Φ(s_j) = 0 and σ ≤ 0 on the others (σ = 0 where two such arcs cross)
 function ph_line(U, μ, ε, j)
     a = U / 2
     p0, p1, p2 = wts(U, μ)
@@ -36,6 +37,7 @@ function bisect0(f, l, h)
     end
     (l + h) / 2
 end
+genuine(Φ, σ, s) = σ >= -1e-10 * (1 + abs(s))
 # βU of the divergences at fixed βμ, with the root j (0 for the singlet)
 function divergences(ch, μ, Us)
     out = Tuple{Float64,Int}[]
@@ -47,7 +49,7 @@ function divergences(ch, μ, Us)
             (isnan(v[i]) || isnan(v[i+1]) || sign(v[i]) == sign(v[i+1])) && continue
             U = bisect0(f, Us[i], Us[i+1])
             keep = ch == :s ? abs(s_line(U, μ)[2]) > 1e-8 * (1 + abs(U)) :
-                   ph_line(U, μ, ch == :d ? 1 : -1, j)[2] > 0
+                   genuine(ph_line(U, μ, ch == :d ? 1 : -1, j)...)
             keep && push!(out, (U, j))
         end
     end
@@ -90,7 +92,7 @@ let nlines = 0, ncuts = 0
         nlines += length(pred)
         ncuts += 1
     end
-    @printf("%-4s %d lines on %d cuts (βμ in [0.05, 3.9], |βU| ≤ 25) at real box eigenvalue crossings, none extra\n",
+    @printf("%-4s %d lines on %d cuts (βμ in [0.05, 3.9], |βU| ≤ 25) match the changes by one of the number of\n     negative real box eigenvalues (step 0.05, tolerance 0.15); no unmatched changes\n",
             ok ? "PASS" : "FAIL", nlines, ncuts)
 end
 
@@ -98,7 +100,8 @@ end
 # eigenvalue closest to zero, at points on the lines
 let worst = 0.0, M = 60, idx = (-M - 1):M
     for (ch, μ, lo, hi) in
-        ((:d, 0.3, 3.7, 3.8), (:d, 0.3, 5.0, 5.1), (:d, 1.0, -4.95, -4.85),
+        ((:d, 0.3, 3.7, 3.8), (:d, 0.3, 5.0, 5.1), (:d, 0.0, 5.0, 5.3),
+         (:d, 1.0, -4.95, -4.85),
          (:d, 1.5, -7.4, -7.2),
          (:m, 0.3, -5.5, -5.2), (:s, 0.3, 5.0, 5.3), (:s, 1.6, 5.8, 6.1))
         U, j = only(divergences(ch, μ, range(lo, hi; length=201)))
@@ -115,7 +118,7 @@ let worst = 0.0, M = 60, idx = (-M - 1):M
         v = E.vectors[:, argmin(abs.(E.values))]
         worst = max(worst, 1 - abs(dot(g, v)) / (norm(g) * norm(v)))
     end
-    @printf("%-4s null vectors at 7 points (d, m, s; both signs of U): 1 - |cos(v, g)| ≤ %.1e\n",
+    @printf("%-4s null vectors at 8 points (d, m, s; both signs of U; μ = 0): overlap deficit 1 - |cos∠(v, g)| ≤ %.1e\n",
             worst < 1e-8 ? "PASS" : "FAIL", worst)
     global ok &= worst < 1e-8
 end
@@ -138,18 +141,85 @@ function ep(ch, j, μs, lo, hi)
     end
     NaN, NaN
 end
-let M = 60
-    for (label, ch, j, μs, lo, hi, essl) in
-        (("charge, U > 0, first loop", :d, 2, 0.5:0.002:0.6, 3.8, 4.6, "≈ 0.6"),
-         ("charge, U < 0, first line", :d, 1, 0.9:0.004:1.3, -4.5, -6.0, "1.12"),
-         ("magnetic, U < 0, first line", :m, 1, 0.8:0.004:1.2, -7.0, -11.0, "0.975"))
-        μ, U = ep(ch, j, μs, lo, hi)
-        λ = sort(abs.(eigvals(boxchi(ch, U, μ, M))))
-        p = wts(U, μ)
-        @printf("%-4s EP %-28s βμ = %.4f, βU = %.4f, ρ = %.4f (Eßl et al.: βμ %s); two smallest box |λ|: %.1e, %.1e\n",
-                λ[2] < 1e-3 ? "PASS" : "FAIL", label, μ, U, p[3] - p[1], essl, λ[1], λ[2])
-        global ok &= λ[2] < 1e-3
+function gvec(U, μ, ε, j, M)
+    (s=ph_line(U, μ, ε, j)[3]; [1 / ((μ + im * (2n + 1) * π)^2 - s) for n in (-M - 1):M])
+end
+# eigenvalues whose eigenvectors are aligned with g (overlap > 0.99), and the smallest |λ| of the others
+function aligned(ch, U, μ, j, M)
+    E = eigen(boxchi(ch, U, μ, M))
+    g = gvec(U, μ, ch == :d ? 1 : -1, j, M)
+    ov = [abs(dot(g, E.vectors[:, i])) / (norm(g) * norm(E.vectors[:, i]))
+          for i in eachindex(E.values)]
+    abs.(E.values[ov .> 0.99]), minimum(abs.(E.values[ov .< 0.5]))
+end
+# an EP: two aligned eigenvalues of equal size, far below the rest, shrinking as the box grows
+function isep(ch, U, μ, j)
+    (l60, b60), (l120, b120) = aligned(ch, U, μ, j, 60), aligned(ch, U, μ, j, 120)
+    length(l60) == length(l120) == 2 && maximum(l60) < 0.1b60 && maximum(l120) < 0.1b120 &&
+        maximum(l60) < 1.1minimum(l60) && maximum(l120) < 0.5minimum(l60), l120
+end
+for (label, ch, j, μs, lo, hi, essl) in
+    (("charge, U > 0, first loop", :d, 2, 0.5:0.002:0.6, 3.8, 4.6, "0.6"),
+     ("charge, U < 0, first line", :d, 1, 0.9:0.004:1.3, -4.5, -6.0, "1.12"),
+     ("magnetic, U < 0, first line", :m, 1, 0.8:0.004:1.2, -7.0, -11.0, "0.975"))
+    μ, U = ep(ch, j, μs, lo, hi)
+    yes, l120 = isep(ch, U, μ, j)
+    p = wts(U, μ)
+    @printf("%-4s EP %-28s βμ = %.4f, βU = %.4f, ρ = %.4f (Eßl's thesis: βδμ = %s); aligned pair |λ| (M = 120): %s\n",
+            yes ? "PASS" : "FAIL", label, μ, U, p[3] - p[1], essl,
+            join([@sprintf("%.1e", l) for l in l120], ", "))
+    global ok &= yes
+end
+let U1 = only([U for (U, j) in divergences(:d, 0.3, range(3.7, 3.8; length=101)) if j == 2])
+    no = !isep(:d, U1, 0.3, 2)[1] && !isep(:d, 4.4, 0.3, 2)[1]
+    @printf("%-4s EP test negative on an ordinary divergence (βμ = 0.3, βU = %.4f) and off the lines (βU = 4.4)\n",
+            no ? "PASS" : "FAIL", U1)
+    global ok &= no
+end
+
+# 3b. A divergence where α_e = 0 and s_j = -q₁ (two arcs of Φ(s_j) = 0 cross; σ = 0): y = π + atan(sinh μ),
+# a = y sinh μ, and μ from (sinh⁻²μ - 1)/2 = eᵃ/(cosh μ + eᵃ); then s_j = -y²
+let f = μ -> (S=sinh(μ); a=(π + atan(S)) * S; (S^-2 - 1) / 2 - exp(a) / (cosh(μ) + exp(a)))
+    μ = bisect0(f, big"0.55", big"0.88")
+    y = π + atan(sinh(μ))
+    μf, Uf = Float64(μ), Float64(2y * sinh(μ))
+    Φ, σ, s = ph_line(Uf, μf, 1, 2)
+    λ = [minimum(abs.(eigvals(boxchi(:d, Uf, μf, M)))) for M in (24, 60, 120)]
+    good = abs(s + Float64(y)^2) < 1e-10 && abs(Φ) < 1e-12 && genuine(Φ, σ, s) &&
+           λ[3] < λ[2] < λ[1] < 1e-9
+    @printf("%-4s α_e = 0 on a line (βμ = %.5f, βU = %.5f): Φ = %.0e, σ = %.0e; smallest box |λ| for M = 24, 60, 120: %s\n",
+            good ? "PASS" : "FAIL", μf, Uf, Φ, σ,
+            join([@sprintf("%.0e", l) for l in λ], ", "))
+    global ok &= good
+end
+
+# 3c. Where s_1 = s_2 on a line (the line passes from one root to the other): Δ = 0, Φ = 0 and σ > 0
+# (the cancelling arcs meet at Δ = 0 too, with σ < 0)
+function switchpoint(ε, x)
+    function eqs(x)
+        μ, a = x[1], x[2] / 2
+        p0, p1, p2 = wts(x[2], μ)
+        ρ, q1 = p2 - p0, a^2 + 4ε * a^2 * p1
+        s = 2a^2 * ρ^2 - q1
+        [(a^2 * ρ^4 - ρ^2 * q1 + 4a^2 * p0 * p2) / a^2, cosh(μ) + cu(s) + ε * a * su(s)]
     end
+    for _ in 1:50
+        F = eqs(x)
+        h = 1e-7
+        x = x - hcat([(eqs(x + h * e) - F) / h for e in ([1.0, 0], [0, 1.0])]...) \ F
+    end
+    μ, a = x[1], x[2] / 2
+    p0, p1, p2 = wts(x[2], μ)
+    q1 = a^2 + 4ε * a^2 * p1
+    s = 2a^2 * (p2 - p0)^2 - q1
+    x, maximum(abs, eqs(x)), (s + q1) * ε * (1 + cosh(μ) * cu(s)) / (cu(s) + cosh(μ))
+end
+for (label, ε, guess) in (("end of the first loop, U > 0", 1, [0.5693, 4.44]),
+                          ("first density line, U < 0", 1, [1.45, -6.97]))
+    x, r, σ = switchpoint(ε, guess)
+    @printf("%-4s s₁ = s₂ on the %s: βμ = %.5f, βU = %.5f, σ = %+.1e\n",
+            r < 1e-10 && σ > 0 ? "PASS" : "FAIL", label, x[1], x[2], σ)
+    global ok &= r < 1e-10 && σ > 0
 end
 
 # 4. Half filling: the lines start at the localized divergences βU = 2π(2n+1)/√3 (d) and at the zeros of D̂
@@ -164,4 +234,5 @@ let μ = 1e-6, Us = range(0.06, 25; length=20000)
                  ", "))
     global ok &= good
 end
-println(ok ? "ALL PASS" : "SOME CHECKS FAILED")
+ok || error("SOME CHECKS FAILED")
+println("ALL PASS")
