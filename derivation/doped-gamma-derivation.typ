@@ -800,12 +800,13 @@ The regular part in @eq-pair is [Ref. @essl2024, Eq. (D3), at zero field]
 
 - *Mathematica:* `mathematica/doped_gamma.nb` derives #eqrange(<eq-chi-uu>, <eq-pair>) exactly from the Lehmann representation of @eq-H, checks @lem-input, @prop-pp, @prop-ph, the lemmas of @sec-sums and @sec-cauchy, @thm-t, @thm-s, Steps 1–4 of the proof of @thm-ph and (A2)–(A4), (A6), (A7) symbolically, and compares @thm-ph, @thm-s, @thm-t and @cor-hf with finite-box inversion (62 checks).
 - *Vertices* (`doped-gamma/check_vertices.jl`): @eq-Gamma-t and @eq-Gamma-s agree with an independent residue-based BigFloat evaluator (`doped-gamma/doped_gamma.jl`) to $3 times 10^(-15)$, @eq-Gamma-ph at 256 bits to $10^(-65)$ (300 entries, $k = 0, 1, 2, -3, 5$, $|mu| <= 2 |U|$); at $mu = 0$, @eq-Gamma-t, @eq-Gamma-s and @eq-Gamma-hf agree with `HubbardAtoms.jl` (Eq. 19 of Ref. @thunstroem2018) to $3 times 10^(-14)$.
-- *Expanded formulas* (`doped-gamma/check_explicit.jl`): @app-explicit is transcribed without the main text's polynomial and thermal coefficients and compared with `DopedHubbardAtom` at 256 bits, including diagonal entries, mirror fixed points, both signs of each particle–hole square root and the static magnetic atomic root.
+- *Expanded formulas* (`doped-gamma/check_explicit.jl`): @app-explicit, in the notation of Ref. @thunstroem2018, is transcribed without the main text's polynomial and thermal coefficients and compared with `DopedHubbardAtom` at 256 bits, including diagonal entries, mirror fixed points, both signs of each particle–hole square root and the static magnetic atomic root.
 - *Divergences* (`doped-gamma/check_divergences.jl`):
   - On 30 cuts at fixed $beta mu in [0.05, 3.9]$, $|beta U| <= 25$, each of the 70 lines of @eq-div-ph and @eq-div-s matches a change by one of the number of negative real eigenvalues of $chi_"d"$, $chi_"m"$, $chi_"s"$ on the box $|2 n + 1| <= 49$ at an unchanged number of conjugate pairs. The scan steps $beta U$ by $0.05$ and matches within $0.15$. There are no other such changes, and none by more than one. Changes of the number of conjugate pairs (pairs turning real, pseudo-divergences) are not compared.
   - At 8 points on the lines (including $mu = 0$), the box eigenvector of the eigenvalue closest to zero has overlap $|cos angle(bold(v), bold(g))|$ with the $bold(g)$ of @app-div that differs from 1 by less than $2 times 10^(-12)$.
   - At the three exceptional points quoted in @app-div, on the boxes $|2 n + 1| <= 121$ and $241$, exactly two eigenvalues have eigenvectors aligned with $bold(g)_j$ (overlap above $0.99$). They agree in size within $10 %$, are below a tenth of all other eigenvalues, and shrink by more than half from the smaller box to the larger ($10^(-8)$ on the larger). An ordinary divergence and a point off the lines fail this test.
   - On the singlet curve $K_"s" = 0 = d_minus.plus$ at $beta mu = plus.minus 0.3, plus.minus 1, plus.minus 3$, the box eigenvalue whose eigenvector is most aligned with $1 slash (t_n + As)$ stays above $0.02$, and $Gamma_"s"$ (`DopedHubbardAtom`) converges to the same finite value from both sides of the curve.
+  - The conditions of @sec-div-thun, transcribed with $B^2 = -s_j$, vanish on six of the lines to $10^(-13)$, and its sum for the exceptional points, summed directly over $nu$, vanishes at two of them to $10^(-10)$ of the sum of the moduli.
   - A point where two arcs of $Phi(s_j) = 0$ cross (equality in the sign condition of @eq-div-ph) is a divergence: the smallest box eigenvalue shrinks from $10^(-10)$ to $3 times 10^(-14)$.
 - *Implementation:* the test suite of `HubbardAtoms.jl` compares `DopedHubbardAtom` with exact diagonalization, with finite-box inversion and with `BigFloat` evaluation, including the removable singularities of @prop-special.
 
@@ -867,72 +868,66 @@ The inverses constructed in the proofs need no trust: Lean proves that they are 
 #pagebreak(weak: true)
 = The vertices written out <app-explicit>
 
-This appendix gives the regular formulas of @thm-t, @thm-s, @thm-ph and @cor-hf without the nested coefficient definitions used in the proofs. The input panel below fixes the notation; $Gamma_(r, n m)$ denotes $Gamma_r (nu_n, nu_m, omega)$ in the channel convention of @eq-Gamma-def. Only square roots and their explicit values are introduced in the individual channels; every polynomial and thermal coefficient is expanded inside the vertex. These are exact identities, not numerically stabilized evaluation rules.
+This appendix gives the regular formulas of @thm-t, @thm-s, @thm-ph and @cor-hf without the nested coefficient definitions used in the proofs, in the notation of Ref. @thunstroem2018. The frequencies are written directly: $Gamma_r^(nu nu' omega) := Gamma_r (nu, nu', omega)$ in the channel convention of @eq-Gamma-def, which is that of Ref. @thunstroem2018. At $mu = 0$ the formulas are Eq. (19) of that reference. Besides the input panel, each channel defines a few constants, the counterparts of $A_r$ and $B_r$ in Ref. @thunstroem2018; every polynomial and thermal coefficient is written out inside the vertex. @sec-div-thun relates this notation to that of the main text. These are exact identities, not numerically stabilized evaluation rules.
 
 == Input panel
 
-Take $U, mu in RR$, $beta > 0$ and $n, m, k in ZZ$. For $U = 0$, all four vertices vanish. For $U != 0$ use
-$ a := U/2, quad omega := frac(2 pi k, beta), quad nu_n := frac((2n + 1) pi, beta), quad overline(n) := -n - k - 1, $
-$ x_n := mu + i frac((2n + 1) pi, beta), quad overline(x)_n := mu - i frac((2n + 1 + 2k) pi, beta), $
-$ z_n := mu + i frac((2n + 1 + k) pi, beta), quad b := 2 mu - i frac(2 pi k, beta). $
-The normalized weights and filling parameter are
-$ p_0 := frac(e^(-beta mu), 2 cosh(beta mu) + 2 e^(beta a)), quad p_1 := frac(e^(beta a), 2 cosh(beta mu) + 2 e^(beta a)), quad p_2 := frac(e^(beta mu), 2 cosh(beta mu) + 2 e^(beta a)), $
-$ rho := frac(sinh(beta mu), cosh(beta mu) + e^(beta a)) = p_2 - p_0. $
-Use the parity-dependent function
-$ T(y) := cases(tanh(beta y slash 2) & quad k "even,", coth(beta y slash 2) & quad k "odd.") $
-Here $delta_(n m)$ is the Kronecker delta. The particle–hole channels $r = "d", "m"$ carry the sign $epsilon_"d" = +1$ (density) and $epsilon_"m" = -1$ (magnetic).
+Take $U, mu in RR$, $beta > 0$, and the Matsubara frequencies $nu = (2 n + 1) pi slash beta$, $nu' = (2 m + 1) pi slash beta$, $omega = 2 pi k slash beta$. For $U = 0$, all four vertices vanish; let $U != 0$. The normalized weights and the filling parameter are
+$ p_0 := frac(e^(-beta mu), 2 cosh(beta mu) + 2 e^(beta U slash 2)), quad p_1 := frac(e^(beta U slash 2), 2 cosh(beta mu) + 2 e^(beta U slash 2)), quad p_2 := frac(e^(beta mu), 2 cosh(beta mu) + 2 e^(beta U slash 2)), $
+$ rho := frac(sinh(beta mu), cosh(beta mu) + e^(beta U slash 2)) = p_2 - p_0. $
+The mirror partner of $nu$ is $-nu - omega$, and $delta_(nu nu')$, $delta_(nu (-nu' - omega))$ are Kronecker deltas. Away from half filling the frequencies enter shifted by $mu$: in the particle–hole channels through $tilde(nu) := nu - i mu$ and $tilde(nu)' := nu' - i mu$, in the particle–particle channels through
+$ t_nu := (nu - i mu)(nu + omega + i mu), $
+which is $nu (nu + omega)$ at $mu = 0$. The particle–hole channels $r = "d", "m"$ carry the sign $epsilon_"d" = +1$ (density) and $epsilon_"m" = -1$ (magnetic). As in Ref. @thunstroem2018, the temperature enters through $tan(beta (W + omega) slash 4)$ for a square root $W$; since $beta omega slash 4 = pi k slash 2$, this is $tan(beta W slash 4)$ for even $k$ and $-cot(beta W slash 4)$ for odd $k$.
 
 == Triplet
 
-For $n != overline(n)$,
-$ Gamma_("t", n m) = frac(beta a^2 (1 - rho^2) (x_n^2 - a^2)(overline(x)_n^2 - a^2), (x_n + a rho)(overline(x)_n + a rho) [(x_n + a rho)(overline(x)_n + a rho) + a^2 (1 - rho^2)]) (delta_(n m) - delta_(m overline(n))). $ <eq-explicit-t>
-The last bracket in the denominator must be nonzero for every $n != overline(n)$. At a mirror fixed point, $n = overline(n)$, the entire row and column vanish: $Gamma_("t", n m) = Gamma_("t", m n) = 0$ for every $m$.
+With
+$ C := frac(U, 2) rho (2 mu - i omega) + frac(U^2, 4) rho^2, quad quad A_"t"^2 := -frac(U^2, 4) - frac(U, 2) rho (2 mu - i omega), $
+for $nu != -nu - omega$,
+$ Gamma_"t"^(nu nu' omega) = -frac(beta (A_"t"^2 + C) [(nu - i mu)^2 + U^2 slash 4] [(nu + omega + i mu)^2 + U^2 slash 4], (t_nu + C)(t_nu - A_"t"^2)) [delta_(nu nu') - delta_(nu (-nu' - omega))], $ <eq-explicit-t>
+where $-(A_"t"^2 + C) = (U^2 slash 4)(1 - rho^2)$. The factor $t_nu - A_"t"^2$ must be nonzero for every $nu != -nu - omega$. At a mirror fixed point, $nu = -omega slash 2$ (odd $k$), the entire row and column vanish: $Gamma_"t"^(nu nu' omega) = Gamma_"t"^(nu' nu omega) = 0$ for every $nu'$. At $mu = 0$, $C = 0$ and $A_"t"^2 = -U^2 slash 4$, and this is the triplet case of Eq. (19) of Ref. @thunstroem2018.
 
 #block(breakable: false)[
 == Singlet
 
-The only additional input is the square root
-$ xi := sqrt(b^2 slash 4 + a rho b + a^2 (1 - 8 p_1)). $
-Then
-$ Gamma_("s", n m) = & frac(beta a^2 (rho^2 - 1 + 8 p_1) (x_n^2 - a^2)(overline(x)_n^2 - a^2), (x_n + a rho)(overline(x)_n + a rho) [(x_n + a rho)(overline(x)_n + a rho) + a^2 (1 - rho^2 - 8 p_1)]) (delta_(n m) + delta_(m overline(n))) \
-& + 4 a - frac(16 a^3 [4 a p_1 - (p_1 + p_2) b] [4 a p_1 + (p_0 + p_1) b], 1 + a T(xi) slash xi) \
-& quad times frac(1, [(x_n + a rho)(overline(x)_n + a rho) + a^2 (1 - rho^2 - 8 p_1)] [(x_m + a rho)(overline(x)_m + a rho) + a^2 (1 - rho^2 - 8 p_1)]). $ <eq-explicit-s>
-The brackets depending on a fermionic index must be nonzero for every index, and $1 + a T(xi) slash xi != 0$. Either sign of $xi$ gives the same value. At $xi = 0$ and even $k$, replace $T(xi) slash xi$ by $beta slash 2$. The lattice-zero continuation is item 1 of @prop-special.
+With $C$ as for the triplet,
+$ B_"s"^2 := frac(U^2, 4)(8 p_1 - 1) - frac(U, 2) rho (2 mu - i omega), quad quad W_"s" := sqrt(4 B_"s"^2 + (omega + 2 i mu)^2), $
+the vertex is
+$ Gamma_"s"^(nu nu' omega) = & frac(beta (B_"s"^2 + C) [(nu - i mu)^2 + U^2 slash 4] [(nu + omega + i mu)^2 + U^2 slash 4], (t_nu + C)(t_nu - B_"s"^2)) [delta_(nu nu') + delta_(nu (-nu' - omega))] + 2 U \
+& - frac(2 U [(B_"s"^2 + U^2 slash 4)^2 - (U^2 slash 4)(2 mu - i omega)^2], [1 + U tan(beta (W_"s" + omega) slash 4) slash W_"s"] (t_nu - B_"s"^2)(t_(nu') - B_"s"^2)). $ <eq-explicit-s>
+The factors $t_nu - B_"s"^2$ must be nonzero for every $nu$, and so must the thermal denominator. Either sign of $W_"s"$ gives the same value; at $W_"s" = 0$ (even $k$), replace $tan(beta (W_"s" + omega) slash 4) slash W_"s"$ by $beta slash 4$. At $mu = 0$, $B_"s"$ is the $B_"s"$ of Ref. @thunstroem2018, and this is the singlet case of its Eq. (19), where the term with $A_"s" = 0$ drops out. The lattice-zero continuation is item 1 of @prop-special.
 ]
 
 #block(breakable: false)[
 == Density and magnetic away from half filling
 
-Take $mu != 0$. The roots needed for this formula are explicitly
-$ s_(1, 2) := & 2 a^2 rho^2 - a^2 - omega^2 slash 4 - 4 epsilon_r a^2 p_1 \
-& plus.minus 2 a sqrt(a^2 rho^4 - rho^2 (a^2 + omega^2 slash 4 + 4 epsilon_r a^2 p_1) + 4 a^2 p_0 p_2), quad u_j := sqrt(s_j). $
-For $s_1 != s_2$ and $z_n^2 != s_j$ for every $n$ and $j$,
-$ Gamma_(r, n m) = & beta ([(z_n + a)^2 + omega^2 slash 4][(z_n - a)^2 + omega^2 slash 4]) \
-& quad times [frac(1, (z_n + a rho)^2 + omega^2 slash 4) - frac(z_n^2 - 2 a rho z_n + a^2 + omega^2 slash 4 + 4 epsilon_r a^2 p_1, (z_n^2 - s_1)(z_n^2 - s_2))] delta_(n m) + 2 epsilon_r a \
-& - frac(4 epsilon_r a^2 rho z_n [(z_n + a)^2 + omega^2 slash 4][(z_n - a)^2 + omega^2 slash 4], (z_n^2 - z_m^2)(z_n^2 - s_1)(z_n^2 - s_2)) \
-& + frac(4 epsilon_r a^2 rho z_m [(z_m + a)^2 + omega^2 slash 4][(z_m - a)^2 + omega^2 slash 4], (z_n^2 - z_m^2)(z_m^2 - s_1)(z_m^2 - s_2)) \
-& + 4 epsilon_r a^2 rho sum_(j = 1)^2 lr([frac(u_j [(u_j + a)^2 + omega^2 slash 4][(u_j - a)^2 + omega^2 slash 4], (s_j - s_(3-j))(z_n^2 - s_j)(z_m^2 - s_j)) \
-& quad times frac(s_j - 2 a rho u_j + a^2 + omega^2 slash 4 + 4 epsilon_r a^2 p_1 + 2 epsilon_r a^2 [rho T(u_j - mu) + p_0 + p_2], s_j - 2 a rho u_j + a^2 + omega^2 slash 4 + 4 epsilon_r a^2 p_1 - 2 epsilon_r a^2 [rho T(u_j - mu) + p_0 + p_2])]). $ <eq-explicit-ph>
-The last denominator must be nonzero for each retained root. For $r = "m"$ and $k = 0$, omit the root $s_j = a^2$ from the sum and from this nonvanishing requirement. Either sign of either $u_j$ gives the same vertex.
+Take $mu != 0$. With
+$ q := frac(U^2, 4)(1 + 4 epsilon_r p_1), quad quad B_(r, 1)^2, B_(r, 2)^2 := q - frac(U^2 rho^2, 2) minus.plus U sqrt(frac(U^2, 4) rho^4 - rho^2 (q + frac(omega^2, 4)) + U^2 p_0 p_2), $
+$ W_j := sqrt(4 B_(r, j)^2 + omega^2), quad quad tilde(t)_nu := tilde(nu) (tilde(nu) + omega), $
+and for $B_(r, 1)^2 != B_(r, 2)^2$ and $tilde(t)_nu != B_(r, j)^2$ for every $nu$ and $j$,
+$ Gamma_r^(nu nu' omega) = & -beta (tilde(nu)^2 + frac(U^2, 4)) ((tilde(nu) + omega)^2 + frac(U^2, 4)) \
+& quad times [frac(1, tilde(t)_nu - i U rho (tilde(nu) + omega slash 2) - U^2 rho^2 slash 4) + frac(q - tilde(t)_nu - i U rho (tilde(nu) + omega slash 2), (tilde(t)_nu - B_(r, 1)^2)(tilde(t)_nu - B_(r, 2)^2))] delta_(nu nu') + epsilon_r U \
+& - frac(i epsilon_r U^2 rho, tilde(t)_(nu') - tilde(t)_nu) [frac((tilde(nu) + omega slash 2) (tilde(nu)^2 + U^2 slash 4) ((tilde(nu) + omega)^2 + U^2 slash 4), (tilde(t)_nu - B_(r, 1)^2)(tilde(t)_nu - B_(r, 2)^2)) - frac((tilde(nu)' + omega slash 2) (tilde(nu)'^2 + U^2 slash 4) ((tilde(nu)' + omega)^2 + U^2 slash 4), (tilde(t)_(nu') - B_(r, 1)^2)(tilde(t)_(nu') - B_(r, 2)^2))] \
+& + frac(i epsilon_r U^2 rho, 2) sum_(j = 1)^2 lr([frac(W_j [(B_(r, j)^2 + U^2 slash 4)^2 + U^2 omega^2 slash 4], (B_(r, 3 - j)^2 - B_(r, j)^2)(tilde(t)_nu - B_(r, j)^2)(tilde(t)_(nu') - B_(r, j)^2)) \
+& quad times frac(q - B_(r, j)^2 - (i slash 2) U rho W_j + (epsilon_r U^2 slash 2) [i rho tan(beta (W_j + omega + 2 i mu) slash 4) + p_0 + p_2], q - B_(r, j)^2 - (i slash 2) U rho W_j - (epsilon_r U^2 slash 2) [i rho tan(beta (W_j + omega + 2 i mu) slash 4) + p_0 + p_2])]). $ <eq-explicit-ph>
+The last denominator must be nonzero for each retained root. For $r = "m"$ and $k = 0$, omit the root $B_(r, j)^2 = -U^2 slash 4$ from the sum and from this requirement. Either sign of either $W_j$ gives the same vertex. As $mu -> 0$, $B_(r, 1)^2$ and $B_(r, 2)^2$ tend to $A_r^2$ and $B_r^2$ below.
 ]
 
 #block(breakable: false)[
-*Diagonal entries.* For $n = m$, replace the two fractions containing $z_n^2 - z_m^2$ together by $-4 epsilon_r a^2 rho$ times the following explicit rational function:
-$ & frac([(z_n + a)^2 + omega^2 slash 4][(z_n - a)^2 + omega^2 slash 4], 2 z_n (z_n^2 - s_1)(z_n^2 - s_2)) + frac(2 z_n (z_n^2 - a^2 + omega^2 slash 4), (z_n^2 - s_1)(z_n^2 - s_2)) \
-& - frac(z_n [(z_n + a)^2 + omega^2 slash 4][(z_n - a)^2 + omega^2 slash 4] (2 z_n^2 - s_1 - s_2), (z_n^2 - s_1)^2 (z_n^2 - s_2)^2). $ <eq-explicit-diag>
-The confluent-root and lattice-zero continuations are items 2 and 3 of @prop-special.
+*Diagonal entries.* For $nu = nu'$, replace the second line (the dense term) by
+$ i epsilon_r U^2 rho [frac(N, 2 y E) + y frac(2 (tilde(t)_nu + U^2 slash 4) E - N (2 tilde(t)_nu - B_(r, 1)^2 - B_(r, 2)^2), E^2)], $ <eq-explicit-diag>
+where $y := tilde(nu) + omega slash 2$, $E := (tilde(t)_nu - B_(r, 1)^2)(tilde(t)_nu - B_(r, 2)^2)$ and $N := (tilde(t)_nu + U^2 slash 4)^2 + U^2 omega^2 slash 4 = (tilde(nu)^2 + U^2 slash 4)((tilde(nu) + omega)^2 + U^2 slash 4)$. The confluent-root and lattice-zero continuations are items 2 and 3 of @prop-special.
 ]
 
 == Density and magnetic at half filling
 
-Set $mu = 0$. The input panel reduces to $rho = 0$, $p_2 = p_0 = 1 slash [2 (1 + e^(beta a))]$ and $p_1 = e^(beta a) slash [2 (1 + e^(beta a))]$. The roots are
-$ hat(s) := 4 epsilon_r a^2 (p_0 - p_1) - a^2 - omega^2 slash 4, quad hat(s)' := -4 epsilon_r a^2 (p_0 + p_1) - a^2 - omega^2 slash 4, quad hat(u) := sqrt(hat(s)). $
-For $z_n^2 != hat(s), hat(s)'$ for every $n$,
-$ Gamma_(r, n m) = & beta [(z_n + a)^2 + omega^2 slash 4][(z_n - a)^2 + omega^2 slash 4] \
-& quad times [frac(1, z_n^2 + omega^2 slash 4) - frac(z_n^2 + a^2 + omega^2 slash 4 + 4 epsilon_r a^2 p_1, (z_n^2 - hat(s))(z_n^2 - hat(s)'))] delta_(n m) + 2 epsilon_r a \
-& - frac(4 epsilon_r a^2 beta p_0 [(z_n + a)^2 + omega^2 slash 4][(z_n - a)^2 + omega^2 slash 4], (z_n^2 - hat(s))(z_n^2 - hat(s)')) delta_(m overline(n)) \
-& - frac(2 epsilon_r a [(hat(s) + a^2 + omega^2 slash 4)^2 - 4 a^2 hat(s)], [1 + epsilon_r a T(hat(u)) slash hat(u)] (z_n^2 - hat(s))(z_m^2 - hat(s))). $ <eq-explicit-hf>
-The thermal denominator $1 + epsilon_r a T(hat(u)) slash hat(u)$ must be nonzero. Either sign of $hat(u)$ gives the same value. At $hat(u) = 0$ and even $k$, replace $T(hat(u)) slash hat(u)$ by $beta slash 2$. The lattice-zero and mirror-fixed-point continuations are item 4 of @prop-special.
+Set $mu = 0$, so that $rho = 0$ and $tilde(nu) = nu$. With
+$ A_r^2 := frac(U^2, 4) (1 + 2 epsilon_r), quad quad B_r^2 := frac(U^2, 4) frac(3 e^(epsilon_r beta U slash 2) - 1, e^(epsilon_r beta U slash 2) + 1), quad quad W := sqrt(4 B_r^2 + omega^2), $
+and for $nu (nu + omega) != A_r^2, B_r^2$ for every $nu$,
+$ Gamma_r^(nu nu' omega) = & frac(beta A_r^2 (nu^2 + U^2 slash 4)((nu + omega)^2 + U^2 slash 4), 2 [nu (nu + omega) - A_r^2] nu (nu + omega)) [delta_(nu nu') - delta_(nu (-nu' - omega))] \
+& + frac(beta B_r^2 (nu^2 + U^2 slash 4)((nu + omega)^2 + U^2 slash 4), 2 [nu (nu + omega) - B_r^2] nu (nu + omega)) [delta_(nu nu') + delta_(nu (-nu' - omega))] \
+& + epsilon_r U - frac(epsilon_r U [(B_r^2 + U^2 slash 4)^2 + U^2 omega^2 slash 4], [1 + epsilon_r U tan(beta (W + omega) slash 4) slash W] [nu (nu + omega) - B_r^2] [nu' (nu' + omega) - B_r^2]). $ <eq-explicit-hf>
+This is Eq. (19) of Ref. @thunstroem2018 for $r = "d", "m"$, whose prefactors there are $cal(A)_0^r = cal(B)_0^r = 1$, $|cal(B)_2^r| = 1$ and $(cal(B)_1^r)^2 = -epsilon_r$. $A_r$ and $B_r$ are those of its Table I, where $B_"m"$ carries a minus sign that does not matter; its thermal denominator $U tan(dots.c) slash W plus.minus 1$ is ours up to the sign $epsilon_r$. The thermal denominator must be nonzero. Either sign of $W$ gives the same value; at $W = 0$ (even $k$), replace $tan(beta (W + omega) slash 4) slash W$ by $beta slash 4$. The lattice-zero and mirror-fixed-point continuations are item 4 of @prop-special.
 
 #pagebreak(weak: true)
 = Vertex divergences <app-div>
@@ -1006,6 +1001,48 @@ We do not prove this for the infinite matrix. On finite boxes, two eigenvalues o
 - *Magnetic, $U > 0$.* There are no divergences in the window, as at half filling @thunstroem2018.
 - *$U < 0$.* The density lines start at the localized points, the magnetic ones at the global points of half filling. The first exceptional points are at $|beta mu| = 1.121$ (density) and $0.971$ (magnetic); beyond them the lines leave the window at $beta U = -25$. A line passes from one root to the other where $s_1 = s_2$, for example at $|beta mu| = 1.453$, $beta U = -6.97$ on the first density line.
 This is the structure that Ref. @essl2024 found numerically (its Fig. 2a, where $delta mu$ is our $mu$). It reports a doping of about $6 %$ at the first exceptional points for $U > 0$, and Ref. @essl2023 gives them at $beta delta mu approx 0.6$, $1.12$ and $0.975$, in agreement with ours.
+
+== In the notation of Ref. @thunstroem2018 <sec-div-thun>
+
+@app-explicit uses the notation of Ref. @thunstroem2018. It relates to that of the main text as follows (the symbols on the right are local to @app-explicit and to this section):
+#figure(
+  kind: table,
+  caption: [Main-text notation and that of Ref. @thunstroem2018 and @app-explicit, with $tilde(nu) = nu - i mu$.],
+  text(size: 9pt, {
+  set par(justify: false)
+  table(
+    columns: (auto, auto),
+    align: left,
+    stroke: none,
+    inset: (x: 6pt, y: 3.5pt),
+    fill: (_, y) => if calc.even(y) and y > 0 { luma(242) },
+    table.hline(),
+    table.header([*Main text*], [*Ref. @thunstroem2018, @app-explicit*]),
+    table.hline(stroke: 0.4pt),
+    [$Gamma_(r, n m)$, $delta_(m overline(n))$], [$Gamma_r^(nu nu' omega)$ with $nu = nu_n$, $nu' = nu_m$, $omega = omega_k$; $delta_(nu (-nu' - omega))$],
+    [$x_n$, $overline(x)_n$, $t_n$], [$i (nu - i mu)$, $-i (nu + omega + i mu)$, $t_nu$],
+    [$z_n$, $z_n^2 + omega^2 slash 4$], [$i (tilde(nu) + omega slash 2)$, $-tilde(nu) (tilde(nu) + omega)$],
+    [$s_j$, $u_j$], [$-B_(r, j)^2 - omega^2 slash 4$, $(i slash 2) W_j$],
+    [$hat(s)'$, $hat(s)$ ($mu = 0$)], [$-A_r^2 - omega^2 slash 4$, $-B_r^2 - omega^2 slash 4$],
+    [$-As$, $xi$], [$B_"s"^2$, $(i slash 2) W_"s"$],
+    [$cal(G)(t_n)$, $t_n + a rho b + a^2$], [$t_nu + C$, $t_nu - A_"t"^2$],
+    [$T(i W slash 2 - mu)$], [$i tan(beta (W + omega + 2 i mu) slash 4)$],
+    table.hline(),
+  )}),
+) <tab-thun>
+So $z_n^2 - s_j = B_(r, j)^2 - tilde(nu) (tilde(nu) + omega)$: the denominators of the separable terms are those of Ref. @thunstroem2018 with $nu -> tilde(nu)$ and with $B_r$ replaced by the two constants $B_(r, j)$. At half filling these are $A_r$ and $B_r$; away from it they are the two roots of one quadratic, and the localized and global divergences of half filling become the zeros of one function.
+
+At $omega = 0$, with $s_j = -B_(r, j)^2$, $u_j = i B_(r, j)$ and $q = (U^2 slash 4)(1 + 4 epsilon_r p_1)$, the results of this appendix read:
+- *Null vectors:* $g(nu) = 1 slash ((nu - i mu)^2 - B_(r, j)^2)$ (density and magnetic), $1 slash (t_nu - B_"s"^2)$ (singlet), and $bold(e)_nu - bold(e)_(-nu - omega)$ (triplet; localized divergences at half filling).
+- *Density and magnetic*, @eq-div-ph:
+  $ & cosh(beta mu) + cos(beta B_(r, j)) + epsilon_r U frac(sin(beta B_(r, j)), 2 B_(r, j)) = 0 quad "and" \
+  & (q - B_(r, j)^2)(cos(beta B_(r, j)) + cosh(beta mu)) = epsilon_r U^2 sqrt(p_0 p_2) (1 + cosh(beta mu) cos(beta B_(r, j))). $
+  The first condition is $beta = epsilon_r U sum_nu (B_(r, j)^2 - (nu - i mu)^2)^(-1)$. Both sides are even in $B_(r, j)$, hence real for real $B_(r, j)^2$.
+- *Exceptional points*, @eq-div-ep: $sum_nu ((nu - i mu)^2 - B_(r, j)^2)^(-2) = 0$.
+- *Half filling:* the first condition becomes $2 cos^2(beta B slash 2) [1 + epsilon_r U tan(beta B slash 2) slash (2 B)] = 0$. Its first factor vanishes for $B^2 = nu^2$, which for $B = A_r$ is the localized condition $nu (nu + omega) = A_r^2$ of Eq. (20) of Ref. @thunstroem2018. Its second factor, for $B = B_r$, is the global condition of Eq. (22) there, up to the sign $epsilon_r$.
+- *Singlet*, @eq-div-s, with $B_"s"^2 = (U^2 slash 4)(8 p_1 - 1) - U rho mu$:
+  $ cos frac(beta sqrt(B_"s"^2 - mu^2), 2) + U frac(sin(beta sqrt(B_"s"^2 - mu^2) slash 2), 2 sqrt(B_"s"^2 - mu^2)) = 0, $
+  except on the curve where $d_minus.plus = 0$.
 
 = List of symbols <app-symbols>
 

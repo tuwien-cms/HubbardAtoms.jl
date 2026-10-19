@@ -4,7 +4,8 @@
 Γ of the Hubbard atom at arbitrary filling, in all four channels, that `DopedHubbardAtom`
 implements. Its source is `doped-gamma-derivation.typ` (Typst), with the bibliography
 `doped-gamma-refs.yml`. Appendix F writes out the regular Γ formulas, including their
-polynomial and thermal factors, from a single input panel. Appendix G derives the divergences
+polynomial and thermal factors, from a single input panel, in the notation of Thunström et al.
+(at half filling, their Eq. (19)). Appendix G derives the divergences
 of Γ (null vectors, the conditions at ω = 0 and exceptional points) and plots them; Appendix H
 lists the symbols.
 
