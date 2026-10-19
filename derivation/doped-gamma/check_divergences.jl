@@ -260,6 +260,42 @@ for (label, ε, guess) in (("end of the first loop, U > 0", 1, [0.5693, 4.44]),
     global ok &= r < 1e-10 && σ > 0
 end
 
+# 3d. Section "In the notation of Ref. [Thunström]" at ω = 0 (β = 1): its conditions, transcribed with
+# B² = −s_j, vanish on the lines, and its EP sum, summed directly over ν, vanishes at the EPs
+let good = true, worst = 0.0
+    for (ch, μ, lo, hi) in
+        ((:d, 0.3, 3.7, 3.8), (:d, 0.3, 5.0, 5.1), (:d, 1.0, -4.95, -4.85),
+         (:m, 0.3, -5.5, -5.2))
+        ε = ch == :d ? 1 : -1
+        U, j = only(divergences(ch, μ, range(lo, hi; length=201)))
+        B² = complex(-ph_line(U, μ, ε, j)[3])
+        B = sqrt(B²)
+        p0, p1, p2 = wts(U, μ)
+        q = U^2 / 4 * (1 + 4ε * p1)
+        c1 = cosh(μ) + cos(B) + ε * U * sin(B) / (2B)
+        c2 = (q - B²) * (cos(B) + cosh(μ)) -
+             ε * U^2 * sqrt(p0 * p2) * (1 + cosh(μ) * cos(B))
+        worst = max(worst, abs(c1), abs(c2) / (1 + abs(q) + abs(B²)))
+    end
+    for (μ, lo, hi) in ((0.3, 5.0, 5.3), (1.6, 5.8, 6.1))
+        U, _ = only(divergences(:s, μ, range(lo, hi; length=201)))
+        p0, p1, p2 = wts(U, μ)
+        X = sqrt(complex(U^2 / 4 * (8p1 - 1) - U * (p2 - p0) * μ - μ^2))
+        worst = max(worst, abs(cos(X / 2) + U * sin(X / 2) / (2X)))
+    end
+    for (ch, j, μs, lo, hi) in
+        ((:d, 2, 0.5:0.002:0.6, 3.8, 4.6), (:d, 1, 0.9:0.004:1.3, -4.5, -6.0))
+        μ, U = ep(ch, j, μs, lo, hi)
+        B² = -ph_line(U, μ, ch == :d ? 1 : -1, j)[3]
+        terms = [1 / (((2n + 1) * π - im * μ)^2 - B²)^2 for n in -200000:199999]
+        worst = max(worst, abs(sum(terms)) / sum(abs, terms))   # the tail beyond |n| = 2·10⁵ is ~1e-16 of the sum
+    end
+    good = worst < 1e-8
+    @printf("%-4s conditions in Thunström's notation (Section G.4) on 6 lines and EP sums at 2 EPs: max %.0e\n",
+            good ? "PASS" : "FAIL", worst)
+    global ok &= good
+end
+
 # 4. Half filling: the lines start at the localized divergences βU = 2π(2n+1)/√3 (d) and at the zeros of D̂
 let μ = 1e-6, Us = range(0.06, 25; length=20000)
     loc = [U for (U, j) in divergences(:d, μ, Us)]
