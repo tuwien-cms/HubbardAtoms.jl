@@ -149,6 +149,7 @@ function check_explicit()
                              rtol=big"1e-40", atol=big"1e-40")
         end
     end
+    # Package-only sanity checks of the printed U = 0 shortcut, not formula comparisons.
     for μ in (big"0", big"0.4"), k in -1:1, r in CHANNELS
         at = DopedHubbardAtom(big"0", big"2", μ)
         @assert iszero(gamma(r, at, (FermionicFreq(1), FermionicFreq(-1), BosonicFreq(2k))))
@@ -157,7 +158,8 @@ function check_explicit()
         @printf("%-6s %5d entries, worst normalized error %.2e\n", name, counts[name],
                 worst[name])
     end
-    println("PASS: zero square roots (8 entries) and U = 0 (24 entries)")
+    println("PASS: expanded zero-root formulas (8 entries)")
+    println("PASS: package-only U = 0 sanity checks (24 entries)")
 end
 
 setprecision(check_explicit, BigFloat, 256)
