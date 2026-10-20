@@ -1,7 +1,8 @@
 """
-Supertype of `HubbardAtom` (half filling) and `DopedHubbardAtom` (arbitrary filling), which
-all functions of the package take. For `HubbardAtom{T}` all quantities except `gf` are real
-(of type `T`); for `DopedHubbardAtom{T}` they are `Complex{T}`.
+Supertype of `HubbardAtom` (half filling), `DopedHubbardAtom` (arbitrary filling), and
+`FieldHubbardAtom` (doping and Zeeman field). For `HubbardAtom{T}` all quantities except
+`gf` are real (of type `T`); for the other atoms they are `Complex{T}`. The field atom
+supports only spin-resolved `gf` and sector `chi`, `chi0`, `gamma`, not the SU(2) channel API.
 """
 abstract type AbstractHubbardAtom end
 

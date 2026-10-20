@@ -13,8 +13,8 @@ const cup, cdn = Matrix(cup⁺'), Matrix(cdn⁺')
 const nup, ndn = cup⁺ * cup, cdn⁺ * cdn
 
 # Eq. 1, H = U(n↑ - 1/2)(n↓ - 1/2) - μ(n↑ + n↓ - 1), is diagonal in this basis.
-energies(U, μ) = U .* (diag(nup) .- 1 / 2) .* (diag(ndn) .- 1 / 2) .-
-                 μ .* (diag(nup) .+ diag(ndn) .- 1)
+energies(U, μ, h=0) = U .* (diag(nup) .- 1 / 2) .* (diag(ndn) .- 1 / 2) .-
+                      μ .* (diag(nup) .+ diag(ndn) .- 1) .- h .* (diag(nup) .- diag(ndn))
 
 ν(n, β) = (2n + 1) * π / β
 ω(k, β) = 2k * π / β
@@ -25,8 +25,8 @@ tells whether Oⱼ anticommutes. As H is diagonal, the integrand on each time-or
 sum of exponentials, whose integral is the divided difference of exp(βx) at the cumulative
 exponents (Hermite-Genocchi formula), i.e. the corner entry of exp(βJ) for a bidiagonal J (Opitz).
 =#
-function correlator(U, β, ops, φ, fermionic; μ=0)
-    E = energies(U, μ)
+function correlator(U, β, ops, φ, fermionic; μ=0, h=0)
+    E = energies(U, μ, h)
     w = exp.(-β .* (E .- minimum(E)))
     k = length(φ)
     res = zero(ComplexF64)

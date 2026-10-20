@@ -7,7 +7,7 @@ type: software
 title: HubbardAtoms.jl
 abstract: >-
   Exact one- and two-particle quantities of the Hubbard atom in Matsubara frequencies, at half
-  filling and at arbitrary filling.
+  filling and at arbitrary filling, including a Zeeman field.
 authors:
   - family-names: Badr
     given-names: Samuel

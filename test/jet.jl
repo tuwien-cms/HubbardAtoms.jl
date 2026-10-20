@@ -25,4 +25,15 @@ end
         test_call(f, types; target_modules=(HubbardAtoms,))
         test_opt(f, types; target_modules=(HubbardAtoms,))
     end
+    A = FieldHubbardAtom{Float64}
+    test_call(gf, (A, Int, FermionicFreq); target_modules=(HubbardAtoms,))
+    test_opt(gf, (A, Int, FermionicFreq); target_modules=(HubbardAtoms,))
+    for R in
+        (LongitudinalSector, TransverseSector, OppositeSpinPairSector, EqualSpinPairSector)
+        for (f, types) in ((chi, (R, A, W3)), (chi0, (R, A, W3)),
+                           (chi0, (R, A, W2)), (gamma, (R, A, W3)))
+            test_call(f, types; target_modules=(HubbardAtoms,))
+            test_opt(f, types; target_modules=(HubbardAtoms,))
+        end
+    end
 end
