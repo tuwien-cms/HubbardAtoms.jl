@@ -262,3 +262,235 @@ end
                        (F(-1), F(m), B(1))))
     end
 end
+
+@testitem "Field transverse Γ: coincident roots (#26)" setup = [FieldTests] begin
+    using HubbardAtoms: _field_t_tanhdd
+    for T in (Float32, Float64, BigFloat), x in (0.7, 20.0)
+        y = complex(T(x), T(0.2))
+        @test _field_t_tanhdd(y, zero(y)) ≈ inv(cosh(y)^2) rtol = 32eps(T)
+    end
+    for (args, w) in (((3.0, 150.0, 0.5, 0.2), (F(2), F(1), B(3))),
+                      ((4.8282735522498275, 209.09920942910338, 1.3579236032838506,
+                        0.7959295676510655), (F(40), F(-39), B(29))))
+        refs = map((512, 1024)) do p
+            setprecision(BigFloat, p) do
+                gamma(TransverseSector(1), FieldHubbardAtom(big.(args)...), w)
+            end
+        end
+        @test refs[1] ≈ refs[2] rtol = big"1e-100"
+        val = gamma(TransverseSector(1), FieldHubbardAtom(args...), w)
+        @test isfinite(val)
+        @test val ≈ refs[2] rtol = 2e-13 atol = 2e-13
+        @test val ≈ -args[1] atol = 1e-12
+        # The same root pair occurs in A after the particle-hole map.
+        U, β, μ, h = args
+        @test gamma(OppositeSpinPairSector(1), FieldHubbardAtom(-U, β, h, μ), w) == val
+    end
+end
+
+@testitem "Field transverse/pair Γ: thermal conditioning (#27)" setup = [FieldTests] begin
+    args = (-4.207702906263744, 15.530916714794136, 0.06408979341811558,
+            1.7931044805449674)
+    r, w = OppositeSpinPairSector(-1), (F(0), F(0), B(-1))
+    ref = setprecision(BigFloat, 1024) do
+        gamma(r, FieldHubbardAtom(big.(args)...), w)
+    end
+    @test gamma(r, FieldHubbardAtom(args...), w) ≈ ref rtol = 2e-13
+    @test ref ≈ 33.53162606438078 - 0.8066504641217349im rtol = 2e-15
+    worst = 0.0
+    # Both atoms have unique ground states; T and its Shiba-mapped A probe small rho.
+    for β in (5.0, 8.0, 12.0, 20.0, 40.0, 80.0, 150.0, 200.0),
+        (U, μ, h) in ((3.0, 0.5, 0.2), (args[1], args[3], args[4]))
+        at = FieldHubbardAtom(U, β, μ, h)
+        for R in (TransverseSector, OppositeSpinPairSector), σ in (1, -1),
+            k in (-1, 0, 3), (n, m) in ((0, 0), (2, 1))
+            r, w = R(σ), (F(n), F(m), B(k))
+            refs = map((512, 1024)) do p
+                setprecision(BigFloat, p) do
+                    gamma(r, FieldHubbardAtom(big(U), big(β), big(μ), big(h)), w)
+                end
+            end
+            @test refs[1] ≈ refs[2] rtol = big"1e-100" atol = big"1e-100"
+            val = gamma(r, at, w)
+            error = Float64(abs(val - refs[2]) / max(1, abs(refs[2])))
+            worst = max(worst, error)
+            # Scaled absolute tolerance also covers entries tending to zero.
+            @test error < 2e-10
+        end
+    end
+    for β in (5.0f0, 40.0f0, 200.0f0), R in (TransverseSector, OppositeSpinPairSector),
+        σ in (1, -1)
+        at = FieldHubbardAtom(3.0f0, β, 0.5f0, 0.2f0)
+        w = (F(0), F(1), B(3))
+        ref = setprecision(BigFloat, 1024) do
+            gamma(R(σ), FieldHubbardAtom(big(at.U), big(β), big(at.mu), big(at.h)), w)
+        end
+        val = gamma(R(σ), at, w)
+        @test val isa ComplexF32
+        @test val ≈ ref rtol = 3e-4 atol = 3e-4
+    end
+    @info "Field T/A beta=5:200: worst scaled Float64 error" worst
+end
+
+@testitem "Field longitudinal Γ: large transfer (#28)" setup = [FieldTests] begin
+    worst = 0.0
+    for β in (0.5, 1.1, 5.0)
+        at = FieldHubbardAtom(1.3, β, 0.3, 0.2)
+        for k in (-10000, -2000, -500, -5, 0, 500, 2000, 10000)
+            refs = map((512, 1024)) do p
+                setprecision(BigFloat, p) do
+                    bat = FieldHubbardAtom(big(at.U), big(β), big(at.mu), big(at.h))
+                    [gamma(r, bat, (F(n), F(m), B(k))) for r in sectors()[1:4]
+                     for (n, m) in ((0, 0), (2, -1))]
+                end
+            end
+            @test refs[1] ≈ refs[2] rtol = big"1e-100" atol = big"1e-100"
+            vals = [gamma(r, at, (F(n), F(m), B(k))) for r in sectors()[1:4]
+                    for (n, m) in ((0, 0), (2, -1))]
+            error = maximum(abs.(vals - refs[2]) ./ max.(1, abs.(refs[2])))
+            worst = max(worst, Float64(error))
+            @test error < 2e-10
+        end
+    end
+    at = FieldHubbardAtom(1.3f0, 1.1f0, 0.3f0, 0.2f0)
+    for r in sectors()[1:4], k in (-10000, 10000)
+        w = (F(0), F(0), B(k))
+        ref = setprecision(BigFloat, 512) do
+            gamma(r, FieldHubbardAtom(big(at.U), big(at.beta), big(at.mu), big(at.h)), w)
+        end
+        @test gamma(r, at, w) ≈ ref rtol = 3e-3 atol = 3e-3
+    end
+    @info "Field L abs(k)<=10000: worst scaled Float64 error" worst
+end
+
+@testitem "Field Γ: low-temperature longitudinal conditioning and transverse diagonal" setup = [FieldTests] begin
+    L(s, t) = LongitudinalSector(s, t)
+    # Float64 regressions: thermal root splitting, thermal numerators, and large-|n| diagonals.
+    pts = [(L(1, -1),
+            (6.315085975450771, 39.71313554464339, -6.220765427871321e-11,
+             -0.09792282818786975), (2, 2, -1)),
+           (TransverseSector(-1),
+            (-0.7738959063591998, 0.9432808499037565, 0.9267688795406751,
+             0.8202887513710141), (-1983, -1983, 1)),
+           (L(1, 1),
+            (4.77740733466237, 114.77636714942648, 0.00019038592274798897,
+             0.0005367460431089227), (-3, -3, -2)),
+           (L(1, -1),
+            (3.0895096162828755, 34.71403267213877, 3.993365911552794e-6,
+             5.330524522722983e-10), (2, 1, -2407)),
+           (L(1, 1),
+            (0.30504384063739315, 379.97040952270305, 0.41433035563201887,
+             0.251416609774571), (-1546, 3, -6)),
+           (L(1, -1),
+            (-6.202742926899975, 19.06265405342061, 5.074728940538015, 8.724053830841862),
+            (-4, -4, -2)),
+           (L(1, -1),
+            (-7.764108587484281, 234.67894013745078, -4.5003217789772024e-11,
+             5.18208794546165e-7), (-5, -6, -3)),
+           (TransverseSector(-1),
+            (-0.22528951068046887, 1.4507388339336156, 0.041204778206202115,
+             -0.1781203609440299), (2192, 2192, 1)),
+           (L(-1, -1),
+            (-4.116740650763914, 87.9980712117142, -0.00031465746390852366,
+             1.7732885144361934), (-4, 437, 11389)),
+           (L(-1, -1),
+            (-8.411512443129798, 31.92239631115766, 2.714642461947298, -6.896231071218536),
+            (-6, 4, -4)),
+           (L(1, -1),
+            (1.0596861865998695, 208.81896789288837, 1.0532069880795767,
+             0.5095147831438819), (-2, -2, 11866)),
+           (L(1, -1),
+            (5.566989944219969, 59.792947869372156, 1.2482770453218197,
+             -2.76363115568123e-12), (0, 0, -18796)),
+           (L(1, -1),
+            (4.83877839760332, 111.4928903674758, -3.0258556951605604e-9,
+             3.025855789536912e-9), (637, 637, -3))]
+    worst = 0.0
+    for (r, args, (n, m, k)) in pts
+        w = (F(n), F(m), B(k))
+        refs = map((1024, 2048)) do p
+            setprecision(BigFloat, p) do
+                gamma(r, FieldHubbardAtom(big.(args)...), w)
+            end
+        end
+        @test refs[1] ≈ refs[2] rtol = big"1e-30" atol = big"1e-30"
+        val = gamma(r, FieldHubbardAtom(args...), w)
+        error = Float64(abs(val - refs[2]) / max(1, abs(refs[2])))
+        worst = max(worst, error)
+        @test error < 1e-10
+    end
+    @info "Field Γ conditioning regressions: worst scaled Float64 error" worst
+end
+
+@testitem "Field longitudinal Γ: generic low-temperature sweep" setup = [FieldTests] begin
+    worst = 0.0
+    for β in (10.0, 20.0, 40.0, 80.0, 150.0, 300.0),
+        (U, μ, h) in ((1.3, 0.3, 0.2), (-1.7, -0.31, 0.17))
+        at = FieldHubbardAtom(U, β, μ, h)
+        for k in (-3, 0, 10000)
+            ws = [(F(n), F(m), B(k)) for (n, m) in ((0, 0), (2, -1))]
+            refs = map((1024, 2048)) do p
+                setprecision(BigFloat, p) do
+                    bat = FieldHubbardAtom(big(U), big(β), big(μ), big(h))
+                    [gamma(r, bat, w) for r in sectors()[1:4], w in ws]
+                end
+            end
+            # Thermal root splitting limits the 1024-bit reference, still well below Float64 tolerance.
+            @test refs[1] ≈ refs[2] rtol = big"1e-20" atol = big"1e-18"
+            vals = [gamma(r, at, w) for r in sectors()[1:4], w in ws]
+            error = Float64(maximum(abs.(vals - refs[2]) ./ max.(1, abs.(refs[2]))))
+            worst = max(worst, error)
+            @test error < 1e-10
+        end
+    end
+    @info "Field L beta=10:300: worst scaled Float64 error" worst
+end
+
+@testitem "Field longitudinal quartic roots: factorization and static atomic root" setup = [FieldTests] begin
+    using HubbardAtoms: _field_l_quarticroots, _field_l_Lsetup
+    for T in (Float64, BigFloat),
+        roots in ((-3, -1, 1, 3), (-2, -1, 1, 3),
+                  (-3, 1, 1, 1), (2, 2, 2, 2),
+                  (1 + im, 1 - im, -2 + im, -2 - im))
+
+        c = Complex{T}[1]
+        for x in roots
+            next = zeros(Complex{T}, length(c) + 1)
+            for i in eachindex(c)
+                next[i] -= x * c[i]
+                next[i+1] += c[i]
+            end
+            c = next
+        end
+        rs = _field_l_quarticroots(c)
+        @test all(isfinite, rs)
+        @test all(x -> minimum(abs.(rs .- x)) < 256eps(T), roots)
+    end
+    # The three physical roots approach the atomic root exponentially; only one may be omitted.
+    r = LongitudinalSector(1, -1)
+    for β in (100.0, 400.0)
+        at = FieldHubbardAtom(10.0, β, 1.0, 0.5)
+        st = _field_l_Lsetup(at, 0)
+        @test count(st.keep) == 3
+        @test st.loss > 1000
+        w = (F(0), F(0), B(0))
+        refs = map((12288, 16384)) do p
+            setprecision(BigFloat, p) do
+                gamma(r, FieldHubbardAtom(big(10), big(β), big(1), big(0.5)), w)
+            end
+        end
+        @test refs[1] ≈ refs[2] rtol = big"1e-30" atol = big"1e-30"
+        @test gamma(r, at, w) ≈ refs[2] rtol = 1e-10 atol = 1e-10
+    end
+    # 1024 and 2048 bits falsely agree here; thermal coefficients need >2500 bits.
+    args = (-10.308420734202683, 163.4328686716446, 1.7422622137347043e-8,
+            -1.7422622137405405e-8)
+    w = (F(-1606), F(4), B(-12804))
+    refs = map((4096, 8192)) do p
+        setprecision(BigFloat, p) do
+            gamma(r, FieldHubbardAtom(big.(args)...), w)
+        end
+    end
+    @test refs[1] ≈ refs[2] rtol = big"1e-30" atol = big"1e-30"
+    @test gamma(r, FieldHubbardAtom(args...), w) ≈ refs[2] rtol = 1e-10 atol = 1e-10
+end

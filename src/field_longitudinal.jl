@@ -39,15 +39,28 @@ _field_l_E8val(c, s) = sum(c[i] * s^(i - 1) for i in eachindex(c))
 function _field_l_quarticroots(c::Vector{Complex{T}}) where {T}
     f(s) = _field_l_E8val(c, s)
     df(s) = sum((i - 1) * c[i] * s^(i - 2) for i in 2:5)
-    R = maximum(abs, c[1:4])^(1 / 4) + 1
-    r = [R * cis(T(2) * T(pi) * (j - 1) / 4 + T(0.4)) for j in 1:4]
-    for _ in 1:5000
-        rn = let r = r
-            [r[j] - f(r[j]) / prod(r[j] - r[i] for i in 1:4 if i != j) for j in 1:4]
-        end
-        done = maximum(abs.(rn .- r)) <= 64eps(T) * R
-        r = rn
-        done && break
+    # Ferrari's factorization avoids O(beta) iterations to separate thermally split roots.
+    A, B, C, D = c[4], c[3], c[2], c[1]
+    p = B - 3A^2 / 8
+    q = A^3 / 8 - A * B / 2 + C
+    r0 = D - A * C / 4 + A^2 * B / 16 - 3A^4 / 256
+    if iszero(q)
+        d = sqrt(p^2 - 4r0)
+        u1, u2 = sqrt((-p + d) / 2), sqrt((-p - d) / 2)
+        r = [u1, -u1, u2, -u2] .- A / 4
+    else
+        # R^2 solves m^3 + 2p m^2 + (p^2 - 4r0)m - q^2 = 0; use the largest root.
+        b, cc, d = 2p, p^2 - 4r0, -q^2
+        pc, qc = cc - b^2 / 3, 2b^3 / 27 - b * cc / 3 + d
+        disc = sqrt((qc / 2)^2 + (pc / 3)^3)
+        x, y = -qc / 2 + disc, -qc / 2 - disc
+        u = (abs(x) >= abs(y) ? x : y)^inv(T(3))
+        ω = cis(2T(pi) / 3)
+        ms = iszero(u) ? fill(-b / 3, 3) :
+             [u * ω^j - pc / (3u * ω^j) - b / 3 for j in 0:2]
+        R = sqrt(ms[argmax(abs.(ms))])
+        d1, d2 = sqrt(-2p - R^2 + 2q / R), sqrt(-2p - R^2 - 2q / R)
+        r = [(-R + d1) / 2, (-R - d1) / 2, (R + d2) / 2, (R - d2) / 2] .- A / 4
     end
     for _ in 1:4, j in 1:4
         d = df(r[j])
@@ -60,11 +73,19 @@ function _field_l_Lsetup(at::FieldHubbardAtom{T}, k::Integer) where {T}
     lock(at._lock) do
         get!(at._setups, Int(k)) do
             T === BigFloat && return _field_l_buildsetup(at, k, ones(Int, 4))
-            # Thermal denominators cancel strongly even at ordinary parameters: round only the completed setup.
-            _withprecision(256) do
-                bat = FieldHubbardAtom(big(at.U), big(at.beta), big(at.mu), big(at.h))
-                st = _field_l_buildsetup(bat, k, ones(Int, 4))
-                FieldLSetup{T}(st.w, st.q0, st.E8, st.s, st.u, st.keep, st.f, st.𝔠)
+            prec = 256
+            while true
+                st = _withprecision(prec) do
+                    bat = FieldHubbardAtom(big(at.U), big(at.beta), big(at.mu), big(at.h))
+                    _field_l_buildsetup(bat, k, ones(Int, 4))
+                end
+                # Exponentially split quartic roots and thermal numerators cannot be rounded early.
+                if precision(T) + 32 + 2st.loss <= prec || prec >= 1 << 14
+                    return FieldLSetup{T}(st.w, st.q0, st.E8, st.s, st.u, st.keep, st.f,
+                                          st.𝔠, st.loss)
+                end
+                prec = min(max(2prec, precision(T) + 48 + min(_bits(2st.loss), prec)),
+                           1 << 14)
             end
         end
     end
@@ -77,7 +98,9 @@ function _field_l_buildsetup(at::FieldHubbardAtom{T}, k::Integer, branch) where 
     c = _field_l_e8coeffs(at, q0)
     s = _field_l_quarticroots(c)
     u = branch .* sqrt.(s)
-    keep = [!(k == 0 && abs(s[j] - a^2) <= sqrt(eps(T)) * (1 + abs(a^2))) for j in 1:4]
+    keep = trues(4)
+    # Exactly one static atomic root has zero residue; thermally nearby roots must not be dropped.
+    k == 0 && (keep[argmin(abs.(s .- a^2))] = false)
     E8p = [prod(s[j] - s[i] for i in 1:4 if i != j) for j in 1:4]
     𝔞 = [2λ^2 * _field_l_Ppol(at, u[j], q0) * (s[j] + q0) / (β^2 * E8p[j]) for j in 1:4]
     f = zeros(Complex{T}, 4, 4)
@@ -85,20 +108,33 @@ function _field_l_buildsetup(at::FieldHubbardAtom{T}, k::Integer, branch) where 
     𝔠 = zeros(Complex{T}, 4, 2)
     dπ = at._piP - at._piS
     ru, rd = _field_l_rs(at, 1), _field_l_rs(at, 2)
+    # Unresolved Boltzmann corrections can make cancellation estimates falsely small.
+    loss = -log2(min(at._p0, at._pu, at._pd, at._p2))
     for j in 1:4
         keep[j] || continue
         x = u[j]
         h1, h2, h3, h4 = _field_l_Hpol(at, 1, x, q0), _field_l_Hpol(at, 1, -x, q0),
                          _field_l_Hpol(at, 2, x, q0), _field_l_Hpol(at, 2, -x, q0)
-        ν1 = -β * (h2 * h3 * h4 - λ^2 * (at._piS * h3 + at._piP * h4))
+        a1, a2 = h2 * h3 * h4, λ^2 * (at._piS * h3 + at._piP * h4)
+        ν1 = -β * (a1 - a2)
         ν2 = λ^2 * (h3 + h4)
         ν3 = -λ * (h2 * h4 + λ^2 * dπ)
         ν4 = -λ * (h2 * h3 - λ^2 * dπ)
         S = _field_l_Sfun(at, 1, x, k)                                   # the thermal sum S_↑(u_j)
         f[j, :] = [ν1, ν2 * (at._D[1] * S - β * at._c[1] / 2), ν3 * (m * S - at._cS),
                    ν4 * (ρ * S - at._cP)]
+        rootloss = sum(log2(max(1, (1 + abs(s[j])) / abs(s[j] - s[i])))
+                       for i in 1:4 if i != j)
+        thermal_loss = max(_cancel(a1 - a2, a1, a2),
+                           _cancel(at._D[1] * S - β * at._c[1] / 2,
+                                   at._D[1] * S, β * at._c[1] / 2),
+                           _cancel(m * S - at._cS, m * S, at._cS),
+                           _cancel(ρ * S - at._cP, ρ * S, at._cP))
         for σ in 1:2
             K[j, σ] = f[j, 2σ-1] + f[j, 2σ]
+            loss = max(loss,
+                       rootloss + thermal_loss +
+                       _cancel(K[j, σ], f[j, 2σ-1], f[j, 2σ]))
         end
         # 𝔠_{jt} = A_{tj}/K_{jt} = W_{tj}/K_{j,-t} (an identity at the roots); take the larger denominator,
         # which keeps it regular on the axes μ_t = 0 where A_{tj} and K_{jt} vanish together
@@ -111,12 +147,21 @@ function _field_l_buildsetup(at::FieldHubbardAtom{T}, k::Integer, branch) where 
             𝔠[j, t] = abs(K[j, t]) >= abs(K[j, 3-t]) ? A / K[j, t] : W / K[j, 3-t]
         end
     end
-    FieldLSetup{T}(w, q0, c, s, u, keep, f, 𝔠)
+    all(isfinite, 𝔠) || (loss = T(Inf))
+    FieldLSetup{T}(w, q0, c, s, u, keep, f, 𝔠, loss)
 end
 
 # ---------------------------------------------------------------- moving-pole coefficients
 # F = P/E8; coefficient functions of the column (t, v) (hatted: without the D_t, m, ρ prefactors)
-_field_l_Fv(at, st, v) = _field_l_Ppol(at, v, st.q0) / _field_l_E8val(st.E8, v^2)
+function _field_l_E8factored(at, x, q0)
+    hu, hum = _field_l_Hpol(at, 1, x, q0), _field_l_Hpol(at, 1, -x, q0)
+    hd, hdm = _field_l_Hpol(at, 2, x, q0), _field_l_Hpol(at, 2, -x, q0)
+    hu * hum * hd * hdm -
+    at._lambda^2 *
+    (at._piS * (hu * hd + hum * hdm) + at._piP * (hu * hdm + hum * hd)) +
+    at._lambda^4 * (at._piP - at._piS)^2
+end
+_field_l_Fv(at, st, v) = _field_l_Ppol(at, v, st.q0) / _field_l_E8factored(at, v, st.q0)
 function _field_l_Qt(at, t, v, q0)
     (o=3 - t;
      _field_l_Hpol(at, t, -v, q0) * _field_l_Hpol(at, o, v, q0) *
@@ -159,6 +204,22 @@ end
 
 function _field_l_gammaL(at::FieldHubbardAtom{T}, σ::Integer, t::Integer, n::Integer,
                          m::Integer, k::Integer) where {T}
+    val, loss = _field_l_gammaL_raw(at, σ, t, n, m, k)
+    (T === BigFloat || loss <= 6) && return val
+    p = precision(T)
+    prec = p + 48 + min(_bits(loss), p)
+    while true
+        val, loss = _withprecision(prec) do
+            bat = FieldHubbardAtom(big(at.U), big(at.beta), big(at.mu), big(at.h))
+            bval, bloss = _field_l_gammaL_raw(bat, σ, t, n, m, k)
+            bval, bloss + _field_l_Lsetup(bat, k).loss
+        end
+        (p + 32 + 2loss <= prec || prec >= 1 << 14) && return Complex{T}(val)
+        prec = min(max(2prec, p + 48 + min(_bits(2loss), prec)), 1 << 14)
+    end
+end
+
+function _field_l_gammaL_raw(at::FieldHubbardAtom{T}, σ, t, n, m, k) where {T}
     st = _field_l_Lsetup(at, k)
     β = at.beta
     z = _field_l_zlat(at, σ, n, k)
@@ -173,18 +234,34 @@ function _field_l_gammaL(at::FieldHubbardAtom{T}, σ::Integer, t::Integer, n::In
                _field_l_chat(at, st, t, v) * _field_l_kerP(at, z, v, mirror)
         val += at.U / β^2
     end
+    magnitude = abs(val)
     for j in 1:4
         st.keep[j] || continue
-        Φ = st.f[j, 2σ-1] / (z - st.u[j]) + st.f[j, 2σ] / (z + st.u[j])
-        val -= st.𝔠[j, t] * Φ / (v^2 - st.s[j])
+        fp = st.f[j, 2σ-1] / (z - st.u[j])
+        fm = st.f[j, 2σ] / (z + st.u[j])
+        coeff = st.𝔠[j, t] / (v^2 - st.s[j])
+        val -= coeff * (fp + fm)
+        magnitude += abs(coeff) * (abs(fp) + abs(fm))
     end
     Γ = β^2 * val
-    if σ == t && n == m      # diagonal: β²(d_t - 1/b_t) = βP(z)[1/G2_t(z) - Q_t(z)/E8(z)]
-        Γ += β * _field_l_Ppol(at, z, st.q0) *
-             (1 / _field_l_G2pol(at, t, z, st.w) -
-              _field_l_Qt(at, t, z, st.q0) / _field_l_E8val(st.E8, z^2))
+    magnitude *= β^2
+    if σ == t && n == m
+        # E8 - G2_t Q_t, cancelling the degree-eight terms analytically.
+        pσ, po = _field_l_pw(at, t), _field_l_pw(at, 3 - t)
+        variance = 4at._a^2 * (at._p0 + pσ) * (po + at._p2)
+        hm = _field_l_Hpol(at, t, -z, st.q0)
+        hp_o = _field_l_Hpol(at, 3 - t, z, st.q0)
+        hm_o = _field_l_Hpol(at, 3 - t, -z, st.q0)
+        numerator = variance * _field_l_Qt(at, t, z, st.q0) -
+                    at._lambda^2 * hm * (at._piS * hm_o + at._piP * hp_o) +
+                    at._lambda^4 * (at._piP - at._piS)^2
+        diag = β * _field_l_Ppol(at, z, st.q0) * numerator /
+               (_field_l_G2pol(at, t, z, st.w) * _field_l_E8factored(at, z, st.q0))
+        Γ += diag
+        magnitude += abs(diag)
     end
-    Γ
+    loss = isfinite(Γ) ? log2(max(1, magnitude / max(abs(Γ), one(T)))) : T(Inf)
+    Γ, loss
 end
 
 function _field_l_needs_limit(at::FieldHubbardAtom{T}, σ, t, n, m, k) where {T}
@@ -198,13 +275,22 @@ function _field_l_needs_limit(at::FieldHubbardAtom{T}, σ, t, n, m, k) where {T}
     any(st.keep[j] && (abs(z^2 - st.s[j]) < tol || abs(v^2 - st.s[j]) < tol) for j in 1:4)
 end
 function _field_l_limit(at::FieldHubbardAtom{T}, σ, t, n, m, k) where {T}
-    p = T === BigFloat ? precision(BigFloat) : 53
-    _withprecision(3p + 64) do
-        δ = BigFloat(2)^(-(p + 16))
-        pair = Tuple(FieldHubbardAtom(BigFloat(at.U), BigFloat(at.beta),
-                                      BigFloat(at.mu) + s * δ, BigFloat(at.h))
-                     for s in (1, -1))
-        Complex{T}((_field_l_gammaL(pair[1], σ, t, n, m, k) +
-                    _field_l_gammaL(pair[2], σ, t, n, m, k)) / 2)
+    p = precision(T)
+    prec = 3p + 64
+    while true
+        val, loss = _withprecision(prec) do
+            δ = BigFloat(2)^(-(p + 16))
+            pair = map((1, -1)) do s
+                FieldHubbardAtom(BigFloat(at.U), BigFloat(at.beta),
+                                 BigFloat(at.mu) + s * δ, BigFloat(at.h))
+            end
+            results = map(pair) do bat
+                bval, bloss = _field_l_gammaL_raw(bat, σ, t, n, m, k)
+                bval, bloss + _field_l_Lsetup(bat, k).loss
+            end
+            (results[1][1] + results[2][1]) / 2, max(results[1][2], results[2][2])
+        end
+        (p + 32 + 2loss <= prec || prec >= 1 << 14) && return Complex{T}(val)
+        prec = min(max(2prec, p + 48 + min(_bits(2loss), prec)), 1 << 14)
     end
 end

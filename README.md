@@ -207,15 +207,19 @@ the package uses the exact zero-field and particle-hole identities above; on the
 $`\mu = \pm h`$ it uses the continuous extension of the closed form, which agrees with numerical
 inversion but is not derived there. At removable singularities of the longitudinal closed form, where two
 of its roots coincide or a root lies on the Matsubara lattice, the vertex is evaluated as the
-symmetric limit in $`\mu`$ in extended precision. The other sectors are not continued through such
-points, and genuine divergences are not regularized.
+symmetric limit in $`\mu`$ in extended precision. Coincident transverse roots are evaluated by divided
+differences; transverse lattice roots and genuine divergences are not regularized.
 
 ## Accuracy
 
 The zero-field atoms are accurate at low temperatures, at large frequencies and at the removable
-singularities of the closed forms, in any floating-point type. `FieldHubbardAtom` computes the coefficients of the
-longitudinal closed form in 256-bit arithmetic, and the other sectors near $`\langle n\rangle = 1`$ as well; for
-extreme parameters, check its results with `BigFloat` atoms at higher precision.
+singularities of the closed forms, in any floating-point type. `FieldHubbardAtom` computes the longitudinal
+coefficients and removable-singularity limits in adaptive extended precision, chosen from the measured
+conditioning of the roots and thermal numerators. Cancelling diagonal terms are recombined before
+evaluation. The transverse and opposite-spin pair sectors combine the root pair by divided differences
+and use adaptive extended precision for remaining thermal cancellations. Longitudinal setup and
+limit retries for machine floats are capped at 16,384 bits; this bounds their cost, not their error.
+For extreme parameters, check results with `BigFloat` atoms at higher precision.
 
 ## Derivation
 
