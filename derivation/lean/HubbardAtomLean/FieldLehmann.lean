@@ -693,42 +693,76 @@ theorem exp_conj_of_inv {V W X : Op} (hWV : W * V = 1) :
   rw [hW]
   exact Matrix.exp_conj V X hV
 
-variable {A} in
-/-- For `H' = V H V⁻¹` at the same `β`, the four-point functions of `H` are those of `H'` for the
-conjugated operators. -/
-theorem corr_conj {B : FParams} {V W : Op} (hWV : W * V = 1) (hβ : B.β = A.β) (hH : B.H = V * A.H * W) (O₁ O₂ O₃ O₄ : Op) (ν ν' ω : ℝ) :
-    B.corr (V * O₁ * W) (V * O₂ * W) (V * O₃ * W) (V * O₄ * W) ν ν' ω =
-      A.corr O₁ O₂ O₃ O₄ ν ν' ω := by
+section Conj
+
+variable {A} {B : FParams} {V W : Op} (hWV : W * V = 1) (hβ : B.β = A.β)
+  (hH : B.H = V * A.H * W)
+
+include hWV in
+theorem conj_mul_conj (X Y : Op) : V * X * W * (V * Y * W) = V * (X * Y) * W := by
+  simp only [Matrix.mul_assoc]
+  rw [← Matrix.mul_assoc W V, hWV, Matrix.one_mul]
+
+include hWV hH in
+theorem heis_conj (τ : ℝ) (P : Op) : B.heis τ (V * P * W) = V * A.heis τ P * W := by
   have hexp : ∀ c : ℂ, NormedSpace.exp (c • B.H) = V * NormedSpace.exp (c • A.H) * W := by
     intro c
     rw [hH, ← exp_conj_of_inv hWV, Matrix.mul_smul, Matrix.smul_mul]
-  have hWV' : ∀ X : Op, W * (V * X) = X := fun X ↦ by rw [← Matrix.mul_assoc, hWV, Matrix.one_mul]
-  have hheis : ∀ (τ : ℝ) (P : Op), B.heis τ (V * P * W) = V * A.heis τ P * W := by
-    intro τ P
-    simp only [heis, hexp, Matrix.mul_assoc, hWV']
+  rw [heis, heis, hexp, hexp, conj_mul_conj hWV, conj_mul_conj hWV]
+
+include hWV hβ hH in
+theorem thermal_conj (X : Op) : B.thermal (V * X * W) = A.thermal X := by
+  have hexp : ∀ c : ℂ, NormedSpace.exp (c • B.H) = V * NormedSpace.exp (c • A.H) * W := by
+    intro c
+    rw [hH, ← exp_conj_of_inv hWV, Matrix.mul_smul, Matrix.smul_mul]
   have htr : ∀ X : Op, (V * X * W).trace = X.trace := by
     intro X
     rw [Matrix.mul_assoc, Matrix.trace_mul_comm, Matrix.mul_assoc, hWV, Matrix.mul_one]
-  have hth : ∀ X : Op, B.thermal (V * X * W) = A.thermal X := by
-    intro X
-    rw [thermal, thermal, hexp, hβ, htr,
-      show V * NormedSpace.exp ((-A.β : ℂ) • A.H) * W * (V * X * W) =
-        V * (NormedSpace.exp ((-A.β : ℂ) • A.H) * X) * W by
-        simp only [Matrix.mul_assoc, hWV'], htr]
-  have hord : ∀ ψ₁ ψ₂ ψ₃ : ℂ, ∀ P₁ P₂ P₃ P₄ : Op,
-      B.orderedTerm ψ₁ ψ₂ ψ₃ (V * P₁ * W) (V * P₂ * W) (V * P₃ * W) (V * P₄ * W) =
-        A.orderedTerm ψ₁ ψ₂ ψ₃ P₁ P₂ P₃ P₄ := by
-    intro ψ₁ ψ₂ ψ₃ P₁ P₂ P₃ P₄
-    rw [orderedTerm, orderedTerm, hβ]
-    congr 1
-    funext s₁ s₂ s₃
-    rw [orderedIntegrand, orderedIntegrand, hheis, hheis, hheis, ← hth]
-    congr 2
-    simp only [Matrix.mul_assoc, hWV']
+  rw [thermal, thermal, hexp, hβ, conj_mul_conj hWV, htr, htr]
+
+include hWV hβ hH in
+theorem orderedTerm_conj (ψ₁ ψ₂ ψ₃ : ℂ) (P₁ P₂ P₃ P₄ : Op) :
+    B.orderedTerm ψ₁ ψ₂ ψ₃ (V * P₁ * W) (V * P₂ * W) (V * P₃ * W) (V * P₄ * W) =
+      A.orderedTerm ψ₁ ψ₂ ψ₃ P₁ P₂ P₃ P₄ := by
+  rw [orderedTerm, orderedTerm, hβ]
+  congr 1
+  funext s₁ s₂ s₃
+  rw [orderedIntegrand, orderedIntegrand, heis_conj hWV hH, heis_conj hWV hH,
+    heis_conj hWV hH, conj_mul_conj hWV, conj_mul_conj hWV, conj_mul_conj hWV,
+    thermal_conj hWV hβ hH]
+
+include hWV hβ hH in
+theorem triangleTerm_conj (ψ₁ ψ₂ : ℂ) (P₁ P₂ : Op) :
+    B.triangleTerm ψ₁ ψ₂ (V * P₁ * W) (V * P₂ * W) = A.triangleTerm ψ₁ ψ₂ P₁ P₂ := by
+  rw [triangleTerm, triangleTerm, hβ]
+  congr 1
+  funext s₁ s₂
+  rw [heis_conj hWV hH, heis_conj hWV hH, conj_mul_conj hWV, thermal_conj hWV hβ hH]
+
+include hWV hβ hH in
+/-- For `H' = V H V⁻¹` at the same `β`, the four-point functions of `H` are those of `H'` for the
+conjugated operators. -/
+theorem corr_conj (O₁ O₂ O₃ O₄ : Op) (ν ν' ω : ℝ) :
+    B.corr (V * O₁ * W) (V * O₂ * W) (V * O₃ * W) (V * O₄ * W) ν ν' ω =
+      A.corr O₁ O₂ O₃ O₄ ν ν' ω := by
   have hφ : ∀ τ₁ τ₂ τ₃ : ℝ, (((-ν * τ₁ + (ν + ω) * τ₂ - (ν' + ω) * τ₃ : ℝ) : ℂ) * I) =
       (-ν * I) * τ₁ + ((ν + ω) * I) * τ₂ + (-(ν' + ω) * I) * τ₃ := fun _ _ _ ↦ by push_cast; ring
   rw [B.corr_eq _ _ _ _ ν ν' ω hφ, A.corr_eq _ _ _ _ ν ν' ω hφ]
-  simp only [hord]
+  simp only [orderedTerm_conj hWV hβ hH]
+
+include hWV hβ hH in
+/-- The connected susceptibility under the conjugation, for annihilators whose adjoints conjugate
+the same way. -/
+theorem chiLehmann_conj {c c' : Op} (hc : (V * c * W)ᴴ = V * cᴴ * W)
+    (hc' : (V * c' * W)ᴴ = V * c'ᴴ * W) (ν ν' ω : ℝ) :
+    B.chiLehmann (V * c * W) (V * c' * W) ν ν' ω = A.chiLehmann c c' ν ν' ω := by
+  have hφ : ∀ τ₁ τ₂ τ₃ : ℝ, (((-ν * τ₁ + (ν + ω) * τ₂ - (ν' + ω) * τ₃ : ℝ) : ℂ) * I) =
+      (-ν * I) * τ₁ + ((ν + ω) * I) * τ₂ + (-(ν' + ω) * I) * τ₃ := fun _ _ _ ↦ by push_cast; ring
+  rw [B.chiLehmann_eq _ _ ν ν' ω hφ, A.chiLehmann_eq _ _ ν ν' ω hφ, hc, hc']
+  simp only [orderedTerm_conj hWV hβ hH, triangleTerm_conj hWV hβ hH, heis_conj hWV hH,
+    conj_mul_conj hWV, thermal_conj hWV hβ hH, hβ]
+
+end Conj
 
 /-! ### The particle–hole (Shiba) map and the spin flip on the Fock space -/
 
