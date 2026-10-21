@@ -45,6 +45,7 @@ the longitudinal vertex itself is not formalized.
 | `FieldPair.lean` | the vertices of `A↑`, `T↓`, `A↓` through the Shiba map and the spin flip of the susceptibilities and the bubbles | Eq. (field-A) |
 | `FieldEqualSpin.lean` | the equal-spin pair from the Hamiltonian, `χ_E↑ = (β/2)Q(xₙ, x_n̄)(δₙₘ - δ_{m n̄})`; its inverse and that of the bubble on the mirror-odd subspace, and **the equal-spin vertex** `Γ_E↑` of Eq. (field-E); `Γ_E↓` through the spin flip | Eq. (field-E) |
 | `FieldTHalfFilling.lean` | the transverse input at `μ = 0`, where the Cauchy matrix is the mirror; **the transverse vertex at `μ = 0`**, Eq. (field-T-axis) (`gammaTHF_eq_note`), under `THFHyp`; the pair vertices at `h = 0` | Eq. (field-T-axis) |
+| `FieldTZero.lean` | at `h = 0`, `k = 0`, where `W = 0`: from the Hamiltonian, `χ_T↑ = χ_m` of the zero-field atom (also at `μ = 0`) and `b_T↑ = B_m`, so Theorem "density and magnetic" and Corollary "half filling" give the transverse vertex there; the opposite-spin pair at `μ = 0`, `k = 0` through the Shiba map | Eq. (field-T) at `h = 0`, `k = 0` |
 | `FieldLInput.lean` | the longitudinal input from the Hamiltonian: `P(z)χ↑↓(z, v) = λ[ρ/(z + v) - m/(z - v)] + (N₀↓(v) + z²N₂↓(v))/P(v)` off the axes `μ = 0`, `h = 0`, and `P(z)χ↑↑(z, v) = -βH↑(z)δ_zv + δ_k0 ζ↑(z² - a²)(v² - a²)/P(v)` for all `μ`, `h`; the rows of spin `↓` through the spin flip | Proposition "longitudinal input" of the companion |
 
 `scripts/check.sh` rebuilds the library from a cold cache (failing on any warning), checks every
@@ -107,10 +108,10 @@ Lean checks how they conjugate `c↑`, `c↓` and `H`.
   `THFHyp` assumes `W ≠ 0`, `q₀ ≠ 0` and `P(û) ≠ 0` besides the note's conditions.
   The equal-spin vertex assumes `ℒ(tₙ) ≠ 0` for all `n ≠ n̄`,
   where the note states Eq. (field-E) entrywise.
+  At `h = 0`, `k = 0` (`W = 0`) the transverse vertex is that of the zero-field magnetic channel
+  (`FieldTZero.lean`), under the zero-field assumptions.
   Not covered are the transverse exceptional sets
   (confluent roots, lattice roots, `P(uⱼ) = 0`, `W = ±2a`),
-  the transverse sector at `h = 0`, `k = 0`
-  (the magnetic channel, formalized only for the zero-field atom of `Basic.lean`),
   the axis reductions of Eqs. (field-h0), (field-mu0) as identities between closed forms,
   and the divergences of Section G.5.
 

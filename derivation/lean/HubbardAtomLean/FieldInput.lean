@@ -257,11 +257,11 @@ noncomputable def NT (z v : ℂ) : ℂ := F.N₀T k v + z ^ 2 * F.N₂T k v
 /-- The transverse lattice `z_n = μ + i(ν_n + ω_k/2)`. -/
 noncomputable def zT (n : ℤ) : ℂ := (F.lat F.μ).z k n
 
-/-- The six Fock-space paths of `χ_T↑`: the conditions say whether `n = m` and whether the pair
-rate `xₙ + xₘ + w` vanishes (at `μ = 0`, `m = n̄`). -/
-theorem chiTUp_eq_pathsTD (hW0 : F.WT k ≠ 0) (n m : ℤ) :
-    F.chiTUp k n m = pathsTD F.β F.a F.h ((F.lat F.μ).x n) ((F.lat F.μ).x m) ((F.lat F.μ).w k)
-      F.p₀ F.pUp F.pDn F.p₂ (n = m) (F.μ = 0 ∧ n + m + k + 1 = 0) := by
+/-- The six Fock-space paths of `χ_T↑`: the conditions say whether `n = m`, whether the pair
+rate `xₙ + xₘ + w` vanishes (at `μ = 0`, `m = n̄`), and whether `W = iω_k - 2h` vanishes. -/
+theorem chiTUp_eq_pathsTW (n m : ℤ) :
+    F.chiTUp k n m = pathsTW F.β F.a F.h ((F.lat F.μ).x n) ((F.lat F.μ).x m) ((F.lat F.μ).w k)
+      F.p₀ F.pUp F.pDn F.p₂ (n = m) (F.μ = 0 ∧ n + m + k + 1 = 0) (F.h = 0 ∧ k = 0) := by
   set B := F.lat F.μ with hB
   have h1 : cexp ((F.μ - B.x n) * F.β) = -1 := B.cexp_mu_sub_x n
   have h2 : cexp ((B.x n + B.w k - F.μ) * F.β) = -1 := by
@@ -282,10 +282,18 @@ theorem chiTUp_eq_pathsTD (hW0 : F.WT k ≠ 0) (n m : ℤ) :
     have hpe := B.pair_eq_zero_iff k n m
     exact ⟨fun h0 ↦ hpe.mp (by linear_combination -h0),
       fun h0 ↦ by linear_combination -hpe.mpr h0⟩
-  have hW : -2 * F.h + B.w k = 0 ↔ False := by
-    rw [iff_false]
-    intro h0
-    exact hW0 (by rw [show F.WT k = B.w k - 2 * F.h from rfl]; linear_combination h0)
+  have hW : -2 * F.h + B.w k = 0 ↔ (F.h = 0 ∧ k = 0) := by
+    have hk := B.w_eq_zero_iff k
+    constructor
+    · intro h0
+      have hre := congrArg Complex.re h0
+      have hh : F.h = 0 := by simpa [B, Params.w] using hre
+      refine ⟨hh, hk.mp ?_⟩
+      rw [hh, ofReal_zero, mul_zero, zero_add] at h0
+      exact h0
+    · rintro ⟨hh, rfl⟩
+      rw [hh, B.w_zero]
+      simp
   rw [
     F.pathTerm_eq 1 0 2 0 h1 h2 h3 (r₁ := -B.x n - F.a - F.h)
       (r₂ := B.x n + F.a - F.h + B.w k) (r₃ := -B.x m - F.a + F.h - B.w k)
@@ -320,6 +328,18 @@ theorem chiTUp_eq_pathsTD (hW0 : F.WT k ≠ 0) (n m : ℤ) :
 ]
   simp only [weight, Matrix.cons_val, Matrix.cons_val_zero, Matrix.cons_val_one]
   rfl
+
+/-- The six paths for `W ≠ 0`. -/
+theorem chiTUp_eq_pathsTD (hW0 : F.WT k ≠ 0) (n m : ℤ) :
+    F.chiTUp k n m = pathsTD F.β F.a F.h ((F.lat F.μ).x n) ((F.lat F.μ).x m) ((F.lat F.μ).w k)
+      F.p₀ F.pUp F.pDn F.p₂ (n = m) (F.μ = 0 ∧ n + m + k + 1 = 0) := by
+  rw [F.chiTUp_eq_pathsTW k n m, pathsTD_eq_pathsTW]
+  refine pathsTW_congr _ _ _ _ _ _ _ _ _ _ Iff.rfl Iff.rfl (iff_false_intro ?_)
+  rintro ⟨hh, rfl⟩
+  apply hW0
+  have hω : F.ω 0 = 0 := by simp [ω, Params.ω]
+  rw [WT, hh, hω]
+  simp
 
 /-- **Proposition "transverse input"**, from the Hamiltonian, off the pair resonance and for
 `W ≠ 0`:

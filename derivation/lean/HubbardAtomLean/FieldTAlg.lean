@@ -495,4 +495,100 @@ theorem pathsTD_mirror {β a h X Y w p₀ pu pd : ℂ} (hs : 2 * p₀ + pu + pd 
     pd * pathsTD_mirrorDn (β := β) d₁ d₂ d₃ d₄ hW hY hXY +
     rhsTM β a h X Y w 1 0 0 0 * hs
 
+/-! ### The resonance of the transverse transfer, `W = 0` -/
+
+/-- The six paths of `χ_T↑` with the condition `E` for a vanishing transfer `W = w - 2h` (at
+`h = 0`, `k = 0`). -/
+noncomputable def pathsTW (β a h X Y w p₀ pu pd p₂ : ℂ) (C D E : Prop) [Decidable C] [Decidable D]
+    [Decidable E] : ℂ :=
+  simplexW β pu p₀ pd p₀ (-X - a - h) (X + a - h + w) (-Y - a + h - w) (-2 * h + w) (X - Y)
+      (-Y - a - h) E C -
+    simplexW β p₂ pd p₀ pd (-X + a - h) (-Y - a + h - w) (X + a - h + w) (-X - Y - w) (X - Y)
+      (-Y + a - h) D C +
+    -simplexW β p₂ pu p₀ pd (-Y + a + h - w) (-X - a - h) (X + a - h + w) (-X - Y - w)
+      (-2 * h + w) (-Y + a - h) D E +
+    simplexW β pu p₂ pd p₀ (X - a - h + w) (-X + a - h) (-Y - a + h - w) (-2 * h + w)
+      (-X - Y - w) (-Y - a - h) E D +
+    simplexW β pu p₂ pu p₀ (X - a - h + w) (-Y + a + h - w) (-X - a - h) (X - Y) (-X - Y - w)
+      (-Y - a - h) C D -
+    simplexW β p₂ pu p₂ pd (-Y + a + h - w) (X - a - h + w) (-X + a - h) (X - Y) (-2 * h + w)
+      (-Y + a - h) C E
+
+theorem pathsTD_eq_pathsTW (β a h X Y w p₀ pu pd p₂ : ℂ) (C D : Prop) [Decidable C]
+    [Decidable D] :
+    pathsTD β a h X Y w p₀ pu pd p₂ C D = pathsTW β a h X Y w p₀ pu pd p₂ C D False := rfl
+
+theorem pathsTW_congr (β a h X Y w p₀ pu pd p₂ : ℂ) {C C' D D' E E' : Prop} [Decidable C]
+    [Decidable C'] [Decidable D] [Decidable D'] [Decidable E] [Decidable E'] (hC : C ↔ C')
+    (hD : D ↔ D') (hE : E ↔ E') :
+    pathsTW β a h X Y w p₀ pu pd p₂ C D E = pathsTW β a h X Y w p₀ pu pd p₂ C' D' E' := by
+  simp only [pathsTW, simplexW, hC, hD, hE]
+
+/-- The zero-field magnetic structure at `k = 0` (`ε = -1`, `w = 0`, `q₀ = a²`), in free
+variables: `-βH(X)δ + λρ/(X + Y) + N(X, Y)/P(Y)` with the static term `ζ`. -/
+noncomputable def rhsMag (β a X Y p₀ p₁ p₂ : ℂ) (C : Prop) [Decidable C] : ℂ :=
+  (if C then -β * (X ^ 2 + 2 * a * (p₂ - p₀) * X + (a ^ 2 - 4 * a ^ 2 * p₁)) else 0) +
+    -4 * a ^ 2 * (p₂ - p₀) / (X + Y) +
+    ((Y ^ 2 + 2 * a ^ 2 - 4 * a ^ 2 + X ^ 2) *
+        (2 * a * (Y ^ 2 + 2 * a * (p₂ - p₀) * Y + a ^ 2) +
+          β * a ^ 2 * (1 - (p₂ - p₀) ^ 2 - 4 * (p₀ * p₂ - p₁ ^ 2)) * (Y ^ 2 - a ^ 2)) +
+      (-2 * a - β * a ^ 2 * (1 - (p₂ - p₀) ^ 2 - 4 * (p₀ * p₂ - p₁ ^ 2))) *
+        ((Y + a) * (Y + a) * ((Y - a) * (Y - a)))) /
+      ((Y + a) * (Y + a) * ((Y - a) * (Y - a)))
+
+set_option maxHeartbeats 4000000 in
+-- six paths at a vanishing transfer: rational expressions of high degree
+set_option maxRecDepth 20000 in
+/-- **The transverse paths at `h = 0`, `k = 0`** are the zero-field magnetic structure, off the
+pair resonance. -/
+theorem pathsTW_W0 {β a X Y p₀ p₁ p₂ : ℂ} (hs : p₀ + 2 * p₁ + p₂ = 1) (d₁ : X + a ≠ 0)
+    (d₂ : X - a ≠ 0) (e₁ : Y + a ≠ 0) (e₂ : Y - a ≠ 0) (hp : X + Y ≠ 0) (C : Prop) [Decidable C]
+    (hC : C ↔ X = Y) :
+    PTf a 0 X 0 * pathsTW β a 0 X Y 0 p₀ p₁ p₁ p₂ C False True = rhsMag β a X Y p₀ p₁ p₂ C := by
+  obtain rfl : p₂ = 1 - p₀ - 2 * p₁ := by linear_combination hs
+  by_cases hXY : X = Y
+  · subst hXY
+    have hC' : C := hC.mpr rfl
+    simp only [pathsTW, simplexW, rhsMag, PTf, hC', ite_true, ite_false, sub_self, add_zero,
+      sub_zero, mul_zero]
+    simp only [show -X - a = -(X + a) by ring, show -X + a = -(X - a) by ring, div_neg]
+    have hX0 : X ≠ 0 := fun h0 ↦ hp (by rw [h0, add_zero])
+    field_simp
+    ring
+  · have hC' : ¬C := fun h0 ↦ hXY (hC.mp h0)
+    have hXY' : X - Y ≠ 0 := sub_ne_zero.mpr hXY
+    simp only [pathsTW, simplexW, rhsMag, PTf, hC', ite_true, ite_false, add_zero, sub_zero,
+      mul_zero]
+    simp only [show -X - a = -(X + a) by ring, show -X + a = -(X - a) by ring,
+      show -Y - a = -(Y + a) by ring, show -Y + a = -(Y - a) by ring,
+      show -X - Y = -(X + Y) by ring, div_neg]
+    field_simp
+    ring
+
+/-- The zero-field magnetic structure at `k = 0` and `μ = 0` on the mirror `Y = -X`:
+`λβp₀ + N(X, -X)/P(-X)` (`ρ = 0`, `p₂ = p₀`). -/
+noncomputable def rhsMagM (β a X p₀ p₁ : ℂ) : ℂ :=
+  -4 * a ^ 2 * (β * p₀) +
+    ((X ^ 2 + 2 * a ^ 2 - 4 * a ^ 2 + X ^ 2) *
+        (2 * a * (X ^ 2 + a ^ 2) + β * a ^ 2 * (1 - 4 * (p₀ * p₀ - p₁ ^ 2)) * (X ^ 2 - a ^ 2)) +
+      (-2 * a - β * a ^ 2 * (1 - 4 * (p₀ * p₀ - p₁ ^ 2))) *
+        ((X + a) * (X + a) * ((X - a) * (X - a)))) /
+      ((X + a) * (X + a) * ((X - a) * (X - a)))
+
+set_option maxHeartbeats 4000000 in
+-- six paths at a vanishing transfer: rational expressions of high degree
+set_option maxRecDepth 20000 in
+/-- **The transverse paths at `h = 0`, `k = 0`, `μ = 0` on the mirror**: the zero-field magnetic
+structure, where the pair rate vanishes. -/
+theorem pathsTW_W0_mirror {β a X p₀ p₁ : ℂ} (hs : 2 * p₀ + 2 * p₁ = 1) (d₁ : X + a ≠ 0)
+    (d₂ : X - a ≠ 0) (hX : X ≠ 0) :
+    PTf a 0 X 0 * pathsTW β a 0 X (-X) 0 p₀ p₁ p₁ p₀ False True True = rhsMagM β a X p₀ p₁ := by
+  obtain rfl : p₁ = (1 - 2 * p₀) / 2 := by linear_combination hs / 2
+  simp only [pathsTW, simplexW, rhsMagM, PTf, ite_true, ite_false, add_zero, sub_zero, mul_zero,
+    neg_neg]
+  simp only [show -X - a = -(X + a) by ring, show -X + a = -(X - a) by ring,
+    show X - -X = X + X by ring, div_neg]
+  field_simp
+  ring
+
 end HubbardAtom

@@ -10,7 +10,7 @@ for m in Basic Triplet StableForms Thermal Matsubara SingletInput Singlet PHInpu
   PHIdentities DensityMagnetic OrderedIntegrals Lehmann LehmannInput UZero DMLifts SingletZero \
   HalfFilling Confluent SingletLZ HalfFillingLZ FieldBasic FieldLehmann FieldTAlg FieldInput \
   FieldTSums FieldTIdentities FieldTransverse FieldPair FieldEqualSpin FieldTHalfFilling \
-  FieldLInput; do
+  FieldLInput FieldTZero; do
   grep -q "Built HubbardAtomLean.$m" .lake/build.log \
     || { echo "gate is vacuous: HubbardAtomLean.$m was not compiled" >&2; exit 1; }
 done
