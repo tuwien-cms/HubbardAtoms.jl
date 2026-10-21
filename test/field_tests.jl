@@ -331,3 +331,34 @@ end
     end
     @info "Field T/A beta=5:200: worst scaled Float64 error" worst
 end
+
+@testitem "Field longitudinal Γ: large transfer (#28)" setup = [FieldTests] begin
+    worst = 0.0
+    for β in (0.5, 1.1, 5.0)
+        at = FieldHubbardAtom(1.3, β, 0.3, 0.2)
+        for k in (-10000, -2000, -500, -5, 0, 500, 2000, 10000)
+            refs = map((512, 1024)) do p
+                setprecision(BigFloat, p) do
+                    bat = FieldHubbardAtom(big(at.U), big(β), big(at.mu), big(at.h))
+                    [gamma(r, bat, (F(n), F(m), B(k))) for r in sectors()[1:4]
+                     for (n, m) in ((0, 0), (2, -1))]
+                end
+            end
+            @test refs[1] ≈ refs[2] rtol = big"1e-100" atol = big"1e-100"
+            vals = [gamma(r, at, (F(n), F(m), B(k))) for r in sectors()[1:4]
+                    for (n, m) in ((0, 0), (2, -1))]
+            error = maximum(abs.(vals - refs[2]) ./ max.(1, abs.(refs[2])))
+            worst = max(worst, Float64(error))
+            @test error < 2e-10
+        end
+    end
+    at = FieldHubbardAtom(1.3f0, 1.1f0, 0.3f0, 0.2f0)
+    for r in sectors()[1:4], k in (-10000, 10000)
+        w = (F(0), F(0), B(k))
+        ref = setprecision(BigFloat, 512) do
+            gamma(r, FieldHubbardAtom(big(at.U), big(at.beta), big(at.mu), big(at.h)), w)
+        end
+        @test gamma(r, at, w) ≈ ref rtol = 3e-3 atol = 3e-3
+    end
+    @info "Field L abs(k)<=10000: worst scaled Float64 error" worst
+end

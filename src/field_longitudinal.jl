@@ -116,7 +116,15 @@ end
 
 # ---------------------------------------------------------------- moving-pole coefficients
 # F = P/E8; coefficient functions of the column (t, v) (hatted: without the D_t, m, ρ prefactors)
-_field_l_Fv(at, st, v) = _field_l_Ppol(at, v, st.q0) / _field_l_E8val(st.E8, v^2)
+function _field_l_E8factored(at, x, q0)
+    hu, hum = _field_l_Hpol(at, 1, x, q0), _field_l_Hpol(at, 1, -x, q0)
+    hd, hdm = _field_l_Hpol(at, 2, x, q0), _field_l_Hpol(at, 2, -x, q0)
+    hu * hum * hd * hdm -
+    at._lambda^2 *
+    (at._piS * (hu * hd + hum * hdm) + at._piP * (hu * hdm + hum * hd)) +
+    at._lambda^4 * (at._piP - at._piS)^2
+end
+_field_l_Fv(at, st, v) = _field_l_Ppol(at, v, st.q0) / _field_l_E8factored(at, v, st.q0)
 function _field_l_Qt(at, t, v, q0)
     (o=3 - t;
      _field_l_Hpol(at, t, -v, q0) * _field_l_Hpol(at, o, v, q0) *
@@ -179,10 +187,18 @@ function _field_l_gammaL(at::FieldHubbardAtom{T}, σ::Integer, t::Integer, n::In
         val -= st.𝔠[j, t] * Φ / (v^2 - st.s[j])
     end
     Γ = β^2 * val
-    if σ == t && n == m      # diagonal: β²(d_t - 1/b_t) = βP(z)[1/G2_t(z) - Q_t(z)/E8(z)]
-        Γ += β * _field_l_Ppol(at, z, st.q0) *
-             (1 / _field_l_G2pol(at, t, z, st.w) -
-              _field_l_Qt(at, t, z, st.q0) / _field_l_E8val(st.E8, z^2))
+    if σ == t && n == m
+        # E8 - G2_t Q_t, cancelling the degree-eight terms analytically.
+        pσ, po = _field_l_pw(at, t), _field_l_pw(at, 3 - t)
+        variance = 4at._a^2 * (at._p0 + pσ) * (po + at._p2)
+        hm = _field_l_Hpol(at, t, -z, st.q0)
+        hp_o = _field_l_Hpol(at, 3 - t, z, st.q0)
+        hm_o = _field_l_Hpol(at, 3 - t, -z, st.q0)
+        numerator = variance * _field_l_Qt(at, t, z, st.q0) -
+                    at._lambda^2 * hm * (at._piS * hm_o + at._piP * hp_o) +
+                    at._lambda^4 * (at._piP - at._piS)^2
+        Γ += β * _field_l_Ppol(at, z, st.q0) * numerator /
+             (_field_l_G2pol(at, t, z, st.w) * _field_l_E8factored(at, z, st.q0))
     end
     Γ
 end
