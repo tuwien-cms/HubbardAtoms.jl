@@ -81,15 +81,15 @@ Parameters must be finite, with beta > 0; they are promoted to one floating-poin
 Complex{T}, including for BigFloat. The longitudinal per-transfer data are cached thread-safely.
 No d/m/s/t, full vertex or three-point API is implied for this spin-asymmetric atom.
 
-The closed forms are those of the companion paper (see the README). The longitudinal
-theorem covers μh(μ²-h²) ≠ 0, simple nonzero non-atomic roots off the lattice, and nonzero
-thermal denominators. On μ±h = 0 the exact Cauchy-kernel limits give its continuous extension,
-verified numerically, not proved there. At h = 0 and μ = 0 the established zero-field/Shiba
-identities are used. Near longitudinal root confluences or lattice roots the reference's
-symmetric μ±δ evaluation in extended precision is retained; it is meaningful only at
-removable singularities, **not** at genuine divergences. Vanishing thermal denominators and
-equal-spin susceptibility zeros are not regularized. The generic transverse formula likewise
-does not continue confluent/lattice roots; use away from these exceptional sets.
+The longitudinal closed form holds for μh(μ²-h²) ≠ 0, at simple nonzero non-atomic roots off
+the lattice with nonzero thermal denominators. At h = 0 and μ = 0 the exact zero-field and
+particle-hole (Shiba) identities are used; on μ±h = 0 the exact limits of the Cauchy kernels give
+the continuous extension of the closed form, which agrees with numerical inversion but is not
+derived there. Near coincident longitudinal roots or roots on the lattice the vertex is the
+symmetric limit μ±δ in extended precision; this is meaningful only at removable singularities,
+**not** at genuine divergences. Vanishing thermal denominators and zeros of the equal-spin
+susceptibility are not regularized, and the transverse formula is not continued through
+coincident or lattice roots.
 """
 struct FieldHubbardAtom{T<:AbstractFloat} <: AbstractHubbardAtom
     U::T

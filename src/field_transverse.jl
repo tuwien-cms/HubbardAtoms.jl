@@ -1,4 +1,4 @@
-# Port of FieldT.jl, generic transverse theorem and equal-spin proposition (fieldT.tex).
+# Transverse-spin, opposite-spin pair and equal-spin pair sectors of FieldHubbardAtom.
 _field_nu(at::FieldHubbardAtom{T}, n) where {T} = (2n + 1) * T(π) / at.beta
 function _field_t_zlat(at::FieldHubbardAtom{T}, n, k) where {T}
     Complex{T}(at.mu, T(π) * (2n + 1 + k) / at.beta)
@@ -40,7 +40,8 @@ function _field_t_dep(d::_field_t_TData, x)
     _field_t_dHp(d, x) * _field_t_Hp(d, -x) - _field_t_Hp(d, x) * _field_t_dHp(d, -x)
 end
 
-# Theorem fieldT-T (μ ≠ 0): the magnetic formula of Theorem ph with the data above.
+# Transverse vertex (μ ≠ 0): the doped magnetic-channel closed form (derivation note, theorem "density and
+# magnetic") with the data above.
 function _field_t_gammaT_up(at::FieldHubbardAtom{T}, n::Integer, m::Integer,
                             k::Integer) where {T}
     w = (FermionicFreq(2n + 1), FermionicFreq(2m + 1), BosonicFreq(2k))
@@ -87,7 +88,7 @@ function _field_t_gammaT_up(at::FieldHubbardAtom{T}, n::Integer, m::Integer,
     out
 end
 
-# Proposition fieldT-E: equal-spin (↑↑) pair vertex
+# Equal-spin (↑↑) pair vertex, explicit
 function _field_t_gammaE_up(at::FieldHubbardAtom{T}, n::Integer, m::Integer,
                             k::Integer) where {T}
     nb = -n - k - 1

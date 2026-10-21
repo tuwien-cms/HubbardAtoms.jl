@@ -1,4 +1,5 @@
-# Port of FieldL.jl, one-sided theorem (fieldL.tex); n,m,k below use ν=(2n+1)π/β, ω=2kπ/β.
+# Longitudinal sector of FieldHubbardAtom (one-sided closed form);
+# n, m, k below use ν = (2n+1)π/β, ω = 2kπ/β.
 _field_l_sgn(σ) = 3 - 2σ
 
 _field_l_μs(at, σ) = at.mu + _field_l_sgn(σ) * at.h
@@ -99,7 +100,7 @@ function _field_l_buildsetup(at::FieldHubbardAtom{T}, k::Integer, branch) where 
         for σ in 1:2
             K[j, σ] = f[j, 2σ-1] + f[j, 2σ]
         end
-        # 𝔠_{jt} = A_{tj}/K_{jt} = W_{tj}/K_{j,-t} (Lemma fieldL-lem-ratio); take the larger denominator,
+        # 𝔠_{jt} = A_{tj}/K_{jt} = W_{tj}/K_{j,-t} (an identity at the roots); take the larger denominator,
         # which keeps it regular on the axes μ_t = 0 where A_{tj} and K_{jt} vanish together
         Ξ = (s[j] + q0)^2 - 4a^2 * ru * rd * s[j] - λ^2 * dπ
         Π = (s[j] + q0)^2 + 4a^2 * ru * rd * s[j] + λ^2 * dπ

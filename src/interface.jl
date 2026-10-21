@@ -13,7 +13,7 @@ const FermiBose = Tuple{FermionicFreq,BosonicFreq}
 "Frequency argument `(ν, ν′, ω)` of four-point quantities."
 const FermiFermiBose = Tuple{FermionicFreq,FermionicFreq,BosonicFreq}
 
-# The functions of the package, each with the Unicode name of the paper and an exported
+# The functions of the package, each with the Unicode name used by Thunström et al. and an exported
 # ASCII alias. The methods for the two atoms are in half_filling.jl and doped.jl; those that
 # hold for any atom are here.
 
