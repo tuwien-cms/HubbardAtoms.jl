@@ -291,4 +291,208 @@ theorem pathsT_diagonal {β a h X w p₀ pu pd p₂ : ℂ} (hs : p₀ + pu + pd 
     p₂ * pathsT_diag₂ (β := β) d₁ d₂ d₃ d₄ hW hp +
     (-β * HTf a h X w 1 0 0 0 0 + rhsT a h X X w 1 0 0 0 0) * hs
 
+/-! ### The pair resonance at `μ = 0` -/
+
+/-- The six paths of `χ_T↑` with the condition `D` for a vanishing pair rate `xₙ + xₘ + w = 0`,
+which happens at `μ = 0` on the mirror `m = n̄`. -/
+noncomputable def pathsTD (β a h X Y w p₀ pu pd p₂ : ℂ) (C D : Prop) [Decidable C] [Decidable D] :
+    ℂ :=
+  simplexW β pu p₀ pd p₀ (-X - a - h) (X + a - h + w) (-Y - a + h - w) (-2 * h + w) (X - Y)
+      (-Y - a - h) False C -
+    simplexW β p₂ pd p₀ pd (-X + a - h) (-Y - a + h - w) (X + a - h + w) (-X - Y - w) (X - Y)
+      (-Y + a - h) D C +
+    -simplexW β p₂ pu p₀ pd (-Y + a + h - w) (-X - a - h) (X + a - h + w) (-X - Y - w)
+      (-2 * h + w) (-Y + a - h) D False +
+    simplexW β pu p₂ pd p₀ (X - a - h + w) (-X + a - h) (-Y - a + h - w) (-2 * h + w)
+      (-X - Y - w) (-Y - a - h) False D +
+    simplexW β pu p₂ pu p₀ (X - a - h + w) (-Y + a + h - w) (-X - a - h) (X - Y) (-X - Y - w)
+      (-Y - a - h) C D -
+    simplexW β p₂ pu p₂ pd (-Y + a + h - w) (X - a - h + w) (-X + a - h) (X - Y) (-2 * h + w)
+      (-Y + a - h) C False
+
+theorem pathsT_eq_pathsTD (β a h X Y w p₀ pu pd p₂ : ℂ) (C : Prop) [Decidable C] :
+    pathsT β a h X Y w p₀ pu pd p₂ C = pathsTD β a h X Y w p₀ pu pd p₂ C False := rfl
+
+theorem pathsTD_congr (β a h X Y w p₀ pu pd p₂ : ℂ) {C C' D D' : Prop} [Decidable C]
+    [Decidable C'] [Decidable D] [Decidable D'] (hC : C ↔ C') (hD : D ↔ D') :
+    pathsTD β a h X Y w p₀ pu pd p₂ C D = pathsTD β a h X Y w p₀ pu pd p₂ C' D' := by
+  simp only [pathsTD, simplexW, hC, hD]
+
+theorem pathsTD_lin (β a h X Y w p₀ pu pd : ℂ) (C D : Prop) [Decidable C] [Decidable D] :
+    pathsTD β a h X Y w p₀ pu pd p₀ C D =
+      p₀ * pathsTD β a h X Y w 1 0 0 1 C D + pu * pathsTD β a h X Y w 0 1 0 0 C D +
+        pd * pathsTD β a h X Y w 0 0 1 0 C D := by
+  unfold pathsTD simplexW
+  split_ifs <;> ring
+
+/-- The right side on the mirror at `μ = 0` (`ρ = 0`), homogenized:
+`λβp₀ + N(z, v)/P(v)`, `v = -z`. -/
+noncomputable def rhsTM (β a h X Y w s p₀ pu pd : ℂ) : ℂ :=
+  -4 * a ^ 2 * (β * p₀) + Nf a h X Y w s p₀ pu pd p₀ / PTf a h Y w
+
+theorem rhsTM_lin (β a h X Y w s p₀ pu pd : ℂ) :
+    rhsTM β a h X Y w s p₀ pu pd =
+      s * rhsTM β a h X Y w 1 0 0 0 + p₀ * rhsTM β a h X Y w 0 1 0 0 +
+        pu * rhsTM β a h X Y w 0 0 1 0 + pd * rhsTM β a h X Y w 0 0 0 1 := by
+  unfold rhsTM Nf N₂f
+  ring
+
+section Mirror
+
+variable {β a h X Y w : ℂ}
+  (d₁ : X + a + h ≠ 0) (d₂ : X - a + h ≠ 0) (d₃ : X + w + a - h ≠ 0) (d₄ : X + w - a - h ≠ 0)
+  (hW : w - 2 * h ≠ 0) (hY : X + Y + w = 0)
+
+include d₁ d₂ d₃ d₄ hY in
+/-- The nonvanishing factors in `Y = -X - w`. -/
+private theorem mirror_factors :
+    Y + a + h ≠ 0 ∧ Y - a + h ≠ 0 ∧ Y + w + a - h ≠ 0 ∧ Y + w - a - h ≠ 0 := by
+  obtain rfl : Y = -X - w := by linear_combination hY
+  exact ⟨fun h0 ↦ d₄ (by linear_combination -h0), fun h0 ↦ d₃ (by linear_combination -h0),
+    fun h0 ↦ d₂ (by linear_combination -h0), fun h0 ↦ d₁ (by linear_combination -h0)⟩
+
+set_option maxHeartbeats 4000000 in
+-- the six paths give rational expressions of high degree
+set_option maxRecDepth 20000 in
+include d₁ d₂ d₃ d₄ hW hY in
+/-- On the mirror (`n ≠ n̄`), the weight `p₀`. -/
+theorem pathsTD_mirror₀ (hXY : X - Y ≠ 0) :
+    PTf a h X w * pathsTD β a h X Y w 1 0 0 1 False True =
+      2 * rhsTM β a h X Y w 1 0 0 0 + rhsTM β a h X Y w 0 1 0 0 := by
+  obtain ⟨e₁, e₂, e₃, e₄⟩ := mirror_factors d₁ d₂ d₃ d₄ hY
+  simp only [pathsTD, simplexW, rhsTM, Nf, N₂f, PTf, ite_false, ite_true]
+  simp only [show -X - a - h = -(X + a + h) by ring, show -X + a - h = -(X - a + h) by ring,
+    show X + a - h + w = X + w + a - h by ring, show X - a - h + w = X + w - a - h by ring,
+    show -2 * h + w = w - 2 * h by ring, show -Y - a + h - w = -(Y + w + a - h) by ring,
+    show -Y + a + h - w = -(Y + w - a - h) by ring, show -Y - a - h = -(Y + a + h) by ring,
+    show -Y + a - h = -(Y - a + h) by ring, div_neg]
+  have hW₂ : w - h * 2 ≠ 0 := fun h0 ↦ hW (by linear_combination h0)
+  field_simp
+  obtain rfl : Y = -X - w := by linear_combination hY
+  ring
+
+set_option maxHeartbeats 4000000 in
+-- the six paths give rational expressions of high degree
+set_option maxRecDepth 20000 in
+include d₁ d₂ d₃ d₄ hW hY in
+/-- On the mirror (`n ≠ n̄`), the weight `pUp`. -/
+theorem pathsTD_mirrorUp (hXY : X - Y ≠ 0) :
+    PTf a h X w * pathsTD β a h X Y w 0 1 0 0 False True =
+      rhsTM β a h X Y w 1 0 0 0 + rhsTM β a h X Y w 0 0 1 0 := by
+  obtain ⟨e₁, e₂, e₃, e₄⟩ := mirror_factors d₁ d₂ d₃ d₄ hY
+  simp only [pathsTD, simplexW, rhsTM, Nf, N₂f, PTf, ite_false, ite_true]
+  simp only [show -X - a - h = -(X + a + h) by ring, show -X + a - h = -(X - a + h) by ring,
+    show X + a - h + w = X + w + a - h by ring, show X - a - h + w = X + w - a - h by ring,
+    show -2 * h + w = w - 2 * h by ring, show -Y - a + h - w = -(Y + w + a - h) by ring,
+    show -Y + a + h - w = -(Y + w - a - h) by ring, show -Y - a - h = -(Y + a + h) by ring,
+    show -Y + a - h = -(Y - a + h) by ring, div_neg]
+  have hW₂ : w - h * 2 ≠ 0 := fun h0 ↦ hW (by linear_combination h0)
+  field_simp
+  obtain rfl : Y = -X - w := by linear_combination hY
+  ring
+
+set_option maxHeartbeats 4000000 in
+-- the six paths give rational expressions of high degree
+set_option maxRecDepth 20000 in
+include d₁ d₂ d₃ d₄ hW hY in
+/-- On the mirror (`n ≠ n̄`), the weight `pDn`. -/
+theorem pathsTD_mirrorDn (hXY : X - Y ≠ 0) :
+    PTf a h X w * pathsTD β a h X Y w 0 0 1 0 False True =
+      rhsTM β a h X Y w 1 0 0 0 + rhsTM β a h X Y w 0 0 0 1 := by
+  obtain ⟨e₁, e₂, e₃, e₄⟩ := mirror_factors d₁ d₂ d₃ d₄ hY
+  simp only [pathsTD, simplexW, rhsTM, Nf, N₂f, PTf, ite_false, ite_true]
+  simp only [show -X - a - h = -(X + a + h) by ring, show -X + a - h = -(X - a + h) by ring,
+    show X + a - h + w = X + w + a - h by ring, show X - a - h + w = X + w - a - h by ring,
+    show -2 * h + w = w - 2 * h by ring, show -Y - a + h - w = -(Y + w + a - h) by ring,
+    show -Y + a + h - w = -(Y + w - a - h) by ring, show -Y - a - h = -(Y + a + h) by ring,
+    show -Y + a - h = -(Y - a + h) by ring, div_neg]
+  have hW₂ : w - h * 2 ≠ 0 := fun h0 ↦ hW (by linear_combination h0)
+  field_simp
+  obtain rfl : Y = -X - w := by linear_combination hY
+  ring
+
+set_option maxHeartbeats 4000000 in
+-- the six paths give rational expressions of high degree
+set_option maxRecDepth 20000 in
+include d₁ d₂ d₃ d₄ hW in
+/-- At a mirror fixed point (`X = Y = -w/2`), the weight `p₀`. -/
+theorem pathsTD_fixed₀ (hX : X + X + w = 0) :
+    PTf a h X w * pathsTD β a h X X w 1 0 0 1 True True =
+      -β * (2 * HTf a h X w 1 0 0 0 0 + HTf a h X w 0 1 0 0 0 + HTf a h X w 0 0 0 0 1) +
+        (2 * rhsTM β a h X X w 1 0 0 0 + rhsTM β a h X X w 0 1 0 0) := by
+  simp only [pathsTD, simplexW, rhsTM, Nf, N₂f, PTf, HTf, ite_true, ite_false, sub_self]
+  simp only [show -X - a - h = -(X + a + h) by ring, show -X + a - h = -(X - a + h) by ring,
+    show X + a - h + w = X + w + a - h by ring, show X - a - h + w = X + w - a - h by ring,
+    show -2 * h + w = w - 2 * h by ring, show -X - a + h - w = -(X + w + a - h) by ring,
+    show -X + a + h - w = -(X + w - a - h) by ring, div_neg]
+  have hW₂ : w - h * 2 ≠ 0 := fun h0 ↦ hW (by linear_combination h0)
+  field_simp
+  obtain rfl : w = -X - X := by linear_combination hX
+  ring
+
+set_option maxHeartbeats 4000000 in
+-- the six paths give rational expressions of high degree
+set_option maxRecDepth 20000 in
+include d₁ d₂ d₃ d₄ hW in
+/-- At a mirror fixed point (`X = Y = -w/2`), the weight `pUp`. -/
+theorem pathsTD_fixedUp (hX : X + X + w = 0) :
+    PTf a h X w * pathsTD β a h X X w 0 1 0 0 True True =
+      -β * (HTf a h X w 1 0 0 0 0 + HTf a h X w 0 0 1 0 0) +
+        (rhsTM β a h X X w 1 0 0 0 + rhsTM β a h X X w 0 0 1 0) := by
+  simp only [pathsTD, simplexW, rhsTM, Nf, N₂f, PTf, HTf, ite_true, ite_false, sub_self]
+  simp only [show -X - a - h = -(X + a + h) by ring, show -X + a - h = -(X - a + h) by ring,
+    show X + a - h + w = X + w + a - h by ring, show X - a - h + w = X + w - a - h by ring,
+    show -2 * h + w = w - 2 * h by ring, show -X - a + h - w = -(X + w + a - h) by ring,
+    show -X + a + h - w = -(X + w - a - h) by ring, div_neg]
+  have hW₂ : w - h * 2 ≠ 0 := fun h0 ↦ hW (by linear_combination h0)
+  field_simp
+  obtain rfl : w = -X - X := by linear_combination hX
+  ring
+
+set_option maxHeartbeats 4000000 in
+-- the six paths give rational expressions of high degree
+set_option maxRecDepth 20000 in
+include d₁ d₂ d₃ d₄ hW in
+/-- At a mirror fixed point (`X = Y = -w/2`), the weight `pDn`. -/
+theorem pathsTD_fixedDn (hX : X + X + w = 0) :
+    PTf a h X w * pathsTD β a h X X w 0 0 1 0 True True =
+      -β * (HTf a h X w 1 0 0 0 0 + HTf a h X w 0 0 0 1 0) +
+        (rhsTM β a h X X w 1 0 0 0 + rhsTM β a h X X w 0 0 0 1) := by
+  simp only [pathsTD, simplexW, rhsTM, Nf, N₂f, PTf, HTf, ite_true, ite_false, sub_self]
+  simp only [show -X - a - h = -(X + a + h) by ring, show -X + a - h = -(X - a + h) by ring,
+    show X + a - h + w = X + w + a - h by ring, show X - a - h + w = X + w - a - h by ring,
+    show -2 * h + w = w - 2 * h by ring, show -X - a + h - w = -(X + w + a - h) by ring,
+    show -X + a + h - w = -(X + w - a - h) by ring, div_neg]
+  have hW₂ : w - h * 2 ≠ 0 := fun h0 ↦ hW (by linear_combination h0)
+  field_simp
+  obtain rfl : w = -X - X := by linear_combination hX
+  ring
+
+end Mirror
+
+/-- **The transverse input at a mirror fixed point at `μ = 0`**:
+`P(0)χ_T↑,nn = -βH(0) + λβp₀ + N(0, 0)/P(0)`. -/
+theorem pathsTD_fixed {β a h X w p₀ pu pd : ℂ} (hs : 2 * p₀ + pu + pd = 1)
+    (d₁ : X + a + h ≠ 0) (d₂ : X - a + h ≠ 0) (d₃ : X + w + a - h ≠ 0) (d₄ : X + w - a - h ≠ 0)
+    (hW : w - 2 * h ≠ 0) (hX : X + X + w = 0) :
+    PTf a h X w * pathsTD β a h X X w p₀ pu pd p₀ True True =
+      -β * HTf a h X w 1 p₀ pu pd p₀ + rhsTM β a h X X w 1 p₀ pu pd := by
+  rw [pathsTD_lin, HTf_lin, rhsTM_lin]
+  linear_combination p₀ * pathsTD_fixed₀ (β := β) d₁ d₂ d₃ d₄ hW hX +
+    pu * pathsTD_fixedUp (β := β) d₁ d₂ d₃ d₄ hW hX +
+    pd * pathsTD_fixedDn (β := β) d₁ d₂ d₃ d₄ hW hX +
+    (-β * HTf a h X w 1 0 0 0 0 + rhsTM β a h X X w 1 0 0 0) * hs
+
+/-- **The transverse input on the mirror at `μ = 0`**: `P(zₙ)χ_T↑,nn̄ = λβp₀ + N(zₙ, zₙ̄)/P(zₙ̄)`
+(`n ≠ n̄`, `ρ = 0`). -/
+theorem pathsTD_mirror {β a h X Y w p₀ pu pd : ℂ} (hs : 2 * p₀ + pu + pd = 1)
+    (d₁ : X + a + h ≠ 0) (d₂ : X - a + h ≠ 0) (d₃ : X + w + a - h ≠ 0) (d₄ : X + w - a - h ≠ 0)
+    (hW : w - 2 * h ≠ 0) (hY : X + Y + w = 0) (hXY : X - Y ≠ 0) :
+    PTf a h X w * pathsTD β a h X Y w p₀ pu pd p₀ False True = rhsTM β a h X Y w 1 p₀ pu pd := by
+  rw [pathsTD_lin, rhsTM_lin]
+  linear_combination p₀ * pathsTD_mirror₀ (β := β) d₁ d₂ d₃ d₄ hW hY hXY +
+    pu * pathsTD_mirrorUp (β := β) d₁ d₂ d₃ d₄ hW hY hXY +
+    pd * pathsTD_mirrorDn (β := β) d₁ d₂ d₃ d₄ hW hY hXY +
+    rhsTM β a h X Y w 1 0 0 0 * hs
+
 end HubbardAtom

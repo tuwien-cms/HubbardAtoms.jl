@@ -263,12 +263,11 @@ theorem WT_ne_zero (hh : F.h ≠ 0) : F.WT k ≠ 0 := by
   simp [WT] at this
   exact hh this
 
-/-- **Proposition "transverse input"**, from the Hamiltonian, for `μ ≠ 0` and `W ≠ 0`:
-`P(zₙ)χ_T↑,nm = -βH(zₙ)δₙₘ + λρ/(zₙ + zₘ) + N(zₙ, zₘ)/P(zₘ)`. -/
-theorem PT_mul_chiTUp (hμ : F.μ ≠ 0) (hW0 : F.WT k ≠ 0) (n m : ℤ) :
-    F.PT k (F.zT k n) * F.chiTUp k n m =
-      -F.β * F.HT k (F.zT k n) * kron n m + F.lamT * F.ρ / (F.zT k n + F.zT k m) +
-        F.NT k (F.zT k n) (F.zT k m) / F.PT k (F.zT k m) := by
+/-- The six Fock-space paths of `χ_T↑`: the conditions say whether `n = m` and whether the pair
+rate `xₙ + xₘ + w` vanishes (at `μ = 0`, `m = n̄`). -/
+theorem chiTUp_eq_pathsTD (hW0 : F.WT k ≠ 0) (n m : ℤ) :
+    F.chiTUp k n m = pathsTD F.β F.a F.h ((F.lat F.μ).x n) ((F.lat F.μ).x m) ((F.lat F.μ).w k)
+      F.p₀ F.pUp F.pDn F.p₂ (n = m) (F.μ = 0 ∧ n + m + k + 1 = 0) := by
   set B := F.lat F.μ with hB
   have h1 : cexp ((F.μ - B.x n) * F.β) = -1 := B.cexp_mu_sub_x n
   have h2 : cexp ((B.x n + B.w k - F.μ) * F.β) = -1 := by
@@ -285,10 +284,10 @@ theorem PT_mul_chiTUp (hμ : F.μ ≠ 0) (hW0 : F.WT k ≠ 0) (n m : ℤ) :
   simp only [orderedTerm_eq]
   simp [Fin.sum_univ_four, cUp_eq, cDn_eq]
   have hnm := B.x_sub_x_eq_zero_iff n m
-  have hp : -B.x n - B.x m - B.w k = 0 ↔ False := by
-    rw [iff_false]
-    intro h0
-    exact hμ ((B.pair_eq_zero_iff k n m).mp (by linear_combination -h0)).1
+  have hp : -B.x n - B.x m - B.w k = 0 ↔ (F.μ = 0 ∧ n + m + k + 1 = 0) := by
+    have hpe := B.pair_eq_zero_iff k n m
+    exact ⟨fun h0 ↦ hpe.mp (by linear_combination -h0),
+      fun h0 ↦ by linear_combination -hpe.mpr h0⟩
   have hW : -2 * (F.h : ℂ) + B.w k = 0 ↔ False := by
     rw [iff_false]
     intro h0
@@ -325,6 +324,23 @@ theorem PT_mul_chiTUp (hμ : F.μ ≠ 0) (hW0 : F.WT k ≠ 0) (n m : ℤ) :
       (by simp [rate, energy]; ring) (by simp [rate, energy]; ring) (by simp [rate, energy]; ring)
       (by ring) (by ring) (by ring) hnm hW
 ]
+  simp only [weight, Matrix.cons_val, Matrix.cons_val_zero, Matrix.cons_val_one]
+  rfl
+
+/-- **Proposition "transverse input"**, from the Hamiltonian, for `μ ≠ 0` and `W ≠ 0`:
+`P(zₙ)χ_T↑,nm = -βH(zₙ)δₙₘ + λρ/(zₙ + zₘ) + N(zₙ, zₘ)/P(zₘ)`. -/
+theorem PT_mul_chiTUp' (hW0 : F.WT k ≠ 0) {n m : ℤ} (hD : ¬(F.μ = 0 ∧ n + m + k + 1 = 0)) :
+    F.PT k (F.zT k n) * F.chiTUp k n m =
+      -F.β * F.HT k (F.zT k n) * kron n m + F.lamT * F.ρ / (F.zT k n + F.zT k m) +
+        F.NT k (F.zT k n) (F.zT k m) / F.PT k (F.zT k m) := by
+  set B := F.lat F.μ with hB
+  have hnm := B.x_sub_x_eq_zero_iff n m
+  have hp : -B.x n - B.x m - B.w k = 0 ↔ False := by
+    rw [iff_false]
+    intro h0
+    exact hD ((B.pair_eq_zero_iff k n m).mp (by linear_combination -h0))
+  rw [F.chiTUp_eq_pathsTD k hW0, pathsTD_congr _ _ _ _ _ _ _ _ _ _ Iff.rfl
+    (iff_false_intro hD), ← pathsT_eq_pathsTD]
   have hw := F.weights_sum'
   have hWT : F.WT k = B.w k - 2 * F.h := rfl
   have hWne : B.w k - 2 * (F.h : ℂ) ≠ 0 := hW0
@@ -351,9 +367,6 @@ theorem PT_mul_chiTUp (hμ : F.μ ≠ 0) (hW0 : F.WT k ≠ 0) (n m : ℤ) :
     have := lxw j (-F.a - F.h); push_cast at this
     rwa [show B.x j + B.w k + (-(F.a : ℂ) - F.h) = B.x j + B.w k - F.a - F.h by ring] at this
   have hpair : B.x n + B.x m + B.w k ≠ 0 := fun h0 ↦ hp.mp (by linear_combination -h0)
-  simp only [weight, Matrix.cons_val, Matrix.cons_val_zero, Matrix.cons_val_one]
-  change F.PT k (F.zT k n) * pathsT F.β F.a F.h (B.x n) (B.x m) (B.w k) F.p₀ F.pUp F.pDn F.p₂
-    (n = m) = _
   rw [hPz, hzz]
   have hρ : (F.ρ : ℂ) = F.p₂ - F.p₀ := by rw [ρ]; push_cast; ring
   have hm : (F.mf : ℂ) = F.pUp - F.pDn := by rw [mf]; push_cast; ring
@@ -371,6 +384,13 @@ theorem PT_mul_chiTUp (hμ : F.μ ≠ 0) (hW0 : F.WT k ≠ 0) (n m : ℤ) :
     simp only [rhsT, Nf, N₂f, NT, N₀T, N₂T, ζT, q₀T, lamT, hρ, hm, hPz]
     simp only [zT, Params.z, hWT]
     ring
+
+/-- **Proposition "transverse input"** for `μ ≠ 0`, where no pair rate vanishes. -/
+theorem PT_mul_chiTUp (hμ : F.μ ≠ 0) (hW0 : F.WT k ≠ 0) (n m : ℤ) :
+    F.PT k (F.zT k n) * F.chiTUp k n m =
+      -F.β * F.HT k (F.zT k n) * kron n m + F.lamT * F.ρ / (F.zT k n + F.zT k m) +
+        F.NT k (F.zT k n) (F.zT k m) / F.PT k (F.zT k m) :=
+  F.PT_mul_chiTUp' k hW0 fun h0 ↦ hμ h0.1
 
 end FParams
 

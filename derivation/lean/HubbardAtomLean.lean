@@ -28,3 +28,4 @@ import HubbardAtomLean.FieldTIdentities
 import HubbardAtomLean.FieldTransverse
 import HubbardAtomLean.FieldPair
 import HubbardAtomLean.FieldEqualSpin
+import HubbardAtomLean.FieldTHalfFilling
