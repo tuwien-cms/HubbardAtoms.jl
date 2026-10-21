@@ -104,7 +104,6 @@ theorem chiTUp_eq_chiR' (hh : F.h = 0) {n m : ℤ} (hD : ¬(F.μ = 0 ∧ n + m +
   have m₁ := B.x_add_ofReal_ne_zero m F.a
   have m₂ := B.x_sub_ofReal_ne_zero m F.a
   have hnm' : B.x n + B.x m ≠ 0 := by rwa [hX, hX] at hzz
-  have g₁ : B.x m ^ 2 - (F.a : ℂ) ^ 2 ≠ 0 := by rw [sq_sub_sq]; exact mul_ne_zero m₁ m₂
   by_cases hnm : n = m
   · subst hnm
     have hx0 : B.x n ≠ 0 := fun h0 ↦ hnm' (by rw [h0, add_zero])
@@ -167,7 +166,6 @@ theorem chiTUp_eq_chiR_hf (hh : F.h = 0) (hμ : F.μ = 0) (n m : ℤ) :
       show B.β = F.β from rfl]
     push_cast
     rw [hp₂]
-    have g₁ : B.x n ^ 2 - (F.a : ℂ) ^ 2 ≠ 0 := by rw [sq_sub_sq]; exact mul_ne_zero n₁ n₂
     have n₃ : -B.x n + F.a ≠ 0 := fun h0 ↦ n₂ (by linear_combination -h0)
     have n₄ : -B.x n - F.a ≠ 0 := fun h0 ↦ n₁ (by linear_combination -h0)
     field_simp
