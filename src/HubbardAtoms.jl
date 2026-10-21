@@ -3,9 +3,9 @@ Exact one- and two-particle quantities of the Hubbard atom in Matsubara frequenc
 filling (`HubbardAtom`), following Thunström et al., Phys. Rev. B 98, 235107 (2018),
 https://journals.aps.org/prb/abstract/10.1103/PhysRevB.98.235107, whose equation numbers the
 docstrings refer to, and at arbitrary filling (`DopedHubbardAtom`), with the closed forms
-derived in `derivation/doped-gamma-derivation.pdf` of the package repository. With doping
-and Zeeman field (`FieldHubbardAtom`), spin-resolved Green's functions and sector χ, χ₀, Γ
-follow the closed forms of the companion paper on the atom with doping and field (see the README).
+derived in `derivation/doped-gamma-derivation.pdf` of the package repository, and with doping
+and Zeeman field (`FieldHubbardAtom`), with spin-resolved Green's functions and the closed-form
+χ, χ₀ and Γ of its spin-resolved sectors.
 """
 module HubbardAtoms
 
