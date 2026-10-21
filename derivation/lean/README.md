@@ -122,5 +122,5 @@ In this directory, with the toolchain of `lean-toolchain` (via elan) and Mathlib
 ```sh
 lake exe cache get   # prebuilt Mathlib
 lake build
-./scripts/check.sh   # about 3 min once Mathlib is built
+./scripts/check.sh   # about 5 min once Mathlib is built (peak memory about 37 GB)
 ```
