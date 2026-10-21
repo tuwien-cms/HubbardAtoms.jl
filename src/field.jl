@@ -81,7 +81,7 @@ Parameters must be finite, with beta > 0; they are promoted to one floating-poin
 Complex{T}, including for BigFloat. The longitudinal per-transfer data are cached thread-safely.
 No d/m/s/t, full vertex or three-point API is implied for this spin-asymmetric atom.
 
-The closed forms are ported from the companion's FieldL.jl and FieldT.jl. The longitudinal
+The closed forms are those of the companion paper (see the README). The longitudinal
 theorem covers μh(μ²-h²) ≠ 0, simple nonzero non-atomic roots off the lattice, and nonzero
 thermal denominators. On μ±h = 0 the exact Cauchy-kernel limits give its continuous extension,
 verified numerically, not proved there. At h = 0 and μ = 0 the established zero-field/Shiba

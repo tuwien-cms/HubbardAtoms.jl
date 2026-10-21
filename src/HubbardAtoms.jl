@@ -5,7 +5,7 @@ https://journals.aps.org/prb/abstract/10.1103/PhysRevB.98.235107, whose equation
 docstrings refer to, and at arbitrary filling (`DopedHubbardAtom`), with the closed forms
 derived in `derivation/doped-gamma-derivation.pdf` of the package repository. With doping
 and Zeeman field (`FieldHubbardAtom`), spin-resolved Green's functions and sector χ, χ₀, Γ
-follow the companion's field, fieldT and fieldL sections (see the README for source links).
+follow the closed forms of the companion paper on the atom with doping and field (see the README).
 """
 module HubbardAtoms
 

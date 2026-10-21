@@ -95,9 +95,8 @@ and avoid applying its SU(2) combinations to a spin-asymmetric problem. They reu
 types and `gf`/`chi`/`chi0`/`gamma` names; other quantities in the table above are not implemented
 for the field atom. All four functions support `BigFloat` and return complex results.
 
-The sectors follow the companion's
-[`field.tex`, `fieldT.tex`, `fieldL.tex`](https://github.com/SamuelBadr/doped-atom-vertex-paper/tree/main/companion/sections)
-(the implementation ports its `code/checks/fieldT/FieldT.jl` and `fieldL/FieldL.jl`):
+The sectors and their closed forms follow S. Badr, *Closed-form channel-irreducible vertices of the Hubbard atom
+with doping and field* (in preparation):
 
 - **L** is the connected ph matrix in the spin basis. It couples both spins and frequencies:
   **do not invert charge and longitudinal-spin diagonal blocks separately**.
