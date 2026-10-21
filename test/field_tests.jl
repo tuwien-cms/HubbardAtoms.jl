@@ -262,3 +262,72 @@ end
                        (F(-1), F(m), B(1))))
     end
 end
+
+@testitem "Field transverse Γ: coincident roots (#26)" setup = [FieldTests] begin
+    using HubbardAtoms: _field_t_tanhdd
+    for T in (Float32, Float64, BigFloat), x in (0.7, 20.0)
+        y = complex(T(x), T(0.2))
+        @test _field_t_tanhdd(y, zero(y)) ≈ inv(cosh(y)^2) rtol = 32eps(T)
+    end
+    for (args, w) in (((3.0, 150.0, 0.5, 0.2), (F(2), F(1), B(3))),
+                      ((4.8282735522498275, 209.09920942910338, 1.3579236032838506,
+                        0.7959295676510655), (F(40), F(-39), B(29))))
+        refs = map((512, 1024)) do p
+            setprecision(BigFloat, p) do
+                gamma(TransverseSector(1), FieldHubbardAtom(big.(args)...), w)
+            end
+        end
+        @test refs[1] ≈ refs[2] rtol = big"1e-100"
+        val = gamma(TransverseSector(1), FieldHubbardAtom(args...), w)
+        @test isfinite(val)
+        @test val ≈ refs[2] rtol = 2e-13 atol = 2e-13
+        @test val ≈ -args[1] atol = 1e-12
+        # The same root pair occurs in A after the particle-hole map.
+        U, β, μ, h = args
+        @test gamma(OppositeSpinPairSector(1), FieldHubbardAtom(-U, β, h, μ), w) == val
+    end
+end
+
+@testitem "Field transverse/pair Γ: thermal conditioning (#27)" setup = [FieldTests] begin
+    args = (-4.207702906263744, 15.530916714794136, 0.06408979341811558,
+            1.7931044805449674)
+    r, w = OppositeSpinPairSector(-1), (F(0), F(0), B(-1))
+    ref = setprecision(BigFloat, 1024) do
+        gamma(r, FieldHubbardAtom(big.(args)...), w)
+    end
+    @test gamma(r, FieldHubbardAtom(args...), w) ≈ ref rtol = 2e-13
+    @test ref ≈ 33.53162606438078 - 0.8066504641217349im rtol = 2e-15
+    worst = 0.0
+    # Both atoms have unique ground states; T and its Shiba-mapped A probe small rho.
+    for β in (5.0, 8.0, 12.0, 20.0, 40.0, 80.0, 150.0, 200.0),
+        (U, μ, h) in ((3.0, 0.5, 0.2), (args[1], args[3], args[4]))
+        at = FieldHubbardAtom(U, β, μ, h)
+        for R in (TransverseSector, OppositeSpinPairSector), σ in (1, -1),
+            k in (-1, 0, 3), (n, m) in ((0, 0), (2, 1))
+            r, w = R(σ), (F(n), F(m), B(k))
+            refs = map((512, 1024)) do p
+                setprecision(BigFloat, p) do
+                    gamma(r, FieldHubbardAtom(big(U), big(β), big(μ), big(h)), w)
+                end
+            end
+            @test refs[1] ≈ refs[2] rtol = big"1e-100" atol = big"1e-100"
+            val = gamma(r, at, w)
+            error = Float64(abs(val - refs[2]) / max(1, abs(refs[2])))
+            worst = max(worst, error)
+            # Scaled absolute tolerance also covers entries tending to zero.
+            @test error < 2e-10
+        end
+    end
+    for β in (5.0f0, 40.0f0, 200.0f0), R in (TransverseSector, OppositeSpinPairSector),
+        σ in (1, -1)
+        at = FieldHubbardAtom(3.0f0, β, 0.5f0, 0.2f0)
+        w = (F(0), F(1), B(3))
+        ref = setprecision(BigFloat, 1024) do
+            gamma(R(σ), FieldHubbardAtom(big(at.U), big(β), big(at.mu), big(at.h)), w)
+        end
+        val = gamma(R(σ), at, w)
+        @test val isa ComplexF32
+        @test val ≈ ref rtol = 3e-4 atol = 3e-4
+    end
+    @info "Field T/A beta=5:200: worst scaled Float64 error" worst
+end

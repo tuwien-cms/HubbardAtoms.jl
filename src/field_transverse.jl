@@ -50,13 +50,31 @@ function _field_t_gammaT_up(at::FieldHubbardAtom{T}, n::Integer, m::Integer,
         source = DopedHubbardAtom(-at.U, at.beta, at.h)
         return (Γ(SingletChannel(), source, w) - Γ(TripletChannel(), source, w)) / 2
     end
-    # the closed form loses ~eps/|ρ| near μ = 0 (K_j ∝ ρ there): evaluate such points in BigFloat
-    if T !== BigFloat && abs(at._rho) < 1e-3
-        return _withprecision(256) do
-            Complex{T}(_field_t_gammaT_up(FieldHubbardAtom(big(at.U), big(at.beta),
-                                                           big(at.mu), big(at.h)), n, m, k))
+    val, loss = _field_t_gammaT_raw(at, n, m, k)
+    loss <= 6 && return val
+    p = precision(T)
+    prec = p + 48 + min(_bits(loss), p)
+    while true
+        val, loss = _withprecision(prec) do
+            bat = FieldHubbardAtom(big(at.U), big(at.beta), big(at.mu), big(at.h))
+            _field_t_gammaT_raw(bat, n, m, k)
         end
+        # Atomic factors and thermal denominators can still vanish to exponential order.
+        # Cover their measured loss, including weights that underflowed in the input type.
+        (p + 32 + 2loss <= prec || prec >= 1 << 16) && return Complex{T}(val)
+        prec = min(max(2prec, p + 48 + min(_bits(2loss), prec)), 1 << 16)
     end
+end
+
+# tanh divided difference, including Δ = 0 and saturated tanh.
+function _field_t_tanhdd(y, Δ)
+    abs(Δ) >= 1 / 2 && return _tanhdiff(y, Δ) / Δ
+    σ = real(y) >= 0 ? 1 : -1
+    e = exp(-2σ * y)
+    _tanhc(Δ) * (4e / (1 + e)^2) / (1 + tanh(y) * tanh(Δ))
+end
+
+function _field_t_gammaT_raw(at::FieldHubbardAtom{T}, n, m, k) where {T}
     d = _field_t_tdata(at, k)
     β, a, ρ, λ = at.beta, d.a, d.ρ, d.λ
     z = _field_t_zlat(at, n, k)
@@ -75,17 +93,48 @@ function _field_t_gammaT_up(at::FieldHubbardAtom{T}, n::Integer, m::Integer,
     # roots s_j of e in s = z²: s² + 2(q1 - 2a²ρ²)s + q1² - 16a⁴p0p2
     B = d.q1 - 2a^2 * ρ^2
     r = sqrt(4a^4 * ρ^4 - 4a^2 * ρ^2 * d.q1 + 16a^4 * d.p0p2)
-    s = (-B + r, -B - r)
-    cbar = β * (at._p0 + at._p2) / 2
-    for j in 1:2
-        u = sqrt(s[j])
-        α = ρ * _field_t_sum(at, k, u) - cbar
-        K = β * _field_t_Hp(d, -u) + λ * α
-        Z = u * _field_t_Pp(d, u) * (β * _field_t_Hp(d, -u) - λ * α) / K
-        γ = λ * ρ * Z / (s[j] - s[3-j])
-        out += γ / ((z^2 - s[j]) * (v^2 - s[j]))
+    s1, s2 = -B + r, -B - r
+    u1, u2 = sqrt(s1), sqrt(s2)
+    abs(u1 + u2) < abs(u1 - u2) && (u2 = -u2)
+    Δs = 2r
+    # Pairs (f(s1), f[s1,s2]) in the quadratic quotient algebra; no inverse root gap.
+    loss = Ref(zero(T))
+    # Inlining the repeated loss estimates triggers an LLVM SLP crash on Julia 1.11.
+    @noinline function total(x, y)
+        res = x + y
+        loss[] = max(loss[], _cancel(res, x, y))
+        res
     end
-    out
+    add(x, y) = (total(x[1], y[1]), total(x[2], y[2]))
+    scale(c, x) = c .* x
+    function mul(x, y)
+        x2 = total(x[1], -Δs * x[2])
+        (x[1] * y[1], total(x[2] * y[1], x2 * y[2]))
+    end
+    function divide(x, y)
+        den2 = total(y[1], -Δs * y[2])
+        mul(x, (inv(y[1]), -y[2] / (y[1] * den2)))
+    end
+    u = (u1, inv(u1 + u2))
+    s = (s1, one(s1))
+    c(c0) = (complex(c0), zero(s1))
+    P = mul(add(s, c(-(a + d.W / 2)^2)), add(s, c(-(a - d.W / 2)^2)))
+    X = scale(β, add((2a^2 * ρ^2 + r, one(s1)), scale(-2a * ρ, u)))
+    y2 = β * (u2 - at.mu) / 2 + (iseven(k) ? zero(s1) : complex(0, T(π) / 2))
+    Δy = β * Δs * u[2] / 2
+    S = (_field_t_sum(at, k, u1), -β^2 / 4 * u[2] * _field_t_tanhdd(y2, Δy))
+    α = add(scale(ρ, S), c(-β * (at._p0 + at._p2) / 2))
+    K, N = add(X, scale(λ, α)), add(X, scale(-λ, α))
+    Y = scale(ρ, divide(mul(mul(u, P), N), K))
+    # (Y G)[s1,s2] = Y(s1) G[s1,s2] + Y[s1,s2] G(s2).
+    term = λ * (Y[1] * (z^2 + v^2 - s1 - s2) /
+                (_field_t_ep(d, z) * _field_t_ep(d, v)) +
+                Y[2] / ((z^2 - s2) * (v^2 - s2)))
+    result = out + term
+    loss[] = max(loss[], _cancel(result, out, term))
+    isfinite(result) || (loss[] = T(Inf))
+    min(at._p0, at._pu, at._pd, at._p2) < sqrt(floatmin(T)) && (loss[] = T(Inf))
+    result, loss[]
 end
 
 # Equal-spin (↑↑) pair vertex, explicit

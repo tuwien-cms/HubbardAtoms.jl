@@ -88,8 +88,9 @@ the continuous extension of the closed form, which agrees with numerical inversi
 derived there. Near coincident longitudinal roots or roots on the lattice the vertex is the
 symmetric limit μ±δ in extended precision; this is meaningful only at removable singularities,
 **not** at genuine divergences. Vanishing thermal denominators and zeros of the equal-spin
-susceptibility are not regularized, and the transverse formula is not continued through
-coincident or lattice roots.
+susceptibility are not regularized. The transverse root pair is evaluated by divided differences,
+including coincident roots; remaining thermal cancellations use adaptive extended precision.
+Transverse roots on the lattice are not regularized.
 """
 struct FieldHubbardAtom{T<:AbstractFloat} <: AbstractHubbardAtom
     U::T
