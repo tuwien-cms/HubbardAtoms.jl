@@ -19,3 +19,10 @@ import HubbardAtomLean.HalfFilling
 import HubbardAtomLean.Confluent
 import HubbardAtomLean.SingletLZ
 import HubbardAtomLean.HalfFillingLZ
+import HubbardAtomLean.FieldBasic
+import HubbardAtomLean.FieldLehmann
+import HubbardAtomLean.FieldTAlg
+import HubbardAtomLean.FieldInput
+import HubbardAtomLean.FieldTSums
+import HubbardAtomLean.FieldTIdentities
+import HubbardAtomLean.FieldTransverse
