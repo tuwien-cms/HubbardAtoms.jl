@@ -257,12 +257,6 @@ noncomputable def NT (z v : ℂ) : ℂ := F.N₀T k v + z ^ 2 * F.N₂T k v
 /-- The transverse lattice `z_n = μ + i(ν_n + ω_k/2)`. -/
 noncomputable def zT (n : ℤ) : ℂ := (F.lat F.μ).z k n
 
-theorem WT_ne_zero (hh : F.h ≠ 0) : F.WT k ≠ 0 := by
-  intro h0
-  have := congrArg Complex.re h0
-  simp [WT] at this
-  exact hh this
-
 /-- The six Fock-space paths of `χ_T↑`: the conditions say whether `n = m` and whether the pair
 rate `xₙ + xₘ + w` vanishes (at `μ = 0`, `m = n̄`). -/
 theorem chiTUp_eq_pathsTD (hW0 : F.WT k ≠ 0) (n m : ℤ) :

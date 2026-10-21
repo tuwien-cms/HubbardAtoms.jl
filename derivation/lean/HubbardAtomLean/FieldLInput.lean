@@ -71,10 +71,6 @@ theorem PL_dn (j : ℤ) : F.PL k (F.Bdn.z k j) =
   rw [PL, Params.z, show F.Bdn.w k = F.wL k from rfl]
   ring
 
-theorem Bup_w : F.Bup.w k = F.wL k := rfl
-
-theorem Bdn_w : F.Bdn.w k = F.wL k := rfl
-
 set_option maxHeartbeats 8000000 in
 -- six paths and the disconnected part: rational expressions of high degree in eight variables
 set_option maxRecDepth 4000 in

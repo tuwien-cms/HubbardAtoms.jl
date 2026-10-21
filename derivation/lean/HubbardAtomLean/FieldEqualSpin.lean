@@ -18,6 +18,9 @@ The vertex is defined on the mirror-odd (Pauli-allowed) subspace `𝓜₋`: the 
 * `FParams.chiEUp_eq`, `bEUp_eq`: the susceptibility and the bubble from the Hamiltonian.
 * `FParams.gammaEUp_eq`: **the equal-spin vertex** `Γ_E↑`, for `ℒ(tₙ) ≠ 0` off the fixed points.
 * `FParams.gammaEDn_eq`: `Γ_E↓(U, μ, h) = Γ_E↑(U, μ, -h)`.
+
+The inverse needs `ℒ(tₙ) ≠ 0` on every orbit off the mirror fixed points, as in the companion's
+proposition; the note states Eq. (field-E) entrywise.
 -/
 
 open Complex
@@ -294,7 +297,8 @@ noncomputable def invbEUp (n m : ℤ) : ℂ :=
   mirrorBlock k (fun _ ↦ 0) (fun j ↦ 1 / (F.β * F.GGEUp k j)) n m
 
 /-- **The equal-spin vertex**: for `ℒ(tₙ) ≠ 0` off the mirror fixed points, `invEUp` is the
-inverse of `χ_E↑` on `𝓜₋` (`χY = Yχ = 𝓜₋`, `Y𝓜₋ = Y`), `invbEUp` that of the bubble, and
+inverse of `χ_E↑` on `𝓜₋` (`χY = Yχ = 𝓜₋`, `Y𝓜₋ = Y`), `invbEUp` that of the bubble
+(`bY = Yb = 𝓜₋`), and
 `β²(Y_χ - Y_b) = Γ_E↑` of Eq. (field-E). -/
 theorem gammaEUp_eq (hL : ∀ n, n ≠ mirror k n → F.calLE k (F.Bup.t k n) ≠ 0) :
     (∀ n m, HasSum (fun l ↦ F.chiEUp k n l * F.invEUp k l m) (Mminus k n m)) ∧
@@ -302,6 +306,8 @@ theorem gammaEUp_eq (hL : ∀ n, n ≠ mirror k n → F.calLE k (F.Bup.t k n) �
       (∀ n m, HasSum (fun l ↦ F.invEUp k n l * Mminus k l m) (F.invEUp k n m)) ∧
       (∀ n m, HasSum (fun l ↦ F.bE true k n * (kron n l - kron l (mirror k n)) *
         F.invbEUp k l m) (Mminus k n m)) ∧
+      (∀ n m, HasSum (fun l ↦ F.invbEUp k n l *
+        (F.bE true k l * (kron l m - kron m (mirror k l)))) (Mminus k n m)) ∧
       ∀ n m, (F.β : ℂ) ^ 2 * (F.invEUp k n m - F.invbEUp k n m) = F.gammaEUp k n m := by
   have hβ : (F.β : ℂ) ≠ 0 := ofReal_ne_zero.mpr F.β_pos.ne'
   have hQ : ∀ j, j ≠ mirror k j → F.QEUp k j ≠ 0 := fun j hj ↦ by
@@ -316,11 +322,13 @@ theorem gammaEUp_eq (hL : ∀ n, n ≠ mirror k n → F.calLE k (F.Bup.t k n) �
     rw [F.QEUp_mirror]
   have sG' : ∀ j, 1 / (F.β * F.GGEUp k (mirror k j)) = 1 / (F.β * F.GGEUp k j) := fun j ↦ by
     rw [F.GGEUp_mirror]
+  have sG : ∀ j, F.β * F.GGEUp k (mirror k j) = F.β * F.GGEUp k j := fun j ↦ by
+    rw [F.GGEUp_mirror]
   have s0 : ∀ j : ℤ, (fun _ : ℤ ↦ (0 : ℂ)) (mirror k j) = (fun _ : ℤ ↦ (0 : ℂ)) j :=
     fun _ ↦ rfl
   have s1 : ∀ j : ℤ, (fun _ : ℤ ↦ (1 : ℂ)) (mirror k j) = (fun _ : ℤ ↦ (1 : ℂ)) j :=
     fun _ ↦ rfl
-  refine ⟨fun n m ↦ ?_, fun n m ↦ ?_, fun n m ↦ ?_, fun n m ↦ ?_, fun n m ↦ ?_⟩
+  refine ⟨fun n m ↦ ?_, fun n m ↦ ?_, fun n m ↦ ?_, fun n m ↦ ?_, fun n m ↦ ?_, fun n m ↦ ?_⟩
   · have h := hasSum_mirrorBlock_mul (k := k) (B := fun _ ↦ 0)
       (L := fun j ↦ F.β * F.QEUp k j) (B' := fun _ ↦ 0) (L' := fun j ↦ 1 / (F.β * F.QEUp k j))
       s0 sQ' n m
@@ -347,6 +355,13 @@ theorem gammaEUp_eq (hL : ∀ n, n ≠ mirror k n → F.calLE k (F.Bup.t k n) �
     convert h using 1
     simp only [mul_zero]
     exact mirrorBlock_congr_odd k (fun j _ ↦ by field_simp [hGG j]) n m
+  · have h := hasSum_mirrorBlock_mul (k := k) (B := fun _ ↦ 0)
+      (L := fun j ↦ 1 / (F.β * F.GGEUp k j)) (B' := fun _ ↦ 0)
+      (L' := fun j ↦ F.β * F.GGEUp k j) s0 sG n m
+    simp only [invbEUp, Mminus, F.bEUp_mat]
+    convert h using 1
+    simp only [mul_zero]
+    exact mirrorBlock_congr_odd k (fun j _ ↦ by field_simp [hGG j]) n m
   · rw [invEUp, invbEUp, gammaEUp]
     by_cases hfix : mirror k n = n
     · rw [mirrorBlock_of_fixed hfix, mirrorBlock_of_fixed hfix, hfix, kron_comm m n]
@@ -360,32 +375,31 @@ theorem gammaEUp_eq (hL : ∀ n, n ≠ mirror k n → F.calLE k (F.Bup.t k n) �
       field_simp
       ring
 
-/-- **The equal-spin vertex `E↓`**: `Γ_E↓(U, μ, h) = Γ_E↑(U, μ, -h)`, as `χ_E↓ = χ_E↑(U, μ, -h)`
-and the bubbles agree. -/
-theorem chiEDn_eq_flip (n m : ℤ) :
-    F.chiEDn k n m = mirrorBlock k (fun _ ↦ 0) (fun j ↦ F.β * F.flip.QEUp k j) n m := by
-  rw [F.chiEDn_eq, F.flip.chiEUp_eq]
-  rfl
-
 theorem bEDn_eq_flip (n : ℤ) : F.bE false k n = F.flip.bE true k n := by
   have hm : -F.ν n - F.ω k = F.ν (mirror k n) := ((F.lat 0).ν_mirror k n).symm
   rw [bE, bE, show F.flip.ν n = F.ν n from rfl, flip_ω, hm, flip_Gs_true, flip_Gs_true]
   rfl
 
+/-- **The equal-spin vertex `E↓`**: `Γ_E↓(U, μ, h) = Γ_E↑(U, μ, -h)`, as `χ_E↓ = χ_E↑(U, μ, -h)`
+and the bubbles agree. -/
 theorem gammaEDn_eq (hL : ∀ n, n ≠ mirror k n → F.flip.calLE k (F.flip.Bup.t k n) ≠ 0) :
     (∀ n m, HasSum (fun l ↦ F.chiEDn k n l * F.flip.invEUp k l m) (Mminus k n m)) ∧
       (∀ n m, HasSum (fun l ↦ F.flip.invEUp k n l * F.chiEDn k l m) (Mminus k n m)) ∧
       (∀ n m, HasSum (fun l ↦ F.flip.invEUp k n l * Mminus k l m) (F.flip.invEUp k n m)) ∧
       (∀ n m, HasSum (fun l ↦ F.bE false k n * (kron n l - kron l (mirror k n)) *
         F.flip.invbEUp k l m) (Mminus k n m)) ∧
+      (∀ n m, HasSum (fun l ↦ F.flip.invbEUp k n l *
+        (F.bE false k l * (kron l m - kron m (mirror k l)))) (Mminus k n m)) ∧
       ∀ n m, (F.β : ℂ) ^ 2 * (F.flip.invEUp k n m - F.flip.invbEUp k n m) =
         F.flip.gammaEUp k n m := by
   have hχ : F.chiEDn k = F.flip.chiEUp k := funext fun n ↦ funext fun m ↦ F.chiEDn_eq k n m
   have hb : ∀ n, F.bE false k n = F.flip.bE true k n := F.bEDn_eq_flip k
-  obtain ⟨h₁, h₂, h₃, h₄, h₅⟩ := F.flip.gammaEUp_eq k hL
-  refine ⟨hχ ▸ h₁, hχ ▸ h₂, h₃, fun n m ↦ ?_, h₅⟩
-  simp only [hb]
-  exact h₄ n m
+  obtain ⟨h₁, h₂, h₃, h₄, h₅, h₆⟩ := F.flip.gammaEUp_eq k hL
+  refine ⟨hχ ▸ h₁, hχ ▸ h₂, h₃, fun n m ↦ ?_, fun n m ↦ ?_, h₆⟩
+  · simp only [hb]
+    exact h₄ n m
+  · simp only [hb]
+    exact h₅ n m
 
 end FParams
 

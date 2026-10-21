@@ -83,7 +83,7 @@ the sectors and bubbles of `FieldInput.lean`
 the closed forms `gammaTUp`, `gammaTHF`, `gammaTHFnote` and `gammaEUp`
 (with the transverse data of `FieldInput.lean` and `DDT`, `ZT`, `KT`, `ThatT`, `DhatT`),
 and the longitudinal input data of `FieldLInput.lean`;
-and the assumptions `TGeneric` and `THFHyp`.
+and the assumptions `TGeneric`, `THFHyp` and that of `gammaEUp_eq`.
 The matrices `shibaV`, `flipV` need no trust:
 Lean checks how they conjugate `c↑`, `c↓` and `H`.
 
@@ -99,10 +99,14 @@ Lean checks how they conjugate `c↑`, `c↓` and `H`.
   reformulations are exact identities, not that its loss estimates are right.
 * With field:
   the coupled longitudinal vertex, Eq. (field-L), of which only the input is formalized.
-  `TGeneric` assumes `q₀ = a² - W²/4 ≠ 0`
+  `TGeneric` assumes, besides the companion's `U ≠ 0`, `μ ≠ 0`, `W ≠ 0`, `e(zₙ) ≠ 0`, `s₁ ≠ s₂`
+  and `Kⱼ ≠ 0`, also `q₀ = a² - W²/4 ≠ 0`
   (it excludes `k = 0`, `|h| = |U|/2`, where `P` has a double zero)
-  and `P(uⱼ) ≠ 0` at both roots;
-  `THFHyp` assumes in addition `P(û) ≠ 0` and `W ≠ 0`.
+  and `P(uⱼ) ≠ 0` at both roots
+  (which the note covers by continuity);
+  `THFHyp` assumes `W ≠ 0`, `q₀ ≠ 0` and `P(û) ≠ 0` besides the note's conditions.
+  The equal-spin vertex assumes `ℒ(tₙ) ≠ 0` for all `n ≠ n̄`,
+  where the note states Eq. (field-E) entrywise.
   Not covered are the transverse exceptional sets
   (confluent roots, lattice roots, `P(uⱼ) = 0`, `W = ±2a`),
   the transverse sector at `h = 0`, `k = 0`

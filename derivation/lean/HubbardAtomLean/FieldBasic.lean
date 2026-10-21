@@ -120,10 +120,6 @@ theorem pDn_eq_p₂_mul : F.pDn = F.p₂ * Real.exp (F.β * (F.a - F.μ - F.h)) 
 theorem p₂_eq_p₀_mul : F.p₂ = F.p₀ * Real.exp (2 * F.β * F.μ) :=
   F.div_mul_exp (by ring)
 
-/-- `p↑/p↓ = e^{2βh}`. -/
-theorem pUp_eq_pDn_mul : F.pUp = F.pDn * Real.exp (2 * F.β * F.h) :=
-  F.div_mul_exp (by ring)
-
 /-! ### The lattice -/
 
 /-- The zero-field atom `(U, β, c)`: its lattice `z_n = c + iπ(2n + 1 + k)/β` and its thermal sum
