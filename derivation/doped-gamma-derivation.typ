@@ -73,7 +73,7 @@
 
 = Overview <sec-overview>
 
-The irreducible vertex $Gamma_r$ of the Hubbard atom is known in closed form at half filling @thunstroem2018. Here we derive it at arbitrary filling (zero magnetic field) in all four channels $r in {"d", "m", "s", "t"}$. By definition
+The irreducible vertex $Gamma_r$ of the Hubbard atom is known in closed form at half filling @thunstroem2018. Here we derive it at arbitrary filling (zero magnetic field) in all four channels $r in {"d", "m", "s", "t"}$. Appendices F and G also state the vertices and analyze their divergences with simultaneous doping and Zeeman field, in the coupled longitudinal, transverse-spin, opposite-spin pair and equal-spin pair sectors. By definition
 $ Gamma_r = beta^2 (chi_r^(-1) - eta_r chi_(0, r)^(-1)), $
 where $chi_r$ is the generalized susceptibility, an infinite matrix in two fermionic Matsubara frequencies, and $chi_(0, r)$ is its bare part. So the task is to invert $chi_r$ in closed form.
 
@@ -99,9 +99,9 @@ The inverses are two-sided and agree with the limit of inverses on finite freque
 - @sec-cauchy develops the algebra of $C$, which @sec-ph uses for the particle–hole channels. The limit $mu -> 0$, the removable singularities and the finite-box statement are proved in @app-details.
 - @app-explicit writes the vertices out in terms of $U$, $beta$, $mu$ and the frequencies, for implementation; @app-div derives and plots the divergences of $Gamma_r$; @app-symbols lists the symbols with the place where each is defined.
 
-*What is assumed.* Everything except the numerical parts of @app-div is proved from the input #eqrange(<eq-chi-uu>, <eq-pair>) (Ref. @essl2024) and the rational identities of @app-identities (checked by computer algebra). The Mathematica notebook `mathematica/doped_gamma.nb` derives the input from the Hamiltonian and replays the proofs step by step (@app-checks). Independent numerical checks are listed in @app-checks. Most of the proofs are also formalized in Lean 4, which also derives the input from the Hamiltonian; statements marked #lean-tag("yes") or #lean-tag("part") are formalized, and the table in @app-lean says how much of each. Numerical stability in floating point is not discussed here.
+*What is assumed.* The zero-field results, except the numerical parts of @app-div, are proved from the input #eqrange(<eq-chi-uu>, <eq-pair>) (Ref. @essl2024) and the rational identities of @app-identities (checked by computer algebra). The Mathematica notebook `mathematica/doped_gamma.nb` derives the input from the Hamiltonian and replays the proofs step by step (@app-checks). Independent numerical checks are listed in @app-checks. Most of the proofs are also formalized in Lean 4, which also derives the input from the Hamiltonian; statements marked #lean-tag("yes") or #lean-tag("part") are formalized, and the table in @app-lean says how much of each. The field formulas are stated without new derivations; their domains and the numerical status of longitudinal axis and exceptional-set extensions are specified in @sec-field-limits. They are not covered by the Lean formalization. Numerical stability in floating point is not discussed here.
 
-*Implementation.* The results are implemented as `DopedHubbardAtom` in the Julia package #link("https://github.com/tuwien-cms/HubbardAtoms.jl")[HubbardAtoms.jl], which also evaluates them stably at low temperatures and near the removable singularities, and is tested against exact diagonalization and finite-box inversion.
+*Implementation.* The zero-field results are implemented as `DopedHubbardAtom` in the Julia package #link("https://github.com/tuwien-cms/HubbardAtoms.jl")[HubbardAtoms.jl], which also evaluates them stably at low temperatures and near the removable singularities, and is tested against exact diagonalization and finite-box inversion. `FieldHubbardAtom` implements the four field sectors of @sec-field-explicit.
 
 = Setup <sec-setup>
 
@@ -801,6 +801,7 @@ The regular part in @eq-pair is [Ref. @essl2024, Eq. (D3), at zero field]
 - *Mathematica:* `mathematica/doped_gamma.nb` derives #eqrange(<eq-chi-uu>, <eq-pair>) exactly from the Lehmann representation of @eq-H, checks @lem-input, @prop-pp, @prop-ph, the lemmas of @sec-sums and @sec-cauchy, @thm-t, @thm-s, Steps 1–4 of the proof of @thm-ph and (A2)–(A4), (A6), (A7) symbolically, and compares @thm-ph, @thm-s, @thm-t and @cor-hf with finite-box inversion (62 checks).
 - *Vertices* (`doped-gamma/check_vertices.jl`): @eq-Gamma-t and @eq-Gamma-s agree with an independent residue-based BigFloat evaluator (`doped-gamma/doped_gamma.jl`) to $3 times 10^(-15)$, @eq-Gamma-ph at 256 bits to $10^(-65)$ (300 entries, $k = 0, 1, 2, -3, 5$, $|mu| <= 2 |U|$); at $mu = 0$, @eq-Gamma-t, @eq-Gamma-s and @eq-Gamma-hf agree with `HubbardAtoms.jl` (Eq. 19 of Ref. @thunstroem2018) to $3 times 10^(-14)$.
 - *Expanded formulas* (`doped-gamma/check_explicit.jl`): @app-explicit, in the notation of Ref. @thunstroem2018, is transcribed without the main text's polynomial and thermal coefficients and compared with `DopedHubbardAtom` at 256 bits, including diagonal entries, mirror fixed points, both signs of each particle–hole square root and the static magnetic atomic root.
+- *Field sectors* (`doped-gamma/check_field.jl`): the displayed field formulas of @sec-field-explicit against `FieldHubbardAtom` at 256 bits; divergence conditions, growing susceptibility boxes, null-vector overlaps and branch cancellations (@sec-field-div-checks).
 - *Divergences* (`doped-gamma/check_divergences.jl`):
   - On 30 cuts at fixed $beta mu in [0.05, 3.9]$, $|beta U| <= 25$, each of the 70 lines of @eq-div-ph and @eq-div-s matches a change by one of the number of negative real eigenvalues of $chi_"d"$, $chi_"m"$, $chi_"s"$ on the box $|2 n + 1| <= 49$ at an unchanged number of conjugate pairs. The scan steps $beta U$ by $0.05$ and matches within $0.15$. There are no other such changes, and none by more than one. Changes of the number of conjugate pairs (pairs turning real, pseudo-divergences) are not compared.
   - At 8 points on the lines (including $mu = 0$), the box eigenvector of the eigenvalue closest to zero has overlap $|cos angle(bold(v), bold(g))|$ with the $bold(g)$ of @app-div that differs from 1 by less than $2 times 10^(-12)$.
@@ -929,6 +930,123 @@ $ Gamma_r^(nu nu' omega) = & frac(beta A_r^2 (nu^2 + U^2 slash 4)((nu + omega)^2
 & + epsilon_r U - frac(epsilon_r U [(B_r^2 + U^2 slash 4)^2 + U^2 omega^2 slash 4], [1 + epsilon_r U tan(beta (W + omega) slash 4) slash W] [nu (nu + omega) - B_r^2] [nu' (nu' + omega) - B_r^2]). $ <eq-explicit-hf>
 This is Eq. (19) of Ref. @thunstroem2018 for $r = "d", "m"$, whose prefactors there are $cal(A)_0^r = cal(B)_0^r = 1$, $|cal(B)_2^r| = 1$ and $(cal(B)_1^r)^2 = -epsilon_r$. $A_r$ and $B_r$ are those of its Table I, where $B_"m"$ carries a minus sign that does not matter; its thermal denominator $U tan(dots.c) slash W plus.minus 1$ is ours up to the sign $epsilon_r$. The thermal denominator must be nonzero. Either sign of $W$ gives the same value; at $W = 0$ (even $k$), replace $tan(beta (W + omega) slash 4) slash W$ by $beta slash 4$. The lattice-zero and mirror-fixed-point continuations are item 4 of @prop-special.
 
+== Doping and Zeeman field <sec-field-explicit>
+
+Here $h$ denotes the physical field, *not* the thermal constant $h$ of @eq-rho; the latter is written $kappa := beta sqrt(p_0 p_2)$ throughout the field parts of Appendices F–H. The Hamiltonian is
+$ cal(H) = U(n_up - 1/2)(n_dn - 1/2) - mu(n_up + n_dn - 1) - h(n_up - n_dn). $
+These formulas follow by the same inversion; the transverse sector is the magnetic-channel problem with $i omega$ replaced by the complex transfer $i omega - 2h$ and with the thermal data below. No additional derivation is given here.
+
+=== Field input and sector conventions <sec-field-input>
+
+Take real $U, mu, h$, $beta > 0$, $a = U slash 2$, $w = i omega$, and the frequencies of the input panel. All vertices vanish at $U = 0$. Replace the zero-field weights by
+$ Z_f := 2 cosh(beta mu) + 2 e^(beta U slash 2) cosh(beta h), $
+$ (p_0,p_up,p_dn,p_2) := frac((e^(-beta mu),e^(beta (U slash 2+h)),e^(beta (U slash 2-h)),e^(beta mu)), Z_f), $
+$ rho := p_2-p_0, quad m_f := p_up-p_dn, quad mu_sigma := mu+sigma h, quad r_sigma := rho-sigma m_f, quad sigma,t in {+1,-1} equiv {up,dn}. $ <eq-field-weights>
+Thus $r_sigma = 2 chevron.l n_(-sigma) chevron.r-1$, and
+$ G_sigma (nu) = frac(i nu+mu_sigma+a r_sigma,(i nu+mu_sigma)^2-a^2). $
+
+The longitudinal sector is the *coupled* connected matrix $chi_(sigma t)$ of @eq-chi-def in spin and frequency. The transverse $chi_("T" sigma)$ is the full transform with the same Fourier factor of $chevron.l T c_sigma^dagger (tau_1)c_(-sigma) (tau_2)c_(-sigma)^dagger (tau_3)c_sigma (0) chevron.r$. The oriented opposite-spin pair is $chi_("A" sigma)^(nu nu' omega) = -chi_("T" sigma)^(nu nu' (-omega-nu-nu'))$; it is not a separate singlet/triplet scalar problem at $h != 0$. The equal-spin pair $chi_("E" sigma)$ is $-1 slash 2$ times the *full*, not connected, same-spin particle–hole four-point function at transfer $-omega-nu-nu'$. The factor $1 slash 2$ removes identical-leg double counting.
+
+All field sectors use $Gamma_X = beta^2 (chi_X^(-1)-b_X^(-1))$ ($eta_X=+1$). Their bubbles are
+$ b_("L",sigma t)^(nu nu' omega) &= -beta G_sigma (nu)G_sigma (nu+omega)delta_(sigma t)delta_(nu nu'), \
+ b_("T" sigma)^(nu nu' omega) &= -beta G_sigma (nu)G_(-sigma) (nu+omega)delta_(nu nu'), \
+ b_("A" sigma)^(nu nu' omega) &= beta G_sigma (nu)G_(-sigma) (-nu-omega)delta_(nu nu'), \
+ b_("E" sigma)^(nu nu' omega) &= frac(beta,2)G_sigma (nu)G_sigma (-nu-omega) [delta_(nu nu')-delta_(nu (-nu'-omega))]. $ <eq-field-bubbles>
+Only the longitudinal inverse couples both spins. For $"E" sigma$ both inverses are restricted to the mirror-odd subspace $cal(M)_-$, then extended by zero; there is no full-space inverse.
+
+To keep the formulas legible, write the physical frequencies through
+$ z_c (nu) := c+i(nu+omega slash 2)=i(nu-i c+omega slash 2), quad
+ S_c (x) := -frac(beta,2) cases(tanh(beta(x-c)slash 2) & k " even", coth(beta(x-c)slash 2) & k " odd"). $ <eq-field-centered>
+These are explicit abbreviations, not further unknowns. For comparison with the constants of Ref. @thunstroem2018, a centered root $s_j$ below corresponds to $B_j^2=-s_j-omega^2 slash 4$, so $z_c (nu)^2-s_j=B_j^2-(nu-i c)(nu-i c+omega)$.
+
+=== Transverse spin and opposite-spin pairs <sec-field-T>
+
+For $"T" up$ put $z=z_mu (nu)$, $v=z_mu (nu')$, and define
+$ W:=i omega-2h, quad q_1:=a^2-W^2 slash 4-2a^2 (p_up+p_dn)-a W m_f, $
+$ H_T (x):=x^2+2a rho x+q_1, quad
+ P_T (x):=[(x+a)^2-W^2 slash 4][(x-a)^2-W^2 slash 4], $
+$ e_T (x):=(x^2+q_1)^2-4a^2 rho^2 x^2-16a^4 p_0 p_2=(x^2-s_1)(x^2-s_2), $
+$ s_(1,2):=2a^2 rho^2-q_1 plus.minus sqrt(4a^4 rho^4-4a^2 rho^2 q_1+16a^4 p_0 p_2), quad u_j^2=s_j. $ <eq-field-T-data>
+For $mu != 0$, distinct roots off the lattice, and nonzero thermal denominators in the following sum,
+$ Gamma_("T" up)^(nu nu' omega) = & beta P_T (z) lr([frac(1,(z+a rho)^2-(W slash 2+a m_f)^2)-frac(z^2-2a rho z+q_1,e_T (z))])delta_(nu nu')-U \
+ & +4a^2 rho frac(z P_T (z)slash e_T (z)-v P_T (v)slash e_T (v),z^2-v^2) \
+ & -4a^2 rho sum_(j=1)^2 frac(u_j P_T (u_j), (s_j-s_(3-j))(z^2-s_j)(v^2-s_j)) \
+ & quad times frac(beta(s_j-2a rho u_j+q_1)+4a^2 [rho S_mu (u_j)-beta(p_0+p_2)slash 2], beta(s_j-2a rho u_j+q_1)-4a^2 [rho S_mu (u_j)-beta(p_0+p_2)slash 2]). $ <eq-field-T>
+On $nu=nu'$ the quotient in the second line is $[F_T (z)+z F_T'(z)]slash(2z)$, where $F_T=P_T/e_T$ and the prime is differentiation in $z$. Either sign of each $u_j$ gives the same result. At $h=0$, this is @eq-explicit-ph for $r="m"$; at $h=0$, $k=0$ omit the atomic root $s_j=a^2$, whose coefficient vanishes.
+
+At $mu=0$ use the mirror limit instead. With $rho=0$, $p_0=p_2$, $hat(s)=-4a^2 p_0-q_1$, $hat(u)^2=hat(s)$, and $hat(D)=beta+2a S_0 (hat(u))slash hat(u)$,
+$ Gamma_("T" up)^(nu nu' omega) = & beta P_T (z) lr([frac(1,z^2-(W slash 2+a m_f)^2)-frac(z^2+q_1,e_T (z))])delta_(nu nu')-U \
+ & +4a^2 beta p_0 frac(P_T (z),e_T (z))delta_(nu (-nu'-omega)) \
+ & +frac(2a beta P_T (hat(u)),hat(D)(z^2-hat(s))(v^2-hat(s))). $ <eq-field-T-axis>
+Here $e_T (z_n)!=0$ and $hat(D)!=0$ are required for the regular formula. At $hat(u)=0$ and even $k$, $S_0 (hat(u))slash hat(u)=-beta^2 slash 4$ by continuity.
+
+The other orientation and the opposite-spin pair are
+$ Gamma_("T" dn) (U,mu,h)=Gamma_("T" up) (U,mu,-h), quad
+ Gamma_("A" up) (U,mu,h)=Gamma_("T" up) (-U,h,mu). $ <eq-field-A>
+All frequencies and $beta$ are unchanged. Explicitly the second substitution sends $a -> -a$, $mu <-> h$, $(p_0,p_up,p_dn,p_2)->(p_dn,p_2,p_0,p_up)$, $rho <-> m_f$, $W -> i omega-2mu$, and the bare vertex to $+U$. Thus @eq-field-T, or @eq-field-T-axis on $h=0$, writes out the pair vertex too. The down orientation is $Gamma_("A" dn) (U,mu,h)=Gamma_("A" up) (U,mu,-h)=cal(M)Gamma_("A" up) (U,mu,h)cal(M)$. Apply spin interchange *before* the particle–hole map: $Gamma_("A" dn)=Gamma_("T" up) (-U,-h,mu)$, not $Gamma_("T" dn) (-U,h,mu)$ at unchanged frequencies.
+
+=== Equal-spin pairs <sec-field-E>
+
+Set $b_sigma=2mu_sigma-i omega$, $x=mu_sigma+i nu$, $t_(sigma nu)=x(b_sigma-x)$, and define
+$ cal(P)_sigma (t):=(t+a^2)^2-a^2 b_sigma^2, quad
+ cal(G)_sigma (t):=t+a r_sigma b_sigma+a^2 r_sigma^2, quad
+ cal(L)_sigma (t):=t+a r_sigma b_sigma+a^2. $ <eq-field-E-data>
+For $nu != -nu-omega$ and $cal(L)_sigma (t_(sigma nu))!=0$,
+$ Gamma_("E" sigma)^(nu nu' omega)=-frac(beta a^2 (1-r_sigma^2) [(t_(sigma nu)+a^2)^2-a^2 b_sigma^2],2 [t_(sigma nu)+a r_sigma b_sigma+a^2 r_sigma^2][t_(sigma nu)+a r_sigma b_sigma+a^2]) [delta_(nu nu')-delta_(nu (-nu'-omega))]. $ <eq-field-E>
+At a mirror fixed point the entire row and column vanish. This is $-1 slash 2$ times @eq-explicit-t with $mu -> mu_sigma$, $rho -> r_sigma$.
+
+=== Coupled longitudinal vertex <sec-field-L>
+
+Here $z=z_(mu_sigma) (nu)$ and $v=z_(mu_t) (nu')$ belong to their own spin lattices. Define
+$ lambda_L:=U^2, quad q_0:=a^2+omega^2 slash 4, quad
+ pi_P:=p_0 p_2, quad pi_S:=p_up p_dn, quad d_pi:=pi_P-pi_S, $
+$ D_t:=p_2 p_t-p_0 p_(-t), quad c_t:=p_2 p_t+p_0 p_(-t), $
+$ H_t (x):=x^2+2a r_t x+q_0, quad P_L (x):=(x^2+q_0)^2-4a^2 x^2, $
+$ Q_t (x):=H_t (-x)H_(-t) (x)H_(-t) (-x)-lambda_L^2 [pi_P H_(-t) (-x)+pi_S H_(-t) (x)], $
+$ E_8 (x):= & H_up (x)H_up (-x)H_dn (x)H_dn (-x) \
+ & -lambda_L^2 lr({pi_S [H_up (x)H_dn (x)+H_up (-x)H_dn (-x)] \
+ & quad +pi_P [H_up (x)H_dn (-x)+H_up (-x)H_dn (x)]}) +lambda_L^4 d_pi^2 \
+ = & product_(j=1)^4 (x^2-s_j). $ <eq-field-L-data>
+The $s_j$ now mean the four longitudinal roots, not the two transverse ones. Put $u_j^2=s_j$ and $E'_(8,j):=product_(i!=j) (s_j-s_i)$ (derivative in $s=x^2$, not in $x$). All mode coefficients are explicit:
+$ alpha_t (x):=D_t S_(mu_t) (x)-beta c_t slash 2, $
+$ alpha_t^P (x):=rho S_(mu_(-t)) (x)-beta(p_0+p_2)slash 2, quad
+ alpha_t^S (x):=-t m_f S_(mu_(-t)) (x)-beta(p_up+p_dn)slash 2, $
+$ (f_(j up +),f_(j up -),f_(j dn +),f_(j dn -)):= & (-beta Q_up (u_j), 2lambda_L^2 (s_j+q_0)alpha_up (u_j), \
+ & -lambda_L [H_up (-u_j)H_dn (-u_j)+lambda_L^2 d_pi]alpha_dn^S (u_j), \
+ & -lambda_L [H_up (-u_j)H_dn (u_j)-lambda_L^2 d_pi]alpha_dn^P (u_j)), $
+$ K_(j t):=f_(j t +)+f_(j t -), quad
+ frak(c)_(j t):=frac(2lambda_L^2 D_t P_L (u_j)(s_j+q_0), beta^2 E'_(8,j) K_(j t)). $ <eq-field-L-mode>
+If this quotient is $0 slash 0$ but $K_(j,-t)!=0$, use the equal, regular quotient
+$ frak(c)_(j t)=frac(-lambda_L P_L (u_j) [rho Xi_j+t m_f Pi_j],beta^2 E'_(8,j) K_(j,-t)), $
+$ Xi_j:=(s_j+q_0)^2-4a^2 r_up r_dn s_j-lambda_L^2 d_pi, quad
+ Pi_j:=(s_j+q_0)^2+4a^2 r_up r_dn s_j+lambda_L^2 d_pi. $ <eq-field-L-quotient>
+For $U != 0$, $mu h(mu^2-h^2)!=0$, simple nonzero roots off both spin lattices, $P_L (u_j)!=0$ at non-atomic roots, and $(K_(j up),K_(j dn))!=(0,0)$, the vertex is
+$ Gamma_("L",sigma t)^(nu nu' omega) = & beta P_L (z) lr([frac(1,(z+a r_t)^2+omega^2 slash 4)-frac(Q_t (z),E_8 (z))])delta_(sigma t)delta_(nu nu')+U delta_(sigma (-t)) \
+ & +delta_(sigma t) frac(2lambda_L^2 D_t (v^2+q_0)P_L (v),E_8 (v)(z+v)) \
+ & -delta_(sigma (-t)) frac(lambda_L P_L (v),E_8 (v)) lr([frac(t m_f [H_t (-v)H_(-t) (-v)+lambda_L^2 d_pi],z-v) \
+ & quad +frac(rho [H_t (-v)H_(-t) (v)-lambda_L^2 d_pi],z+v)]) \
+ & -beta^2 sum_j frak(c)_(j t) frac(1,v^2-s_j) lr([frac(f_(j sigma +),z-u_j)+frac(f_(j sigma -),z+u_j)]). $ <eq-field-L>
+At $k=0$ omit the atomic root $s_j=a^2$ from the sum and the nonvanishing requirements: its coefficient is zero. The inverse is two-sided, $Gamma_("L",sigma t)^(nu nu' omega)=Gamma_("L",t sigma)^(nu' nu omega)$, and neither square-root signs nor a common rescaling of each mode affect the answer.
+
+=== Reductions, continuous extensions and exceptional sets <sec-field-limits>
+
+At $h=0$, all functions on the right below are evaluated at $(U,beta,mu)$:
+$ Gamma_("L",sigma sigma)=(Gamma_"d"+Gamma_"m")slash 2, quad
+ Gamma_("L",sigma (-sigma))=(Gamma_"d"-Gamma_"m")slash 2, $
+$ Gamma_("T" sigma)=Gamma_"m", quad Gamma_("A" sigma)=(Gamma_"s"-Gamma_"t")slash 2, quad Gamma_("E" sigma)=-Gamma_"t" slash 2. $ <eq-field-h0>
+The particle–hole (Shiba) map $c_dn -> c_dn^dagger$, $(U,mu,h)->(-U,h,mu)$ @essl2024 gives the $mu=0$ values. Write $D$ for the zero-field source $(-U,beta,h)$, $epsilon_up=1$, $epsilon_dn=-1$, $R_up nu=nu$, $R_dn nu=-nu-omega$. Then
+$ Gamma_("L",sigma t)^(nu nu' omega)=frac(epsilon_sigma epsilon_t,2)lr([Gamma_"d"^D (R_sigma nu,R_t nu',omega)+epsilon_sigma epsilon_t Gamma_"m"^D (R_sigma nu,R_t nu',omega)]), $
+$ Gamma_("T" up)=(Gamma_"s"^D-Gamma_"t"^D)slash 2, quad Gamma_("A" up)=Gamma_"m"^D, quad Gamma_("E" up)=-Gamma_"t"^D slash 2. $ <eq-field-mu0>
+For down orientation use the source $(-U,beta,-h)$. In the charge/$S_z$ basis the longitudinal map is the orthogonal similarity $cal(S)diag(Gamma_"d"^D,Gamma_"m"^D)cal(S)$ with $cal(S)=mat(cal(M)_-,cal(M)_+;cal(M)_+,cal(M)_-)$; separate inversion of its diagonal blocks is incorrect.
+
+*Longitudinal axes.* In @eq-field-L replace the three kernels by their limits where their denominators vanish:
+$ frac(D_t,z+v) -> beta p_0 p_(-t)delta_(nu (-nu'-omega)) quad (mu_t=0), $
+$ frac(rho,z+v) -> beta p_0 delta_(nu (-nu'-omega)) quad (mu=0), quad
+ frac(m_f,z-v) -> sigma beta p_dn delta_(nu nu') quad (h=0, sigma=-t). $ <eq-field-kernel-limits>
+Together with @eq-field-L-quotient these give the continuous extension on $mu=plus.minus h!=0$. Agreement there with the vertex is *numerically verified, not derived*. On $h=0$ and $mu=0$ the independently known values are @eq-field-h0 and @eq-field-mu0. At $mu=h=0$ use those values, rather than the simultaneous $0 slash 0$ mode coefficients.
+
+*Other exceptional sets.* For the transverse formula $W=plus.minus 2a$ merely makes $P_T$ have a double zero; $P_T (u_j)=0$ alone is harmless. Confluent roots and lattice roots require limiting formulas, not direct substitution. For $"T"$ their removable continuations are those of @prop-special with the present data (at $mu=0$, the mirror-even lattice cancellation and mirror-odd genuine pole must be distinguished). For $"L"$, confluence can be treated by confluent divided differences of the root sum away from thermal poles; this continuation is numerically checked, not established here with uniform bounds. Axis lattice roots can be genuine divergences: at $beta=2$, $mu=h=0.3$, $k=0$ an example occurs near $U=2.3120511518839$ (numerical). Off-axis lattice cancellations are expected from coincident lattice and thermal values, but are not established here. Non-atomic zeros of $P_L (u_j)$, $u_j=0$, and vanishing adjugate modes are excluded from the stated longitudinal domain; a vanishing mode requires another adjugate column. No general claim about those isolated extensions is made. Thermal poles and zeros of $cal(L)_sigma$ are the genuine divergences discussed in @sec-field-div; averaging across them is not a regularization.
+
 #pagebreak(weak: true)
 = Vertex divergences <app-div>
 
@@ -945,7 +1063,7 @@ We do not show that these vectors span the kernel. Following Ref. @thunstroem201
 
 == Static transfer
 
-From now on $omega = 0$ ($k = 0$); at $omega != 0$, localized divergences occur in more channels even at half filling @thunstroem2018, and we do not treat that case. At $omega = 0$, $b = 2 mu$ and $t_n = |x_n|^2$ are real, so $chi_"s"$ and $chi_"t"$ are real symmetric matrices, while $chi_"d"$ and $chi_"m"$ are centrohermitian, $chi_(r, overline(n) overline(m)) = chi_(r, n m)^*$ @essl2024. Their eigenvalues are therefore real or come in complex-conjugate pairs. A conjugate pair can change the sign of its real part without vanishing (a _pseudo-divergence_ @essl2024); $Gamma_r$ stays finite there. Up to a factor $beta^3$, $chi_r$ depends on $beta$, $U$ and $mu$ only through $beta U$ and $beta mu$ @essl2024.
+From now on $omega = 0$ ($k = 0$); at $omega != 0$, localized divergences occur in more channels even at half filling @thunstroem2018. The zero-field discussion below is static; @sec-field-div returns to arbitrary transfer. At $omega = 0$, $b = 2 mu$ and $t_n = |x_n|^2$ are real, so $chi_"s"$ and $chi_"t"$ are real symmetric matrices, while $chi_"d"$ and $chi_"m"$ are centrohermitian, $chi_(r, overline(n) overline(m)) = chi_(r, n m)^*$ @essl2024. Their eigenvalues are therefore real or come in complex-conjugate pairs. A conjugate pair can change the sign of its real part without vanishing (a _pseudo-divergence_ @essl2024); $Gamma_r$ stays finite there. Up to a factor $beta^3$, $chi_r$ depends on $beta$, $U$ and $mu$ only through $beta U$ and $beta mu$ @essl2024.
 
 *Triplet.* Since $t_n = mu^2 + nu_n^2$ and $|rho| < 1$,
 $ t_n + a rho b + a^2 = (mu + a rho)^2 + nu_n^2 + a^2 (1 - rho^2) > 0, $
@@ -1044,9 +1162,95 @@ At $omega = 0$, with $s_j = -B_(r, j)^2$, $u_j = i B_(r, j)$ and $q = (U^2 slash
   $ cos frac(beta sqrt(B_"s"^2 - mu^2), 2) + U frac(sin(beta sqrt(B_"s"^2 - mu^2) slash 2), 2 sqrt(B_"s"^2 - mu^2)) = 0, $
   except on the curve where $d_minus.plus = 0$.
 
+== Divergences with doping and field <sec-field-div>
+
+This section restores arbitrary transfer $omega=2pi k slash beta$ and uses the field notation of @sec-field-explicit, in particular $h$ for the physical field and $kappa=beta sqrt(p_0p_2)$. Conditions below concern actual square-summable null vectors, not the accumulation of susceptibility eigenvalues at zero as the frequency tends to infinity. They hold on the regular domains stated there, with thermal poles approached from nonsingular parameters. Numerical statements and the unresolved longitudinal extensions are explicitly distinguished.
+
+=== Transverse spectrum, selection and null vectors <sec-field-T-div>
+
+For $u^2=s$ define the even functions
+$ D_k (s):=cosh(beta u)+(-1)^k cosh(beta mu), quad
+ R_k (s):=frac(cosh(beta mu)cosh(beta u)+(-1)^k,D_k (s)), $
+$ Phi_k^T (s):=D_k (s)-a frac(sinh(beta u),u), quad
+ K_e^T (s):=beta(s+q_1)+4a^2 kappa R_k (s), $
+$ ell_T (s):=-frac(K_e^T (s),[(s+a^2-W^2 slash 4)^2-4a^2 s]). $ <eq-field-spectrum>
+Use $sinh(beta u)slash u=beta$ at $u=0$. Suppose $mu U W!=0$ and $P_T (u)!=0$ at every zero of $Phi_k^T$ (with $D_k!=0$). Then
+$ "spec" chi_("T" up)={0} union {ell_T (s):Phi_k^T (s)=0}, quad
+ g_s (nu)=frac(1,z_mu (nu)^2-s). $ <eq-field-spectrum-set>
+The eigenvectors and their coalescence loci depend on $mu,U,beta$ and the parity of $k$, but *not on the field*. Only the eigenvalues move with $h$ through $q_1$ and $P_T$. The reason is the same Cauchy-column calculation as in the magnetic problem: $chi_("T" up)bold(g)_s=ell_T (s)bold(g)_s+Phi_k^T (s)bold(w)_s$ for a regular remainder; the complex transfer changes the polynomials but not the thermal lattice sum. Compactness gives the accumulation point zero; the same pole calculation exhausts the nonzero spectrum under the stated exclusions.
+
+Consequently the transverse divergence condition is
+$ Phi_k^T (s)=0, quad K_e^T (s)=0, quad P_T (u)!=0, $ <eq-field-T-div>
+and $s$ is then a root of $e_T$. For a simple zero the null vector is $bold(g)_s$ above. Equivalently at a regular root $s_j$,
+$ K_j^T:=beta H_T (-u_j)-4a^2 [rho S_mu (u_j)-beta(p_0+p_2)slash 2]=0. $
+With $alpha(u):=rho S_mu (u)-beta(p_0+p_2)slash 2$, $alpha(u)alpha(-u)=kappa^2$ and $e_T (u_j)=0$ give the same even/odd selection as in @eq-div-ph. On $Phi_k^T (s_j)=0$,
+$ K_e^T (s_j) A_e^T (s_j)=0, quad A_e^T (s):=beta(s+q_1)-4a^2 kappa R_k (s). $
+Only the $K_e^T=0$ branch is selected; $A_e^T=0$ alone cancels. For real $s_j$ at $k=0$ the sign test is $(s_j+q_1)R_k (s_j)<=0$. The pole is genuine provided $u_j P_T (u_j)H_T (-u_j)!=0$.
+
+*Atomic cancellations.* At $Phi_k^T (s)=P_T (u)=0$, $s=(a plus.minus W slash 2)^2$, the equations $K_e^T=0$ and $e_T (u)=0$ follow automatically but imply no zero mode: the eigenvalue formula is $0 slash 0$. At $k=0$ these curves continue the cancelled atomic pair at $h=0$. They must not be counted as divergences without testing the limiting eigenvalue.
+
+*Exceptional points.* Multiple zeros of $Phi_k^T$ coalesce eigenvectors. For a simple null direction, the bilinear self-overlap criterion is
+$ sum_n frac(1,(z_mu (nu_n)^2-s)^2)=T_mu'(s)=0, quad
+ T_c (s):=-frac(beta sinh(beta u),2u [cosh(beta u)+(-1)^k cosh(beta c)]). $ <eq-field-ep-T>
+The prime is differentiation in $s$. This follows by differentiating the absolutely convergent sum $T_c=sum_n (z_c (nu_n)^2-s)^(-1)$; as in @eq-div-ep, its interpretation as a defective zero is checked on finite boxes, not proved here for the infinite operator. At fixed $beta h=0.5$ the first static transverse exceptional divergence is near $(beta mu,beta U)=(0.97773,-8.96512)$ (numerical), where the divergence curve crosses a field-independent coalescence locus.
+
+At $k=0$ or $h=0$ the transverse spectrum is conjugation-closed. At general $k$, $"spec" chi_("T" up) (-omega)=overline("spec" chi_("T" up) (omega))$ and $"spec" chi_("T" dn)=overline("spec" chi_("T" up))$, so both orientations have the same divergences. For a real zero $s$,
+$ "Im" K_e^T (s)=beta omega(h-a m_f). $
+Thus at $omega!=0$ a real-root divergence requires $h=a m_f$ (and $U>0$ if $h!=0$). For complex roots the condition is complex and generically has codimension two. A numerical example is $k=2$, $beta h=1$, $(beta U,beta mu) approx (-16.69512285,0.75904959)$, $beta^2s approx -101.558+1.632i$; it is an isolated divergence in that fixed-field slice, not a whole line.
+
+=== Opposite-spin pairing <sec-field-A-div>
+
+Apply $(U,mu,h)->(-U,h,mu)$ to the transverse spectrum, null vector, branch selection, exclusions and exceptional-point condition. Explicitly,
+$ Phi_k^A (s)=cosh(beta u)+(-1)^k cosh(beta h)+a frac(sinh(beta u),u), $
+$ W_A=i omega-2mu, quad q_1^A=a^2-W_A^2 slash 4-2a^2 (p_0+p_2)+a W_A rho, $
+$ Phi_k^A (s)=0, quad beta(s+q_1^A)+4a^2 beta sqrt(p_up p_dn)frac(cosh(beta h)cosh(beta u)+(-1)^k,cosh(beta u)+(-1)^k cosh(beta h))=0. $ <eq-field-A-div>
+The up-oriented null vector is $1 slash (z_h (nu)^2-s)$; for the down orientation reflect $nu -> -nu-omega$. Also $P_A (u)!=0$ is required as above. At a real zero the imaginary part of the second condition is $beta omega(mu+a rho)$.
+
+=== Equal-spin pairing <sec-field-E-div>
+
+On the mirror-odd orbit $n!=overline(n)$,
+$ chi_("E" sigma) (bold(e)_n-bold(e)_(overline(n)))=frac(beta cal(L)_sigma (t_(sigma nu_n)),cal(P)_sigma (t_(sigma nu_n)))(bold(e)_n-bold(e)_(overline(n))). $
+It is diagonal in disjoint orbit vectors and has no exceptional points. Its complete divergence set is
+$ omega!=0, quad mu_sigma+a r_sigma=0, quad a^2 (1-r_sigma^2)=-nu_n (nu_n+omega), quad n!=overline(n). $ <eq-field-E-div>
+The printed orbit vector is the localized null vector. To see the condition, expand
+$ cal(L)_sigma (t_(sigma nu))=(mu_sigma+a r_sigma)^2+a^2 (1-r_sigma^2)+nu(nu+omega)-i omega(mu_sigma+a r_sigma). $
+At $omega=0$ its real part is positive. At $|k|=1$ the only negative product belongs to the forbidden fixed point, so $|k|>=2$ is necessary. Conversely for an allowed negative product $-c$, choose $a=plus.minus sqrt(mu_sigma^2+c)$; along $mu=mu_sigma-sigma h$, $r_sigma$ continuously ranges from $+1$ to $-1$ as $sigma h$ increases, and takes the required value $-mu_sigma slash a$. Thus the set is nonempty for either sign of $U$; it is invariant under the particle–hole map. This construction fixes $U$ through $a$, rather than asserting existence at arbitrary prescribed $U$. For example, at $k=2$ the orbit ${-1,-2}$ diverges near $(beta U,beta mu,beta h)=(10.97247706,0.56858193,0.13141807)$ (numerical).
+
+=== Longitudinal selection, null vectors and exceptional points <sec-field-L-div>
+
+Use the simple, nonzero, non-atomic roots and off-axis domain of @eq-field-L, and suppose $Q_up (plus.minus u_j)!=0$. Define the branch ratio
+$ frak(r)(u):=-frac(2lambda_L^2 (u^2+q_0)alpha_up (u),beta Q_up (u)), quad
+ Phi_L (s):=frac(frak(r)(u)-frak(r)(-u),2u), quad u^2=s. $ <eq-field-L-ratio>
+At $u=u_j$ this is $frak(r)_j:=f_(j up -)slash f_(j up +)$; write $frak(r)_j (plus.minus u_j):=frak(r)(plus.minus u_j)$ using @eq-field-L-mode. The polynomial identity
+$ Q_up (u)Q_up (-u)-4lambda_L^4 pi_P pi_S (u^2+q_0)^2=E_8 (u)H_dn (u)H_dn (-u) $
+and $alpha_up (u)alpha_up (-u)=beta^2 pi_P pi_S$ give $frak(r)_j (u)frak(r)_j (-u)=1$. Also
+$ K_(j up)=-beta Q_up (u_j) [1+frak(r)_j (u_j)]. $
+For real $s_j<0$, $|frak(r)_j|=1$; for real $s_j>0$, $frak(r)_j$ is real. Thus $Phi_L (s_j)=0$ selects *both* $frak(r)_j=plus.minus 1$. The genuine branch is
+$ frak(r)_j=-1 quad <==> quad K_(j up)=K_(j dn)=0. $ <eq-field-L-div>
+On $frak(r)_j=+1$ the vertex stays finite: $f_(j up +)-f_(j up -)=0$ but $K_(j up)=-2beta Q_up (u_j)!=0$. For negative $s_j$ select $"Re" frak(r)_j=-1$, not merely $Phi_L=0$. For complex roots impose the full complex equation, generically two real conditions.
+
+At a genuine pole a null vector in spin and frequency is
+$ g_(j sigma) (nu)=frac(f_(j sigma +),z_(mu_sigma) (nu)^2-s_j), \
+ (f_(j up +),f_(j dn +))=(-beta Q_up (u_j),-lambda_L [H_up (-u_j)H_dn (-u_j)+lambda_L^2 d_pi]alpha_dn^S (u_j)). $ <eq-field-L-null>
+The reason is that $K_(j sigma)=0$ makes the mode in @eq-field-L proportional to this vector; its polynomial image under $P_L chi_L$ vanishes when the thermal denominators do, whereas the nonzero residue numerator makes the inverse pole genuine. #block(breakable: false)[
+At a simple null direction the exceptional-point test is
+$ bold(g)_j^T bold(g)_j=sum_(sigma in {up,dn}) f_(j sigma +)^2 T_(mu_sigma)' (s_j)=0, $ <eq-field-ep-L>
+]
+using $T_c$ of @eq-field-ep-T. Symmetry of the coupled susceptibility gives the same necessary self-orthogonality condition as in @eq-div-ep; finite-box diagnosis of defectiveness remains numerical. The longitudinal spectrum is centrohermitian at every transfer under the joint mirror on both spins. In the slice $beta h=0.5$ the first static loop has an exceptional divergence near $(beta mu,beta U)=(0.64162,4.78028)$ (numerical). Very near the omitted atomic root, $1+frak(r)_j$ can be tiny without crossing zero; double precision is not a reliable branch test there.
+
+=== Axis reductions and numerical checks <sec-field-div-checks>
+
+At $h=0$, $E_8=e_"d"e_"m"$; the longitudinal spectrum is the union of the zero-field density and magnetic spectra, with spin null vectors $(g,g)$ and $(g,-g)$ respectively. The ratio test reduces to their $K_j=0$ selection. The transverse sector is magnetic. The opposite-spin pair has the singlet spectrum on $cal(M)_+$ and the triplet spectrum on $cal(M)_-$, with the physical factors $2$ and $-2$ respectively ($chi_A cal(M)_+=2chi_"s"cal(M)_+$, $chi_A cal(M)_-=-2chi_"t"cal(M)_-$); its vertex reduction is @eq-field-h0. Equal-spin pairing is the triplet problem on the allowed subspace with the factor $-2$ in $chi$.
+
+At $mu=0$ the orthogonal longitudinal similarity of @eq-field-mu0 preserves eigenvalues, nullity and bilinear self-overlap: in the charge/$S_z$ basis a source density null vector maps to $(cal(M)_-g,cal(M)_+g)$ and a magnetic one to $(cal(M)_+g,cal(M)_-g)$. The opposite-spin pair is the magnetic source $(-U,beta,h)$; the transverse sector has the source singlet/triplet split just described. In its mirror form the global pole is $hat(D)=0$, and the localized poles obey $beta H_T (z_n)=4a^2 beta p_0$ for $n!=overline(n)$; the opposite sign is removable. At $mu=h=0$ recover the localized and global conditions already listed in this appendix.
+
+On either $h=0$ or $mu=0$, equal-spin pairing has no divergences, and at $mu=0$, $h!=0$ there are no nonstatic transverse divergences. These axis exclusions follow by substituting the zero-field thermal weights in the pair conditions (the zero-field singlet/triplet nonstatic exclusion); they do not extend to simultaneous doping and field. On $mu=plus.minus h$ the longitudinal ratio theorem does not apply: use the continuous extension, distinguishing genuine axis lattice poles from removable limits as in @sec-field-limits. No off-axis lattice-root exclusion is claimed.
+
+`doped-gamma/check_field.jl` transcribes the displayed field formulas independently of the package's vertex code at 256 bits, tests both orientations and the axis reductions, and tests predicted divergences against the package susceptibility on growing boxes, including overlaps with the printed null vectors. Equal-spin boxes are restricted to $cal(M)_-$ before taking eigenvalues; their structural even-subspace zeros are not divergences. At 256 bits the worst normalized vertex difference over 2882 comparisons is $6.4 times 10^(-63)$; the branch-ratio identity differs from one by at most $2.3 times 10^(-60)$. At the tested nonlocalized divergences, the largest smallest-box eigenvalue falls from $3.7 times 10^(-8)$ at 24 frequencies to $3.8 times 10^(-11)$ at 96, with overlap deficit at most $3.2 times 10^(-8)$; the restricted equal-spin eigenvalues are below $1.5 times 10^(-18)$. The transverse and longitudinal exceptional pairs shrink from about $1.1 times 10^(-6)$ and $8.4 times 10^(-7)$ at 48 frequencies to $3.4 times 10^(-8)$ and $2.6 times 10^(-8)$ at 192 (per spin in the longitudinal case). These measured box convergence, overlaps and exceptional-point checks are numerical evidence, not error bounds or proofs of the unresolved extensions.
+
 = List of symbols <app-symbols>
 
-Symbols introduced inside a proof, in @app-explicit or in @app-div are local to it and not listed, except those of the proof of @thm-ph that @app-details uses.
+Symbols introduced inside a proof, in @app-explicit or in @app-div are local to it and not listed, except those of the proof of @thm-ph that @app-details uses and the field symbols shared by Appendices F and G.
 
 #let sym-table(..rows) = text(size: 9pt, {
   set par(justify: false)
@@ -1117,4 +1321,21 @@ Symbols introduced inside a proof, in @app-explicit or in @app-div are local to 
   ([$O$, $c$], [mirror orbit ${c, overline(c)}$ with $|O|$ elements], [@sec-res-special]),
   ([$T'$, $K'$], [$cal(T)_k (-As)$ and $K_"s"$ without the orbit], [@eq-Gamma-s-lz]),
   ([$hat(T)'$, $hat(D)'$], [$sum_l hat(g)(z_l)$ and $hat(D)$ without the orbit], [@eq-Gamma-hf-lz]),
+)
+
+*Doping and field (local to the field parts of Appendices F–G).*
+#sym-table(
+  ([$h$, $Z_f$, $p_up$, $p_dn$], [physical field (splitting $2h$), normalization, spin-resolved weights], [@sec-field-input]),
+  ([$kappa$, $m_f$, $mu_sigma$, $r_sigma$], [thermal constant $beta sqrt(p_0p_2)$ (called $h$ outside the field parts), magnetization, spin chemical potential, $2 chevron.l n_(-sigma) chevron.r-1$], [@sec-field-explicit, @eq-field-weights]),
+  ([$"L"$, $"T" sigma$, $"A" sigma$, $"E" sigma$, $b_X$], [coupled longitudinal, transverse, oriented opposite-spin and equal-spin pairs; physical bubbles], [@sec-field-input, @eq-field-bubbles]),
+  ([$z_c$, $S_c$, $W$], [centered physical frequency, thermal sum, complex transfer $i omega-2h$], [@eq-field-centered, @eq-field-T-data]),
+  ([$H_T$, $P_T$, $e_T$, $q_1$], [transverse polynomials; $s_j$, $u_j$ are their root pairs], [@eq-field-T-data]),
+  ([$cal(P)_sigma$, $cal(G)_sigma$, $cal(L)_sigma$, $b_sigma$, $t_(sigma nu)$], [equal-spin pair polynomials and frequency variables], [@sec-field-E]),
+  ([$lambda_L$, $pi_P$, $pi_S$, $D_t$, $c_t$, $d_pi$], [longitudinal interaction and weight combinations], [@eq-field-L-data]),
+  ([$H_t$, $P_L$, $Q_t$, $E_8$, $E'_(8,j)$], [longitudinal polynomials; derivative in $s$ at a root], [@eq-field-L-data, @sec-field-L]),
+  ([$alpha_t$, $alpha_t^P$, $alpha_t^S$, $f_(j sigma plus.minus)$], [thermal factors and pole-pair mode coefficients], [@eq-field-L-mode]),
+  ([$K_(j t)$, $frak(c)_(j t)$, $Xi_j$, $Pi_j$], [longitudinal thermal denominator and separable coefficient], [@eq-field-L-mode, @eq-field-L-quotient]),
+  ([$epsilon_sigma$, $R_sigma$, $cal(S)$], [spin sign, down-spin frequency reflection, orthogonal Shiba matrix], [@eq-field-mu0]),
+  ([$D_k$, $R_k$, $Phi_k^T$, $K_e^T$, $ell_T$, $Phi_k^A$], [transverse spectral and divergence functions; their pair images], [@eq-field-spectrum, @eq-field-A-div]),
+  ([$frak(r)_j$, $Phi_L$, $T_c$], [longitudinal branch ratio, scalar selection function, lattice sum for self-overlap], [@eq-field-L-ratio, @eq-field-ep-T]),
 )
