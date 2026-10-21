@@ -34,7 +34,8 @@ noncomputable def wL : ℂ := F.ω k * I
 noncomputable def q₀L : ℂ := F.a ^ 2 - F.wL k ^ 2 / 4
 
 /-- `P(z) = ((z + a)² - w²/4)((z - a)² - w²/4)`. -/
-noncomputable def PL (z : ℂ) : ℂ := ((z + F.a) ^ 2 - F.wL k ^ 2 / 4) * ((z - F.a) ^ 2 - F.wL k ^ 2 / 4)
+noncomputable def PL (z : ℂ) : ℂ :=
+  ((z + F.a) ^ 2 - F.wL k ^ 2 / 4) * ((z - F.a) ^ 2 - F.wL k ^ 2 / 4)
 
 /-- `H_r(z) = z² + 2arz + q₀`, with `r = r_σ` for spin `σ`. -/
 noncomputable def HL (r : ℝ) (z : ℂ) : ℂ := z ^ 2 + 2 * F.a * r * z + F.q₀L k

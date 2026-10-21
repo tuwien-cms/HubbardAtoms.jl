@@ -8,12 +8,13 @@ The sums of the proof of Theorem "density and magnetic" for the transverse data 
 lattice is that of the zero-field atom `B = (U, β, μ)` (`FParams.lat`) and whose polynomials carry
 the complex transfer `W = iω_k - 2h`.
 
-* `FParams.cw`: the weights of the field atom are `p₀ = cw B.p₀`, `p₂ = cw B.p₂`, as `p₂/p₀ = e^{2βμ}`
-  does not depend on `h`; so `ρ`, `c̄`, the Cauchy matrix and `α` are `cw` times those of `B`
-  (`rho_mul_S_neg_zT`, `hasSum_cauchyT`, `hasSum_squareT`, `αT_mul_αT_neg`).
+* `FParams.cw`: the weights of the field atom are `p₀ = cw B.p₀`, `p₂ = cw B.p₂`, as
+  `p₂/p₀ = e^{2βμ}` does not depend on `h`; so `ρ`, `c̄`, the Cauchy matrix and `α` are `cw`
+  times those of `B` (`rho_mul_S_neg_zT`, `hasSum_cauchyT`, `hasSum_squareT`, `αT_mul_αT_neg`).
 * `FParams.S₀_of_exp`, `sT₁` … `sT₄`: the values of `S_k` at the four zeros `∓a ± W/2` of `P`, from
   the weights (Lemma "thermal values" of the transverse sector).
-* `FParams.hasSum_Q_subT`, `hasSum_inv_QT`, `hasSum_cubicT`: the lattice sums of `M/P` for cubic `M`.
+* `FParams.hasSum_Q_subT`, `hasSum_inv_QT`, `hasSum_cubicT`: the lattice sums of `M/P` for cubic
+  `M`.
 * `FParams.hasSum_rank_twoT`, `hasSum_constT`: Lemma "rank-two sums" and the constant sum.
 -/
 
@@ -234,9 +235,11 @@ theorem hasSum_Q_subT (c : ℝ) {y : ℂ} (hy : ∀ n, F.zT k n ≠ y) :
     have h₁ := sub_ne_zero.mpr (B.z_ne_neg_add k (c + F.h) l)
     have h₂ := sub_ne_zero.mpr (B.z_ne_neg_sub k (c - F.h) l)
     rw [show F.WT k ^ 2 / 4 = (B.w k / 2 - F.h) ^ 2 by rw [WT_eq]; ring]
-    have e₁ : B.z k l - (-((c + F.h : ℝ) : ℂ) + B.w k / 2) = F.zT k l - (-c + (B.w k / 2 - F.h)) := by
+    have e₁ : B.z k l - (-((c + F.h : ℝ) : ℂ) + B.w k / 2) =
+        F.zT k l - (-c + (B.w k / 2 - F.h)) := by
       rw [zT]; push_cast; ring
-    have e₂ : B.z k l - (-((c - F.h : ℝ) : ℂ) - B.w k / 2) = F.zT k l - (-c - (B.w k / 2 - F.h)) := by
+    have e₂ : B.z k l - (-((c - F.h : ℝ) : ℂ) - B.w k / 2) =
+        F.zT k l - (-c - (B.w k / 2 - F.h)) := by
       rw [zT]; push_cast; ring
     rw [e₁] at h₁ ⊢
     rw [e₂] at h₂ ⊢

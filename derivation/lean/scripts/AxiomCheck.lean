@@ -45,7 +45,9 @@ run_cmd Elab.Command.liftCoreM do
       ``HubbardAtom.Params.gammaR_zero_of_a_eq_zero, ``HubbardAtom.Params.DMGeneric.gammaR_neg₁,
       ``HubbardAtom.Params.SingletHyp.gammaS_eq, ``HubbardAtom.Params.HFHyp.gammaHF_eq,
       ``HubbardAtom.Params.DMConf.gammaR_eq, ``HubbardAtom.Params.SingletLZ.gammaS_eq,
-      ``HubbardAtom.Params.HFLZ.gammaHF_eq] do
+      ``HubbardAtom.Params.HFLZ.gammaHF_eq, ``HubbardAtom.FParams.TGeneric.gammaTUp_eq,
+      ``HubbardAtom.FParams.THFHyp.gammaTHF_eq, ``HubbardAtom.FParams.gammaADn_eq,
+      ``HubbardAtom.FParams.gammaEUp_eq, ``HubbardAtom.FParams.PL_mul_chiL_updn] do
     unless audited.contains anchor do
       throwError "{anchor} was not audited; the check is vacuous"
   if checked < 100 then

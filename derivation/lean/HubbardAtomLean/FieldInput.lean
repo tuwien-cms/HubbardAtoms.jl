@@ -288,46 +288,47 @@ theorem chiTUp_eq_pathsTD (hW0 : F.WT k ≠ 0) (n m : ℤ) :
     have hpe := B.pair_eq_zero_iff k n m
     exact ⟨fun h0 ↦ hpe.mp (by linear_combination -h0),
       fun h0 ↦ by linear_combination -hpe.mpr h0⟩
-  have hW : -2 * (F.h : ℂ) + B.w k = 0 ↔ False := by
+  have hW : -2 * F.h + B.w k = 0 ↔ False := by
     rw [iff_false]
     intro h0
     exact hW0 (by rw [show F.WT k = B.w k - 2 * F.h from rfl]; linear_combination h0)
   rw [
-    F.pathTerm_eq 1 0 2 0 h1 h2 h3 (r₁ := -(B.x n) - (F.a : ℂ) - (F.h : ℂ))
-      (r₂ := (B.x n) + (F.a : ℂ) - (F.h : ℂ) + (B.w k)) (r₃ := -(B.x m) - (F.a : ℂ) + (F.h : ℂ) - (B.w k))
-      (r₁₂ := -2 * (F.h : ℂ) + (B.w k)) (r₂₃ := (B.x n) - (B.x m)) (r₁₂₃ := -(B.x m) - (F.a : ℂ) - (F.h : ℂ))
+    F.pathTerm_eq 1 0 2 0 h1 h2 h3 (r₁ := -B.x n - F.a - F.h)
+      (r₂ := B.x n + F.a - F.h + B.w k) (r₃ := -B.x m - F.a + F.h - B.w k)
+      (r₁₂ := -2 * F.h + B.w k) (r₂₃ := B.x n - B.x m) (r₁₂₃ := -B.x m - F.a - F.h)
       (by simp [rate, energy]; ring) (by simp [rate, energy]; ring) (by simp [rate, energy]; ring)
       (by ring) (by ring) (by ring) hW hnm,
-    F.pathTerm_eq 3 2 0 2 h1 h3 h2 (r₁ := -(B.x n) + (F.a : ℂ) - (F.h : ℂ))
-      (r₂ := -(B.x m) - (F.a : ℂ) + (F.h : ℂ) - (B.w k)) (r₃ := (B.x n) + (F.a : ℂ) - (F.h : ℂ) + (B.w k))
-      (r₁₂ := -(B.x n) - (B.x m) - (B.w k)) (r₂₃ := (B.x n) - (B.x m)) (r₁₂₃ := -(B.x m) + (F.a : ℂ) - (F.h : ℂ))
+    F.pathTerm_eq 3 2 0 2 h1 h3 h2 (r₁ := -B.x n + F.a - F.h)
+      (r₂ := -B.x m - F.a + F.h - B.w k) (r₃ := B.x n + F.a - F.h + B.w k)
+      (r₁₂ := -B.x n - B.x m - B.w k) (r₂₃ := B.x n - B.x m) (r₁₂₃ := -B.x m + F.a - F.h)
       (by simp [rate, energy]; ring) (by simp [rate, energy]; ring) (by simp [rate, energy]; ring)
       (by ring) (by ring) (by ring) hp hnm,
-    F.pathTerm_eq 3 1 0 2 h3 h1 h2 (r₁ := -(B.x m) + (F.a : ℂ) + (F.h : ℂ) - (B.w k))
-      (r₂ := -(B.x n) - (F.a : ℂ) - (F.h : ℂ)) (r₃ := (B.x n) + (F.a : ℂ) - (F.h : ℂ) + (B.w k))
-      (r₁₂ := -(B.x n) - (B.x m) - (B.w k)) (r₂₃ := -2 * (F.h : ℂ) + (B.w k)) (r₁₂₃ := -(B.x m) + (F.a : ℂ) - (F.h : ℂ))
+    F.pathTerm_eq 3 1 0 2 h3 h1 h2 (r₁ := -B.x m + F.a + F.h - B.w k)
+      (r₂ := -B.x n - F.a - F.h) (r₃ := B.x n + F.a - F.h + B.w k)
+      (r₁₂ := -B.x n - B.x m - B.w k) (r₂₃ := -2 * F.h + B.w k) (r₁₂₃ := -B.x m + F.a - F.h)
       (by simp [rate, energy]; ring) (by simp [rate, energy]; ring) (by simp [rate, energy]; ring)
       (by ring) (by ring) (by ring) hp hW,
-    F.pathTerm_eq 1 3 2 0 h2 h1 h3 (r₁ := (B.x n) - (F.a : ℂ) - (F.h : ℂ) + (B.w k))
-      (r₂ := -(B.x n) + (F.a : ℂ) - (F.h : ℂ)) (r₃ := -(B.x m) - (F.a : ℂ) + (F.h : ℂ) - (B.w k))
-      (r₁₂ := -2 * (F.h : ℂ) + (B.w k)) (r₂₃ := -(B.x n) - (B.x m) - (B.w k)) (r₁₂₃ := -(B.x m) - (F.a : ℂ) - (F.h : ℂ))
+    F.pathTerm_eq 1 3 2 0 h2 h1 h3 (r₁ := B.x n - F.a - F.h + B.w k)
+      (r₂ := -B.x n + F.a - F.h) (r₃ := -B.x m - F.a + F.h - B.w k)
+      (r₁₂ := -2 * F.h + B.w k) (r₂₃ := -B.x n - B.x m - B.w k) (r₁₂₃ := -B.x m - F.a - F.h)
       (by simp [rate, energy]; ring) (by simp [rate, energy]; ring) (by simp [rate, energy]; ring)
       (by ring) (by ring) (by ring) hW hp,
-    F.pathTerm_eq 1 3 1 0 h2 h3 h1 (r₁ := (B.x n) - (F.a : ℂ) - (F.h : ℂ) + (B.w k))
-      (r₂ := -(B.x m) + (F.a : ℂ) + (F.h : ℂ) - (B.w k)) (r₃ := -(B.x n) - (F.a : ℂ) - (F.h : ℂ))
-      (r₁₂ := (B.x n) - (B.x m)) (r₂₃ := -(B.x n) - (B.x m) - (B.w k)) (r₁₂₃ := -(B.x m) - (F.a : ℂ) - (F.h : ℂ))
+    F.pathTerm_eq 1 3 1 0 h2 h3 h1 (r₁ := B.x n - F.a - F.h + B.w k)
+      (r₂ := -B.x m + F.a + F.h - B.w k) (r₃ := -B.x n - F.a - F.h)
+      (r₁₂ := B.x n - B.x m) (r₂₃ := -B.x n - B.x m - B.w k) (r₁₂₃ := -B.x m - F.a - F.h)
       (by simp [rate, energy]; ring) (by simp [rate, energy]; ring) (by simp [rate, energy]; ring)
       (by ring) (by ring) (by ring) hnm hp,
-    F.pathTerm_eq 3 1 3 2 h3 h2 h1 (r₁ := -(B.x m) + (F.a : ℂ) + (F.h : ℂ) - (B.w k))
-      (r₂ := (B.x n) - (F.a : ℂ) - (F.h : ℂ) + (B.w k)) (r₃ := -(B.x n) + (F.a : ℂ) - (F.h : ℂ))
-      (r₁₂ := (B.x n) - (B.x m)) (r₂₃ := -2 * (F.h : ℂ) + (B.w k)) (r₁₂₃ := -(B.x m) + (F.a : ℂ) - (F.h : ℂ))
+    F.pathTerm_eq 3 1 3 2 h3 h2 h1 (r₁ := -B.x m + F.a + F.h - B.w k)
+      (r₂ := B.x n - F.a - F.h + B.w k) (r₃ := -B.x n + F.a - F.h)
+      (r₁₂ := B.x n - B.x m) (r₂₃ := -2 * F.h + B.w k) (r₁₂₃ := -B.x m + F.a - F.h)
       (by simp [rate, energy]; ring) (by simp [rate, energy]; ring) (by simp [rate, energy]; ring)
       (by ring) (by ring) (by ring) hnm hW
 ]
   simp only [weight, Matrix.cons_val, Matrix.cons_val_zero, Matrix.cons_val_one]
   rfl
 
-/-- **Proposition "transverse input"**, from the Hamiltonian, for `μ ≠ 0` and `W ≠ 0`:
+/-- **Proposition "transverse input"**, from the Hamiltonian, off the pair resonance and for
+`W ≠ 0`:
 `P(zₙ)χ_T↑,nm = -βH(zₙ)δₙₘ + λρ/(zₙ + zₘ) + N(zₙ, zₘ)/P(zₘ)`. -/
 theorem PT_mul_chiTUp' (hW0 : F.WT k ≠ 0) {n m : ℤ} (hD : ¬(F.μ = 0 ∧ n + m + k + 1 = 0)) :
     F.PT k (F.zT k n) * F.chiTUp k n m =
