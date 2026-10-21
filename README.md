@@ -213,11 +213,13 @@ differences; transverse lattice roots and genuine divergences are not regularize
 ## Accuracy
 
 The zero-field atoms are accurate at low temperatures, at large frequencies and at the removable
-singularities of the closed forms, in any floating-point type. `FieldHubbardAtom` computes the coefficients of the
-longitudinal closed form in 256-bit arithmetic. The transverse and opposite-spin pair sectors combine
-the root pair by divided differences and use adaptive extended precision for remaining thermal
-cancellations, with precision chosen from their measured conditioning. For extreme parameters,
-check results with `BigFloat` atoms at higher precision.
+singularities of the closed forms, in any floating-point type. `FieldHubbardAtom` computes the longitudinal
+coefficients and removable-singularity limits in adaptive extended precision, chosen from the measured
+conditioning of the roots and thermal numerators. Cancelling diagonal terms are recombined before
+evaluation. The transverse and opposite-spin pair sectors combine the root pair by divided differences
+and use adaptive extended precision for remaining thermal cancellations. Longitudinal setup and
+limit retries for machine floats are capped at 16,384 bits; this bounds their cost, not their error.
+For extreme parameters, check results with `BigFloat` atoms at higher precision.
 
 ## Derivation
 

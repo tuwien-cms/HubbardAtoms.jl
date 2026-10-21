@@ -88,8 +88,11 @@ function _field_t_gammaT_raw(at::FieldHubbardAtom{T}, n, m, k) where {T}
         DD = (z * F(z) - v * F(v)) / (z^2 - v^2)
     end
     out = -2a - λ * ρ * DD
+    # e - G2 H(-z): cancel the degree-four terms before evaluating the diagonal.
     n == m && (out += β * _field_t_Pp(d, z) *
-                      (1 / _field_t_G2p(d, z) - _field_t_Hp(d, -z) / _field_t_ep(d, z)))
+                      (4a^2 * ((d.p0p2 - at._piS) * _field_t_Hp(d, -z) -
+                               4a^2 * d.p0p2)) /
+                      (_field_t_G2p(d, z) * _field_t_ep(d, z)))
     # roots s_j of e in s = z²: s² + 2(q1 - 2a²ρ²)s + q1² - 16a⁴p0p2
     B = d.q1 - 2a^2 * ρ^2
     r = sqrt(4a^4 * ρ^4 - 4a^2 * ρ^2 * d.q1 + 16a^4 * d.p0p2)

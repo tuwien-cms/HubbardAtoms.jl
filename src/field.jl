@@ -67,6 +67,7 @@ struct FieldLSetup{T}
     keep::Vector{Bool}     # omit the zero-coefficient atomic root at k = 0
     f::Matrix{Complex{T}}  # pole-pair modes (↑+, ↑-, ↓+, ↓-)
     𝔠::Matrix{Complex{T}}  # A_tj/K_jt = W_tj/K_j,-t
+    loss::T               # measured conditioning of roots and thermal coefficients, in bits
 end
 
 """
@@ -85,9 +86,10 @@ The longitudinal closed form holds for μh(μ²-h²) ≠ 0, at simple nonzero no
 the lattice with nonzero thermal denominators. At h = 0 and μ = 0 the exact zero-field and
 particle-hole (Shiba) identities are used; on μ±h = 0 the exact limits of the Cauchy kernels give
 the continuous extension of the closed form, which agrees with numerical inversion but is not
-derived there. Near coincident longitudinal roots or roots on the lattice the vertex is the
-symmetric limit μ±δ in extended precision; this is meaningful only at removable singularities,
-**not** at genuine divergences. Vanishing thermal denominators and zeros of the equal-spin
+derived there. Longitudinal coefficients use adaptive extended precision for thermally split roots
+and cancelling thermal numerators. Near coincident longitudinal roots or roots on the lattice the
+vertex is the symmetric limit μ±δ in adaptive extended precision; this is meaningful only at removable
+singularities, **not** at genuine divergences. Vanishing thermal denominators and zeros of the equal-spin
 susceptibility are not regularized. The transverse root pair is evaluated by divided differences,
 including coincident roots; remaining thermal cancellations use adaptive extended precision.
 Transverse roots on the lattice are not regularized.
