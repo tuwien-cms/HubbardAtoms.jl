@@ -5,6 +5,11 @@ irreducible vertex of the Hubbard atom away from half filling), and of the ident
 floating-point implementation `DopedHubbardAtom` of this package (`../../src/doped.jl`). The table in
 Appendix E of the note lists each numbered statement with what is formalized, under which
 assumptions, and the Lean names; the formalized statements carry a "Lean" tag in the note.
+The files `Field*.lean` formalize the transverse, opposite-spin and equal-spin pair vertices of
+the atom with doping and Zeeman field (Section F.6 of the note, `FieldHubbardAtom` in
+`../../src/field*.jl`),
+and derive the input of the coupled longitudinal sector from the Hamiltonian;
+the longitudinal vertex itself is not formalized.
 
 ## What is proved
 
@@ -31,6 +36,16 @@ assumptions, and the Lean names; the formalized statements carry a "Lean" tag in
 | `HalfFillingLZ.lean` | `μ = 0` at a lattice zero `z_c² = ŝ` (including `ŝ = 0` at a fixed point): the limiting inverse, with the orbit removed from `T̂`, and `Γ_r` of Eq. (Gamma-hf-lz) | Proposition "removable singularities", item 4 |
 | `UZero.lean` | `U = 0`: `χ↑↓ = 0`, every channel is diagonal or mirror-diagonal with its bubble, and `Γ_r = 0` for every right or left inverse, in all four channels | `U = 0` in the proofs of the theorems |
 | `StableForms.lean` | the reformulations used by the Float64 setup of Theorem "density and magnetic": the discriminant of `e` from the weights, the roots and Vieta products, the offsets of the roots from `t₊², t₋², a², w²/4`, `P(u)` as a product of offsets, the factors `z² - s = (x - δ)(x + w + δ)` of the entries, `AB = -ρM` at a root, the alternative forms of `K/ρ` and of `K` at `k = 0` (density), the divided-difference form of `Q(z, v)` off the diagonal. Not covered: `_Y_atomic`, `_tanhdiff`, and `_Q` on the diagonal | `_ph_setup_raw`, `_efactors`, `_Γraw`, `_Q` in `src/doped.jl` |
+| `FieldBasic.lean` | the atom with field, `H = U (n↑ - 1/2)(n↓ - 1/2) - μ (n↑ + n↓ - 1) - h (n↑ - n↓)`: parameters `FParams`, the weights `p₀, p↑, p↓, p₂`, the lattice of a centre `c` (`FParams.lat c`), and the parameters `(-U, β, h, μ)` of the Shiba image and `(U, β, μ, -h)` of the spin flip, with their weights | Section F.6, Eq. (field-weights) |
+| `FieldLehmann.lean` | the objects of `Lehmann.lean` for the atom with field; `corr`, the full four-point function of any four operators, as six ordered terms; fermionic exchange (`corr_swap`); a unitary conjugation `V H V⁻¹` carries the four-point functions and the connected susceptibility (`corr_conj`, `chiLehmann_conj`); the Shiba map `c↓ ↦ c↓†` and the spin flip as `4 × 4` matrices, which send `H` to the atom at `(-U, h, μ)` and `(U, μ, -h)` | Section F.6 |
+| `FieldInput.lean` | the sectors from the Hamiltonian: `chiTUp`, `chiTDn` (transverse), `chiAUp`, `chiADn` (oriented opposite-spin pairs), `chiEUp`, `chiEDn` (equal-spin pairs), `chiL` (coupled longitudinal), and the bubbles of Eq. (field-bubbles); `G↑`, `G↓` in closed form; the general Shiba map `χ_A↑(U, μ, h) = χ_T↑(-U, h, μ)` and `χ_A↓(U, μ, h) = χ_T↑(-U, -h, μ)`; the transverse input `P(zₙ)χ_T↑,nm = -βH(zₙ)δₙₘ + λρ/(zₙ + zₘ) + N(zₙ, zₘ)/P(zₘ)` with the complex transfer `W = iω_k - 2h` (`PT_mul_chiTUp`) | Eqs. (field-A), (field-bubbles); Proposition "transverse input" of the companion |
+| `FieldTAlg.lean` | the algebra of the six Fock-space paths of `χ_T↑`, split by the weights, also on the mirror at `μ = 0` | |
+| `FieldTSums.lean`, `FieldTIdentities.lean` | the lattice sums of `PHSums.lean` for the transverse data (the weights of the field atom are a multiple of those of the zero-field atom at the same `μ`), the values of `S_k` at the four zeros of `P` from the weights, and identities (A6), (A7) for the transverse data | |
+| `FieldTransverse.lean` | **the transverse vertex** `Γ_T↑`, Eq. (field-T) in the form of Eq. (Gamma-ph) with the transverse data: an explicit two-sided inverse of `χ_T↑` and `β²(χ_T↑⁻¹ - b_T↑⁻¹) = Γ_T↑`, under `TGeneric` | Eq. (field-T) |
+| `FieldPair.lean` | the vertices of `A↑`, `T↓`, `A↓` through the Shiba map and the spin flip of the susceptibilities and the bubbles | Eq. (field-A) |
+| `FieldEqualSpin.lean` | the equal-spin pair from the Hamiltonian, `χ_E↑ = (β/2)Q(xₙ, x_n̄)(δₙₘ - δ_{m n̄})`; its inverse and that of the bubble on the mirror-odd subspace, and **the equal-spin vertex** `Γ_E↑` of Eq. (field-E); `Γ_E↓` through the spin flip | Eq. (field-E) |
+| `FieldTHalfFilling.lean` | the transverse input at `μ = 0`, where the Cauchy matrix is the mirror; **the transverse vertex at `μ = 0`**, Eq. (field-T-axis) (`gammaTHF_eq_note`), under `THFHyp`; the pair vertices at `h = 0` | Eq. (field-T-axis) |
+| `FieldLInput.lean` | the longitudinal input from the Hamiltonian: `P(z)χ↑↓(z, v) = λ[ρ/(z + v) - m/(z - v)] + (N₀↓(v) + z²N₂↓(v))/P(v)` off the axes `μ = 0`, `h = 0`, and `P(z)χ↑↑(z, v) = -βH↑(z)δ_zv + δ_k0 ζ↑(z² - a²)(v² - a²)/P(v)` for all `μ`, `h`; the rows of spin `↓` through the spin flip | Proposition "longitudinal input" of the companion |
 
 `scripts/check.sh` rebuilds the library from a cold cache (failing on any warning), checks every
 declaration, private and auxiliary ones included, with the kernel for `sorry` and for axioms beyond
@@ -59,6 +74,19 @@ as unconditional sums over ℤ. The inverses
 they are two-sided inverses. Neither
 does `W(z; s)` of (A7), which only enters the proof.
 
+For the atom with field:
+the definitions of `FieldLehmann.lean` (`FParams.H` and the objects built from it, as in
+`Lehmann.lean`, and `corr`) and the parameters of `FieldBasic.lean`;
+the sectors and bubbles of `FieldInput.lean`
+(`chiTUp`, `chiTDn`, `chiAUp`, `chiADn`, `chiEUp`, `chiEDn`, `chiL`,
+`bTUp`, `bTDn`, `bAUp`, `bADn`, `bE`, `bL`);
+the closed forms `gammaTUp`, `gammaTHF`, `gammaTHFnote` and `gammaEUp`
+(with the transverse data of `FieldInput.lean` and `DDT`, `ZT`, `KT`, `ThatT`, `DhatT`),
+and the longitudinal input data of `FieldLInput.lean`;
+and the assumptions `TGeneric` and `THFHyp`.
+The matrices `shibaV`, `flipV` need no trust:
+Lean checks how they conjugate `c↑`, `c↓` and `H`.
+
 ## Not covered (yet)
 
 * Lemma "continuity" and the limits themselves: at the lattice zeros of Theorem "singlet" and
@@ -69,6 +97,18 @@ does `W(z; s)` of (A7), which only enters the proof.
   this is automatic; the note does not claim it for the other channels either.
 * Anything about rounding: `StableForms.lean` and `Thermal.lean` prove that the listed
   reformulations are exact identities, not that its loss estimates are right.
+* With field:
+  the coupled longitudinal vertex, Eq. (field-L), of which only the input is formalized.
+  `TGeneric` assumes `q₀ = a² - W²/4 ≠ 0`
+  (it excludes `k = 0`, `|h| = |U|/2`, where `P` has a double zero)
+  and `P(uⱼ) ≠ 0` at both roots;
+  `THFHyp` assumes in addition `P(û) ≠ 0` and `W ≠ 0`.
+  Not covered are the transverse exceptional sets
+  (confluent roots, lattice roots, `P(uⱼ) = 0`, `W = ±2a`),
+  the transverse sector at `h = 0`, `k = 0`
+  (the magnetic channel, formalized only for the zero-field atom of `Basic.lean`),
+  the axis reductions of Eqs. (field-h0), (field-mu0) as identities between closed forms,
+  and the divergences of Section G.5.
 
 ## Build
 

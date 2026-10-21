@@ -18,8 +18,11 @@ physical Zeeman field (splitting `2h`), and `κ` replaces the zero-field text's 
 The longitudinal formula is stated for `μh(μ²-h²) ≠ 0` at regular roots. Its continuous extension on
 `μ = ±h` is checked numerically, not derived; the separately known `h = 0` and `μ = 0` values use
 zero-field and particle–hole (Shiba) identities. Unresolved exceptional-set extensions are marked
-as such, and genuine divergences are not regularized. No field result is claimed to be formalized
-in Lean.
+as such, and genuine divergences are not regularized.
+Of the field results, Lean formalizes the transverse, opposite-spin and equal-spin pair vertices
+(including the transverse vertex at `μ = 0`)
+and the longitudinal input, but not the longitudinal vertex
+(see `lean/README.md`).
 
 The note's checks are listed in its Appendix D:
 
@@ -39,6 +42,11 @@ the limiting inverses), together with the lattice sums and identities they use a
 exact identities behind the Float64 setup of `DopedHubbardAtom`. The table in Appendix E of the
 note says what is formalized, statement by statement; `lean/README.md` lists the
 Lean files and what is taken as given.
+For the atom with doping and field,
+`lean/` derives the transverse, equal-spin pair and longitudinal inputs from the Hamiltonian with
+field,
+and formalizes the vertices of Eqs. (field-T), (field-T-axis), (field-A) and (field-E) of
+Section F.6 with two-sided inverses.
 
 `doped-gamma/figures/` holds the figures, the script for their data (`figure_data.jl`) and the
 plotting script (`make_figures.py`).
