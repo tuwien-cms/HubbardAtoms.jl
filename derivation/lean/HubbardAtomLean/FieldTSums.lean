@@ -12,7 +12,7 @@ the complex transfer `W = iω_k - 2h`.
   `p₂/p₀ = e^{2βμ}` does not depend on `h`; so `ρ`, `c̄`, the Cauchy matrix and `α` are `cw`
   times those of `B` (`rho_mul_S_neg_zT`, `hasSum_cauchyT`, `hasSum_squareT`, `αT_mul_αT_neg`).
 * `FParams.S₀_of_exp`, `sT₁` … `sT₄`: the values of `S_k` at the four zeros `∓a ± W/2` of `P`, from
-  the weights (Lemma "thermal values" of the transverse sector).
+  the weights.
 * `FParams.hasSum_Q_subT`, `hasSum_inv_QT`, `hasSum_cubicT`: the lattice sums of `M/P` for cubic
   `M`.
 * `FParams.hasSum_rank_twoT`, `hasSum_constT`: Lemma "rank-two sums" and the constant sum.

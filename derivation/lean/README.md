@@ -38,7 +38,7 @@ the longitudinal vertex itself is not formalized.
 | `StableForms.lean` | the reformulations used by the Float64 setup of Theorem "density and magnetic": the discriminant of `e` from the weights, the roots and Vieta products, the offsets of the roots from `t₊², t₋², a², w²/4`, `P(u)` as a product of offsets, the factors `z² - s = (x - δ)(x + w + δ)` of the entries, `AB = -ρM` at a root, the alternative forms of `K/ρ` and of `K` at `k = 0` (density), the divided-difference form of `Q(z, v)` off the diagonal. Not covered: `_Y_atomic`, `_tanhdiff`, and `_Q` on the diagonal | `_ph_setup_raw`, `_efactors`, `_Γraw`, `_Q` in `src/doped.jl` |
 | `FieldBasic.lean` | the atom with field, `H = U (n↑ - 1/2)(n↓ - 1/2) - μ (n↑ + n↓ - 1) - h (n↑ - n↓)`: parameters `FParams`, the weights `p₀, p↑, p↓, p₂`, the lattice of a centre `c` (`FParams.lat c`), and the parameters `(-U, β, h, μ)` of the Shiba image and `(U, β, μ, -h)` of the spin flip, with their weights | Section F.6, Eq. (field-weights) |
 | `FieldLehmann.lean` | the objects of `Lehmann.lean` for the atom with field; `corr`, the full four-point function of any four operators, as six ordered terms; fermionic exchange (`corr_swap`); a unitary conjugation `V H V⁻¹` carries the four-point functions and the connected susceptibility (`corr_conj`, `chiLehmann_conj`); the Shiba map `c↓ ↦ c↓†` and the spin flip as `4 × 4` matrices, which send `H` to the atom at `(-U, h, μ)` and `(U, μ, -h)` | Section F.6 |
-| `FieldInput.lean` | the sectors from the Hamiltonian: `chiTUp`, `chiTDn` (transverse), `chiAUp`, `chiADn` (oriented opposite-spin pairs), `chiEUp`, `chiEDn` (equal-spin pairs), `chiL` (coupled longitudinal), and the bubbles of Eq. (field-bubbles); `G↑`, `G↓` in closed form; the general Shiba map `χ_A↑(U, μ, h) = χ_T↑(-U, h, μ)` and `χ_A↓(U, μ, h) = χ_T↑(-U, -h, μ)`; the transverse input `P(zₙ)χ_T↑,nm = -βH(zₙ)δₙₘ + λρ/(zₙ + zₘ) + N(zₙ, zₘ)/P(zₘ)` with the complex transfer `W = iω_k - 2h` (`PT_mul_chiTUp`) | Eqs. (field-A), (field-bubbles); Proposition "transverse input" of the companion |
+| `FieldInput.lean` | the sectors from the Hamiltonian: `chiTUp`, `chiTDn` (transverse), `chiAUp`, `chiADn` (oriented opposite-spin pairs), `chiEUp`, `chiEDn` (equal-spin pairs), `chiL` (coupled longitudinal), and the bubbles of Eq. (field-bubbles); `G↑`, `G↓` in closed form; the general Shiba map `χ_A↑(U, μ, h) = χ_T↑(-U, h, μ)` and `χ_A↓(U, μ, h) = χ_T↑(-U, -h, μ)`; the transverse input `P(zₙ)χ_T↑,nm = -βH(zₙ)δₙₘ + λρ/(zₙ + zₘ) + N(zₙ, zₘ)/P(zₘ)` with the complex transfer `W = iω_k - 2h` (`PT_mul_chiTUp`) | Eqs. (field-A), (field-bubbles), (field-T-data); Proposition "structure" with the transverse data |
 | `FieldTAlg.lean` | the algebra of the six Fock-space paths of `χ_T↑`, split by the weights, also on the mirror at `μ = 0` | |
 | `FieldTSums.lean`, `FieldTIdentities.lean` | the lattice sums of `PHSums.lean` for the transverse data (the weights of the field atom are a multiple of those of the zero-field atom at the same `μ`), the values of `S_k` at the four zeros of `P` from the weights, and identities (A6), (A7) for the transverse data | |
 | `FieldTransverse.lean` | **the transverse vertex** `Γ_T↑`, Eq. (field-T) in the form of Eq. (Gamma-ph) with the transverse data: an explicit two-sided inverse of `χ_T↑` and `β²(χ_T↑⁻¹ - b_T↑⁻¹) = Γ_T↑`, under `TGeneric` | Eq. (field-T) |
@@ -46,7 +46,7 @@ the longitudinal vertex itself is not formalized.
 | `FieldEqualSpin.lean` | the equal-spin pair from the Hamiltonian, `χ_E↑ = (β/2)Q(xₙ, x_n̄)(δₙₘ - δ_{m n̄})`; its inverse and that of the bubble on the mirror-odd subspace, and **the equal-spin vertex** `Γ_E↑` of Eq. (field-E); `Γ_E↓` through the spin flip | Eq. (field-E) |
 | `FieldTHalfFilling.lean` | the transverse input at `μ = 0`, where the Cauchy matrix is the mirror; **the transverse vertex at `μ = 0`**, Eq. (field-T-axis) (`gammaTHF_eq_note`), under `THFHyp`; the pair vertices at `h = 0` | Eq. (field-T-axis) |
 | `FieldTZero.lean` | at `h = 0`, `k = 0`, where `W = 0`: from the Hamiltonian, `χ_T↑ = χ_m` of the zero-field atom (also at `μ = 0`) and `b_T↑ = B_m`, so Theorem "density and magnetic" and Corollary "half filling" give the transverse vertex there; the opposite-spin pair at `μ = 0`, `k = 0` through the Shiba map | Eq. (field-T) at `h = 0`, `k = 0` |
-| `FieldLInput.lean` | the longitudinal input from the Hamiltonian: `P(z)χ↑↓(z, v) = λ[ρ/(z + v) - m/(z - v)] + (N₀↓(v) + z²N₂↓(v))/P(v)` off the axes `μ = 0`, `h = 0`, and `P(z)χ↑↑(z, v) = -βH↑(z)δ_zv + δ_k0 ζ↑(z² - a²)(v² - a²)/P(v)` for all `μ`, `h`; the rows of spin `↓` through the spin flip | Proposition "longitudinal input" of the companion |
+| `FieldLInput.lean` | the longitudinal input from the Hamiltonian: `P(z)χ↑↓(z, v) = λ[ρ/(z + v) - m/(z - v)] + (N₀↓(v) + z²N₂↓(v))/P(v)` off the axes `μ = 0`, `h = 0`, and `P(z)χ↑↑(z, v) = -βH↑(z)δ_zv + δ_k0 ζ↑(z² - a²)(v² - a²)/P(v)` for all `μ`, `h`; the rows of spin `↓` through the spin flip | Eq. (field-L-data), the input of Eq. (field-L) |
 
 `scripts/check.sh` rebuilds the library from a cold cache (failing on any warning), checks every
 declaration, private and auxiliary ones included, with the kernel for `sorry` and for axioms beyond
@@ -100,8 +100,9 @@ Lean checks how they conjugate `c↑`, `c↓` and `H`.
   reformulations are exact identities, not that its loss estimates are right.
 * With field:
   the coupled longitudinal vertex, Eq. (field-L), of which only the input is formalized.
-  `TGeneric` assumes, besides the companion's `U ≠ 0`, `μ ≠ 0`, `W ≠ 0`, `e(zₙ) ≠ 0`, `s₁ ≠ s₂`
-  and `Kⱼ ≠ 0`, also `q₀ = a² - W²/4 ≠ 0`
+  `TGeneric` assumes, besides the conditions of Eq. (field-T)
+  (`U ≠ 0`, `μ ≠ 0`, `e(zₙ) ≠ 0`, `s₁ ≠ s₂`, `Kⱼ ≠ 0`),
+  also `W ≠ 0` (the case `W = 0` is `FieldTZero.lean`), `q₀ = a² - W²/4 ≠ 0`
   (it excludes `k = 0`, `|h| = |U|/2`, where `P` has a double zero)
   and `P(uⱼ) ≠ 0` at both roots
   (which the note covers by continuity);

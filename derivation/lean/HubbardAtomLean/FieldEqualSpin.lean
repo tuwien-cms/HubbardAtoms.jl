@@ -4,7 +4,7 @@ import HubbardAtomLean.Triplet
 /-!
 # Equal-spin pairing
 
-Proposition "equal-spin pair" of the companion derivation (Eq. (field-E) of the note). The
+The equal-spin vertex, Eq. (field-E) of the note (App. F.6.3). The
 equal-spin pair `χ_Eσ` is `-1/2` times the full same-spin four-point function at transfer
 `-ω - ν - ν'`. Only `c_σ` enters, and `n_{-σ}` is conserved, so the four-point function has four
 Fock-space paths, and `χ_Eσ` is diagonal on the mirror orbits, with eigenvalue `0` on the
@@ -19,8 +19,8 @@ The vertex is defined on the mirror-odd (Pauli-allowed) subspace `𝓜₋`: the 
 * `FParams.gammaEUp_eq`: **the equal-spin vertex** `Γ_E↑`, for `ℒ(tₙ) ≠ 0` off the fixed points.
 * `FParams.gammaEDn_eq`: `Γ_E↓(U, μ, h) = Γ_E↑(U, μ, -h)`.
 
-The inverse needs `ℒ(tₙ) ≠ 0` on every orbit off the mirror fixed points, as in the companion's
-proposition; the note states Eq. (field-E) entrywise.
+The inverse needs `ℒ(tₙ) ≠ 0` on every orbit off the mirror fixed points; the note states
+Eq. (field-E) entrywise.
 -/
 
 open Complex

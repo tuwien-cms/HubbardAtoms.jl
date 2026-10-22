@@ -3,7 +3,7 @@ import HubbardAtomLean.FieldTransverse
 /-!
 # Orientations and opposite-spin pairing
 
-Corollary "orientations and pairing" of the companion derivation (Eq. (field-A) of the note): the
+The other orientation and the opposite-spin pair, Eq. (field-A) of the note (App. F.6.2): the
 general Shiba map `c↓ ↦ c↓†` sends the atom `(U, μ, h)` to `(-U, h, μ)` and the oriented
 opposite-spin pair to the transverse sector, `χ_A↑(U, μ, h) = χ_T↑(-U, h, μ)` (`chiAUp_eq`); the
 spin flip sends `↑` to `↓` and `h` to `-h`. Both maps also relate the physical bubbles, so the
@@ -100,7 +100,7 @@ theorem bADn_eq (n : ℤ) : F.bADn k n = F.flip.shiba.bTUp k n := by
 
 variable {F k} {u₁ u₂ : ℂ}
 
-/-- **The opposite-spin pair `A↑`**: under the assumptions of Theorem "transverse spin" at
+/-- **The opposite-spin pair `A↑`**: under the assumptions of the transverse vertex at
 `(-U, h, μ)`, its inverse is a two-sided inverse of `χ_A↑`, and
 `β²(χ_A↑⁻¹ - b_A↑⁻¹) = Γ_T↑(-U, h, μ)`. -/
 theorem gammaAUp_eq (h : F.shiba.TGeneric k u₁ u₂) :

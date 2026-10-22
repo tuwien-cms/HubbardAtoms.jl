@@ -341,7 +341,7 @@ theorem chiTUp_eq_pathsTD (hW0 : F.WT k ≠ 0) (n m : ℤ) :
   rw [WT, hh, hω]
   simp
 
-/-- **Proposition "transverse input"**, from the Hamiltonian, off the pair resonance and for
+/-- **The transverse input**, from the Hamiltonian, off the pair resonance and for
 `W ≠ 0`:
 `P(zₙ)χ_T↑,nm = -βH(zₙ)δₙₘ + λρ/(zₙ + zₘ) + N(zₙ, zₘ)/P(zₘ)`. -/
 theorem PT_mul_chiTUp' (hW0 : F.WT k ≠ 0) {n m : ℤ} (hD : ¬(F.μ = 0 ∧ n + m + k + 1 = 0)) :
@@ -400,7 +400,7 @@ theorem PT_mul_chiTUp' (hW0 : F.WT k ≠ 0) {n m : ℤ} (hD : ¬(F.μ = 0 ∧ n 
     simp only [zT, Params.z, hWT]
     ring
 
-/-- **Proposition "transverse input"** for `μ ≠ 0`, where no pair rate vanishes. -/
+/-- **The transverse input** for `μ ≠ 0`, where no pair rate vanishes. -/
 theorem PT_mul_chiTUp (hμ : F.μ ≠ 0) (hW0 : F.WT k ≠ 0) (n m : ℤ) :
     F.PT k (F.zT k n) * F.chiTUp k n m =
       -F.β * F.HT k (F.zT k n) * kron n m + F.lamT * F.ρ / (F.zT k n + F.zT k m) +

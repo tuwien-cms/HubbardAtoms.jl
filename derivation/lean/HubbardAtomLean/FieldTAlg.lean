@@ -3,10 +3,10 @@ import HubbardAtomLean.OrderedIntegrals
 /-!
 # The algebra of the transverse input
 
-The six Fock-space paths of `χ_T↑` (`pathsT`) against the closed form of Proposition "transverse
-input" (`rhsT`), over free variables: `X = xₙ`, `Y = xₘ`, `w = iω_k`, the field `h` and the weights.
-Both sides are affine in the weights, so the identity splits into one identity per weight, which
-keeps the rational expressions small (`pathsT_lin`, `rhsT_lin`).
+The six Fock-space paths of `χ_T↑` (`pathsT`) against the closed form of the transverse input
+(`rhsT`, see `PT_mul_chiTUp`), over free variables: `X = xₙ`, `Y = xₘ`, `w = iω_k`, the field `h`
+and the weights. Both sides are affine in the weights, so the identity splits into one identity per
+weight, which keeps the rational expressions small (`pathsT_lin`, `rhsT_lin`).
 -/
 
 namespace HubbardAtom
@@ -54,7 +54,7 @@ noncomputable def Nf (a h X Y w s p₀ pu pd p₂ : ℂ) : ℂ :=
       N₂f a h Y w s p₀ pu pd p₂ -
     (2 * a * s + -4 * a ^ 2 * (pu - pd) / (w - 2 * h)) * PTf a h Y w
 
-/-- The right side of Proposition "transverse input" off the diagonal, homogenized:
+/-- The right side of the transverse input off the diagonal, homogenized:
 `λρ/(z + v) + N(z, v)/P(v)`. -/
 noncomputable def rhsT (a h X Y w s p₀ pu pd p₂ : ℂ) : ℂ :=
   -4 * a ^ 2 * (p₂ - p₀) / (X + Y + w) + Nf a h X Y w s p₀ pu pd p₂ / PTf a h Y w

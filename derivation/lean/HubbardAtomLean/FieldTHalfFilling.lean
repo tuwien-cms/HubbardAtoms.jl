@@ -3,11 +3,11 @@ import HubbardAtomLean.FieldPair
 /-!
 # The transverse vertex of the half-filled atom in a field
 
-Corollary "half-filled atom in a field" of the companion derivation (Eq. (field-T-axis) of the
-note): at `μ = 0`, `ρ = 0`, `p₂ = p₀`, and the Cauchy matrix of the transverse input becomes the
-mirror `βp₀𝓜` (`PT_mul_chiTUp_hf`). The proof is that of Corollary "half filling"
-(`HalfFilling.lean`) with the transverse data: the inverse of the diagonal-plus-mirror part on
-the mirror orbits, a constant and one separable term in `ĝ(z) = 1/(z² - ŝ)`, `ŝ = λp₀ - q₁`.
+The transverse vertex at half filling, Eq. (field-T-axis) of the note (App. F.6.2): at `μ = 0`,
+`ρ = 0`, `p₂ = p₀`, and the Cauchy matrix of the transverse input becomes the mirror `βp₀𝓜`
+(`PT_mul_chiTUp_hf`). The proof is that of Corollary "half filling" (`HalfFilling.lean`) with the
+transverse data: the inverse of the diagonal-plus-mirror part on the mirror orbits, a constant and
+one separable term in `ĝ(z) = 1/(z² - ŝ)`, `ŝ = λp₀ - q₁`.
 
 * `FParams.THFHyp`: the assumptions: `U ≠ 0`, `μ = 0`, `W ≠ 0`, `q₀ ≠ 0`, `zₙ² ≠ ŝ` for all `n`,
   `zₙ² ≠ ŝ'` off the mirror fixed points, `û² = ŝ`, `P(û) ≠ 0` and `D̂ = β + 2aS_k(û)/û ≠ 0`.

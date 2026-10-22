@@ -3,10 +3,9 @@ import HubbardAtomLean.FieldEqualSpin
 /-!
 # The longitudinal input from the Hamiltonian
 
-Proposition "longitudinal input" of the companion derivation (the input of Eq. (field-L) of the
-note), derived from the Hamiltonian with doping and field, which the companion obtains by exact
-computer algebra. The spin `σ` row lives on the lattice `z = μ_σ + i(νₙ + ω_k/2)` of its own spin,
-`μ_σ = μ + σh`.
+The input of the longitudinal vertex, Eq. (field-L) of the note (App. F.6.4), with the polynomials
+of Eq. (field-L-data), derived from the Hamiltonian with doping and field. The spin `σ` row lives
+on the lattice `z = μ_σ + i(νₙ + ω_k/2)` of its own spin, `μ_σ = μ + σh`.
 
 * `FParams.PL_mul_chiL_updn`: off the axes `μ = 0`, `h = 0`,
   `P(z)χ↑↓(z, v) = λ[ρ/(z + v) - m/(z - v)] + (N₀↓(v) + z²N₂↓(v))/P(v)`, `λ = U²`, with the

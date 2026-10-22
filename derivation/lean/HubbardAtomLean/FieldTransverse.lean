@@ -4,7 +4,7 @@ import HubbardAtomLean.DensityMagnetic
 /-!
 # The transverse vertex with doping and field
 
-Theorem "transverse spin" of the companion derivation (App. F.6 of the note, Eq. (field-T)): the
+The transverse vertex, Eq. (field-T) of the note (App. F.6.2): the
 transverse problem is the doped magnetic problem with the complex transfer `W = iω_k - 2h`, and the
 proof of Theorem "density and magnetic" goes through with the data of `FieldInput.lean`. The algebra
 of Steps 1, 3 and 4 is the free-variable algebra of `DensityMagnetic.lean` (`step1_off`,
@@ -14,7 +14,7 @@ and the rational identities those of `FieldTIdentities.lean`.
 * `FParams.TGeneric`: the assumptions: `U ≠ 0`, `μ ≠ 0`, `W ≠ 0`, `q₀ = a² - W²/4 ≠ 0`,
   `e(zₙ) ≠ 0` for all `n`, two roots `u₁`, `u₂` of `e` with `u₁² ≠ u₂²`, and `P(uⱼ) ≠ 0`, `Kⱼ ≠ 0`.
 * `FParams.invTUp`: the inverse; `TGeneric.chiTUp_isRightInverse`, `chiTUp_isLeftInverse`.
-* `FParams.gammaTUp`, `TGeneric.gammaTUp_eq`: **Theorem "transverse spin"**,
+* `FParams.gammaTUp`, `TGeneric.gammaTUp_eq`: **the transverse vertex**,
   `β²(χ_T↑⁻¹ - b_T↑⁻¹) = Γ_T↑` of Eq. (field-T).
 -/
 
@@ -59,12 +59,13 @@ noncomputable def invTUp (u₁ u₂ : ℂ) (n m : ℤ) : ℂ :=
       2 * (-F.a) / F.β ^ 2 + F.cmodeT k u₁ u₂ (F.zT k m) * F.modeT k u₁ (F.zT k n) +
     F.cmodeT k u₂ u₁ (F.zT k m) * F.modeT k u₂ (F.zT k n)
 
-/-- The row `P(zₙ)χ_T↑,nl` of Proposition "transverse input". -/
+/-- The row `P(zₙ)χ_T↑,nl` of the transverse input (`PT_mul_chiTUp`). -/
 noncomputable def RrowT (n l : ℤ) : ℂ :=
   -F.β * F.HT k (F.zT k n) * kron n l + F.lamT * F.ρ / (F.zT k n + F.zT k l) +
     F.NT k (F.zT k n) (F.zT k l) / F.PT k (F.zT k l)
 
-/-- The assumptions of Theorem "transverse spin", for the roots `u₁² = s₁`, `u₂² = s₂` of `e`. -/
+/-- The assumptions of the transverse vertex, Eq. (field-T), for the roots `u₁² = s₁`, `u₂² = s₂`
+of `e`. -/
 structure TGeneric (u₁ u₂ : ℂ) : Prop where
   a_ne : (F.a : ℂ) ≠ 0
   μ_ne : F.μ ≠ 0
@@ -337,7 +338,7 @@ theorem TGeneric.hasSum_mode (h : F.TGeneric k u₁ u₂) {u u' : ℂ} (hu : F.e
   rw [cmodeT]
   field_simp
 
-/-- **Theorem "transverse spin"**, the inverse: `χ_T↑ invTUp = 1`. -/
+/-- **The transverse vertex**, the inverse: `χ_T↑ invTUp = 1`. -/
 theorem TGeneric.chiTUp_isRightInverse (h : F.TGeneric k u₁ u₂) :
     IsRightInverse (F.chiTUp k) (F.invTUp k u₁ u₂) := by
   intro n m
@@ -532,7 +533,7 @@ theorem cmodeT_mul_modeT {u u' z v : ℂ} (hK : F.KT k u ≠ 0) (hs : u ^ 2 - u'
   field_simp
   ring
 
-/-- **Theorem "transverse spin"**, the closed form: `β²(χ_T↑⁻¹ - b_T↑⁻¹) = Γ_T↑`. -/
+/-- **The transverse vertex**, the closed form: `β²(χ_T↑⁻¹ - b_T↑⁻¹) = Γ_T↑`. -/
 theorem TGeneric.gammaTUp_eq (h : F.TGeneric k u₁ u₂) (n m : ℤ) :
     (F.β : ℂ) ^ 2 * (F.invTUp k u₁ u₂ n m - kron n m / F.bTUp k n) =
       F.gammaTUp k u₁ u₂ n m := by
@@ -588,7 +589,7 @@ theorem PT_sub_PT (z v : ℂ) :
   ring
 
 variable (F k) in
-/-- `χ_T↑` is symmetric, for `μ ≠ 0` and `W ≠ 0` (via Proposition "transverse input"). -/
+/-- `χ_T↑` is symmetric, for `μ ≠ 0` and `W ≠ 0` (via the transverse input, `PT_mul_chiTUp`). -/
 theorem chiTUp_symm (hμ : F.μ ≠ 0) (hW : F.WT k ≠ 0) (n m : ℤ) :
     F.chiTUp k n m = F.chiTUp k m n := by
   by_cases hnm : n = m
@@ -641,7 +642,7 @@ theorem TGeneric.invTUp_symm (h : F.TGeneric k u₁ u₂) (n m : ℤ) :
   linear_combination h.gammaTUp_eq n m - h.gammaTUp_eq m n + F.gammaTUp_symm k u₁ u₂ n m +
     (F.β : ℂ) ^ 2 * hk
 
-/-- **Theorem "transverse spin"**, two-sidedness: `invTUp χ_T↑ = 1`. -/
+/-- **The transverse vertex**, two-sidedness: `invTUp χ_T↑ = 1`. -/
 theorem TGeneric.chiTUp_isLeftInverse (h : F.TGeneric k u₁ u₂) :
     IsLeftInverse (F.chiTUp k) (F.invTUp k u₁ u₂) := by
   intro n m
