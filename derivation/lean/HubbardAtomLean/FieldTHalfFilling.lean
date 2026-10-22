@@ -275,6 +275,7 @@ theorem THFHyp.hasSum_That (h : F.THFHyp k u) :
 
 set_option maxHeartbeats 4000000 in
 -- a rational identity of high degree in the weights and the transfer
+/-- `identity_hfT` for `q₀ ≠ 0`. -/
 private theorem identity_hfT_ne (ha : (F.a : ℂ) ≠ 0) (hW : F.WT k ≠ 0) (hq : F.q₀T k ≠ 0)
     (hμ : F.μ = 0) (z : ℂ) :
     2 * (-F.a) * ((F.N₂T k z * (F.shatT k ^ 2 + F.κT k * F.shatT k + F.q₀T k ^ 2) -
@@ -306,6 +307,7 @@ private theorem identity_hfT_ne (ha : (F.a : ℂ) ≠ 0) (hW : F.WT k ≠ 0) (hq
 
 set_option maxHeartbeats 4000000 in
 -- a rational identity of high degree in the weights
+/-- `identity_hfT` at `q₀ = 0`, where `μ = 0` gives `X = p₀`. -/
 private theorem identity_hfT_zero (ha : (F.a : ℂ) ≠ 0) (hq : F.q₀T k = 0) (hμ : F.μ = 0)
     (z : ℂ) :
     2 * (-F.a) * ((F.N₂T k z * (F.shatT k ^ 2 + F.κT k * F.shatT k + F.q₀T k ^ 2) -

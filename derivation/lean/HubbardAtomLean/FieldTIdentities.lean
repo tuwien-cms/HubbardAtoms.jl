@@ -9,6 +9,9 @@ with the values of `S_k` at the zeros of `P` from the weights (`sT₁_eq` … `s
 * `FParams.identity_A6T`: the image of the constant, `-βH(z) + λc̄ + ∑ⱼ cNⱼ(z)ℓⱼ = -βN₂(z)/(2a)`.
 * `FParams.identity_A7T`: Eq. (source), with the remainder `W(z; s) = W₀(s) + z²W₂(s)`, affine in
   `s`; its coefficients are polynomials in `a`, `W` and the weights, divided by `W`.
+* `FParams.q₀T_zero_data`: at `q₀ = 0` (`k = 0`, `h = ±a`) the thermal values `S₀(0)`, `S₀(±2a)`
+  of the sums `ℓ₀` … `ℓ₃` in terms of the weights, which satisfy `p↑² = p₀p₂` or `p↓² = p₀p₂`.
+  Both identities hold there too, with the same `W(z; s)`.
 -/
 
 open Complex
@@ -92,6 +95,7 @@ noncomputable def W₂T (s : ℂ) : ℂ := W₂Tpoly F.a (F.WT k) F.p₀ F.pUp F
 /-- `W(z; s) = W₀(s) + z²W₂(s)`. -/
 noncomputable def WphT (z s : ℂ) : ℂ := F.W₀T k s + z ^ 2 * F.W₂T k s
 
+/-- `q₀T_zero_data`, case by case: `h = a` or `h = -a`. -/
 private theorem q₀T_zero_cases (ha : (F.a : ℂ) ≠ 0) (hq : F.q₀T k = 0) :
     k = 0 ∧
       ((F.WT k = 2 * F.a ∧ F.sZT = F.β * (F.pUp - F.p₀) / (2 * (F.pUp + F.p₀)) ∧
@@ -143,6 +147,7 @@ private theorem q₀T_zero_cases (ha : (F.a : ℂ) ≠ 0) (hq : F.q₀T k = 0) :
         ring_nf
       exact_mod_cast this
 
+/-- Identity (A6) for `q₀ ≠ 0`, where `P` has four simple zeros. -/
 private theorem identity_A6T_ne (ha : (F.a : ℂ) ≠ 0) (hW : F.WT k ≠ 0) (hq : F.q₀T k ≠ 0)
     (z : ℂ) :
     -F.β * F.HT k z + F.lamT * F.cbarT +
@@ -172,6 +177,7 @@ private theorem identity_A6T_ne (ha : (F.a : ℂ) ≠ 0) (hW : F.WT k ≠ 0) (hq
 set_option maxHeartbeats 40000000 in
 -- a rational identity of high degree in nine variables
 set_option maxRecDepth 100000 in
+/-- Identity (A7) for `q₀ ≠ 0`. -/
 private theorem identity_A7T_ne (ha : (F.a : ℂ) ≠ 0) (hW : F.WT k ≠ 0) (hq : F.q₀T k ≠ 0)
     (z v : ℂ) :
     F.lamT * F.ρ * (z - v + 2 * F.a * F.ρ) * F.PT k v - F.HT k (-v) * F.NT k z v -
@@ -217,6 +223,7 @@ theorem q₀T_zero_data (ha : (F.a : ℂ) ≠ 0) (hq : F.q₀T k = 0) :
   · exact ⟨hk, -1, F.pDn, F.pUp, Or.inr rfl, F.pDn_pos, F.pUp_pos, by rw [hW]; ring, by ring,
       by ring, h₁, h₂, h₃, hc⟩
 
+/-- Identity (A6) at `q₀ = 0`, with `X = tp₀`, `p₂ = t²p₀` (`t = e^{βμ}`) and both signs `σ`. -/
 private theorem identity_A6T_zero (ha : (F.a : ℂ) ≠ 0) (hq : F.q₀T k = 0) (z : ℂ) :
     -F.β * F.HT k z + F.lamT * F.cbarT +
         (F.cN₀T k z * F.ℓ₀T k + F.cN₁T k z * F.ℓ₁T k + F.cN₂T k z * F.ℓ₂T k +
@@ -254,6 +261,7 @@ private theorem identity_A6T_zero (ha : (F.a : ℂ) ≠ 0) (hq : F.q₀T k = 0) 
 set_option maxHeartbeats 40000000 in
 -- a rational identity of high degree
 set_option maxRecDepth 100000 in
+/-- Identity (A7) at `q₀ = 0`. -/
 private theorem identity_A7T_zero (ha : (F.a : ℂ) ≠ 0) (hq : F.q₀T k = 0) (z v : ℂ) :
     F.lamT * F.ρ * (z - v + 2 * F.a * F.ρ) * F.PT k v - F.HT k (-v) * F.NT k z v -
         F.lamT / F.β * (F.cbarT * F.NT k z (-v) + F.ρ * F.RhatT k z (-v)) =

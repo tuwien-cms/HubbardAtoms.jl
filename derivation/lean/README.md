@@ -104,11 +104,17 @@ Lean checks how they conjugate `c↑`, `c↓` and `H`.
   (`U ≠ 0`, `μ ≠ 0`, `e(zₙ) ≠ 0`, `s₁ ≠ s₂`, `Kⱼ ≠ 0`)
   and `W ≠ 0` (the case `W = 0` is `FieldTZero.lean`);
   `THFHyp` assumes `W ≠ 0` besides the note's conditions.
-  Roots at a zero of `P`, `P(uⱼ) = 0` or `P(û) = 0`, are included:
-  Step 3 is used multiplied by `P(u)`, which the inverse carries as a factor.
+  Roots at a zero of `P` are included,
+  because the inverse carries `P(uⱼ)` (`P(û)` at `μ = 0`) as a factor:
+  Step 3 is used multiplied by `P(u)` (`hasSum_step3`),
+  and at `μ = 0` the image of `P(û)ĝ` (`THFHyp.hasSum_NT_ghat`).
   So is `W = ±2a` (`k = 0`, `|h| = |U|/2`), where `q₀ = a² - W²/4 = 0` and `P(t) = t²(t² - 4a²)`
-  has a double zero: there the lattice sums of `M/P` take the values of `hasSum_cubicT` at
-  `q₀ = 0`, and identities (A6), (A7) hold with them (`q₀T_zero_data`).
+  has a double zero:
+  the lattice sums of `M/P` take the values of `hasSum_cubicT` at `q₀ = 0`,
+  and identities (A6), (A7) hold with them (`q₀T_zero_data`).
+  There the two cases meet: `q₁ = -4a²p↑` with `p↑² = p₀p₂` (`h = -a`; `p↓` for `h = a`),
+  so `e(0) = 0`, and one root is `u = 0` (`û = 0` at `μ = 0`), at the double zero of `P`.
+  The pair vertices of `FieldPair.lean` inherit all of this.
   The equal-spin vertex assumes `ℒ(tₙ) ≠ 0` for all `n ≠ n̄`,
   where the note states Eq. (field-E) entrywise.
   At `h = 0`, `k = 0` (`W = 0`) the transverse vertex is that of the zero-field magnetic channel

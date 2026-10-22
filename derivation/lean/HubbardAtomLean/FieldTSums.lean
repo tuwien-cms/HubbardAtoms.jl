@@ -15,7 +15,8 @@ the complex transfer `W = iω_k - 2h`.
   the weights.
 * `FParams.hasSum_Q_subT`, `hasSum_inv_QT`, `hasSum_cubicT`: the lattice sums of `M/P` for cubic
   `M`, also at `q₀ = 0` (`k = 0`, `h = ±a`, `q₀T_eq_zero`), where `P(t) = t²(t² - 4a²)` has a
-  double zero and the sums `ℓ₀` … `ℓ₃` take the values `S₀(0)` (`sZT`), `S₀(±2a)` (`sPT`, `sMT`).
+  double zero and the sums `ℓ₀` … `ℓ₃` are expressed through `S₀(0)` (`sZT`) and `S₀(±2a)`
+  (`sPT`, `sMT`).
 * `FParams.hasSum_rank_two_mulT`, `hasSum_rank_twoT`, `hasSum_constT`: Lemma "rank-two sums",
   times `P(x)` (which holds also where `P(x) = 0`) and divided by it, and the constant sum.
 -/
@@ -411,44 +412,44 @@ theorem hasSum_cubicT (ha : (F.a : ℂ) ≠ 0) (hW : F.WT k ≠ 0)
       (m₀ * F.ℓ₀T k + m₁ * F.ℓ₁T k + m₂ * F.ℓ₂T k + m₃ * (F.ℓ₃T k - (F.lat F.μ).S k y)) := by
   by_cases hq : F.q₀T k = 0
   · exact F.hasSum_cubicT_zero k ha hq m₀ m₁ m₂ m₃ hy
-  have hq' : (F.a : ℂ) ^ 2 - (F.WT k / 2) ^ 2 ≠ 0 := by
-    rw [show (F.a : ℂ) ^ 2 - (F.WT k / 2) ^ 2 = F.q₀T k by rw [q₀T]; ring]
-    exact hq
-  have hp₁ := F.hasSum_Q_subT k F.a hy
-  have hp₂ := F.hasSum_Q_subT k (-F.a) hy
-  have hp₃ := F.hasSum_inv_QT k hW F.a
-  have hp₄ := F.hasSum_inv_QT k hW (-F.a)
-  simp only [ofReal_neg, ← sub_eq_add_neg, neg_neg] at hp₂ hp₄
-  set da := (m₀ / ((F.a : ℂ) ^ 2 - (F.WT k / 2) ^ 2) - m₂) / (2 * F.a) with hda
-  set sb := (m₂ + m₀ / ((F.a : ℂ) ^ 2 - (F.WT k / 2) ^ 2)) / 2 with hsb
-  set db := (((F.a : ℂ) ^ 2 - (F.WT k / 2) ^ 2 - 2 * F.a ^ 2) * m₃ - m₁) / (2 * F.a) with hdb
-  convert (((hp₁.mul_left ((m₃ + da) / 2)).add (hp₂.mul_left ((m₃ - da) / 2))).add
-    (hp₃.mul_left ((sb + db) / 2))).add (hp₄.mul_left ((sb - db) / 2)) using 1
-  · funext l
-    have hQp : (F.zT k l + F.a) ^ 2 - (F.WT k / 2) ^ 2 ≠ 0 := by
-      rw [show (F.zT k l + F.a) ^ 2 - (F.WT k / 2) ^ 2 =
-          ((F.lat F.μ).x l + F.a + F.h) * ((F.lat F.μ).x l + (F.lat F.μ).w k + F.a - F.h) by
-        rw [zT, Params.z, WT_eq]; ring]
-      exact mul_ne_zero (F.lin₁ l) (F.lin₃ k l)
-    have hQm : (F.zT k l - F.a) ^ 2 - (F.WT k / 2) ^ 2 ≠ 0 := by
-      rw [show (F.zT k l - F.a) ^ 2 - (F.WT k / 2) ^ 2 =
-          ((F.lat F.μ).x l - F.a + F.h) * ((F.lat F.μ).x l + (F.lat F.μ).w k - F.a - F.h) by
-        rw [zT, Params.z, WT_eq]; ring]
-      exact mul_ne_zero (F.lin₂ l) (F.lin₄ k l)
-    rw [PT, QpT, QmT]
-    rw [show F.WT k ^ 2 / 4 = (F.WT k / 2) ^ 2 by ring]
-    exact cubic_pf hda hsb hdb ha hq' hQp hQm (sub_ne_zero.mpr (hy l))
-  · simp only [ℓ₀T, ℓ₁T, ℓ₂T, ℓ₃T, hq, ite_false]
-    rw [TpT, TmT, SpT, SmT, sT₁, sT₂, sT₃, sT₄, hda, hsb, hdb]
-    rw [q₀T] at hq ⊢
-    generalize (F.lat F.μ).S 0 (-F.a - F.h) = S₁
-    generalize (F.lat F.μ).S 0 (-F.a + F.h) = S₂
-    generalize (F.lat F.μ).S 0 (F.a - F.h) = S₃
-    generalize (F.lat F.μ).S 0 (F.a + F.h) = S₄
-    generalize (F.lat F.μ).S k y = Sy
-    have hq4 : (F.a : ℂ) ^ 2 * 4 - F.WT k ^ 2 ≠ 0 := fun h ↦ hq (by linear_combination h / 4)
-    field_simp
-    ring
+  · have hq' : (F.a : ℂ) ^ 2 - (F.WT k / 2) ^ 2 ≠ 0 := by
+      rw [show (F.a : ℂ) ^ 2 - (F.WT k / 2) ^ 2 = F.q₀T k by rw [q₀T]; ring]
+      exact hq
+    have hp₁ := F.hasSum_Q_subT k F.a hy
+    have hp₂ := F.hasSum_Q_subT k (-F.a) hy
+    have hp₃ := F.hasSum_inv_QT k hW F.a
+    have hp₄ := F.hasSum_inv_QT k hW (-F.a)
+    simp only [ofReal_neg, ← sub_eq_add_neg, neg_neg] at hp₂ hp₄
+    set da := (m₀ / ((F.a : ℂ) ^ 2 - (F.WT k / 2) ^ 2) - m₂) / (2 * F.a) with hda
+    set sb := (m₂ + m₀ / ((F.a : ℂ) ^ 2 - (F.WT k / 2) ^ 2)) / 2 with hsb
+    set db := (((F.a : ℂ) ^ 2 - (F.WT k / 2) ^ 2 - 2 * F.a ^ 2) * m₃ - m₁) / (2 * F.a) with hdb
+    convert (((hp₁.mul_left ((m₃ + da) / 2)).add (hp₂.mul_left ((m₃ - da) / 2))).add
+      (hp₃.mul_left ((sb + db) / 2))).add (hp₄.mul_left ((sb - db) / 2)) using 1
+    · funext l
+      have hQp : (F.zT k l + F.a) ^ 2 - (F.WT k / 2) ^ 2 ≠ 0 := by
+        rw [show (F.zT k l + F.a) ^ 2 - (F.WT k / 2) ^ 2 =
+            ((F.lat F.μ).x l + F.a + F.h) * ((F.lat F.μ).x l + (F.lat F.μ).w k + F.a - F.h) by
+          rw [zT, Params.z, WT_eq]; ring]
+        exact mul_ne_zero (F.lin₁ l) (F.lin₃ k l)
+      have hQm : (F.zT k l - F.a) ^ 2 - (F.WT k / 2) ^ 2 ≠ 0 := by
+        rw [show (F.zT k l - F.a) ^ 2 - (F.WT k / 2) ^ 2 =
+            ((F.lat F.μ).x l - F.a + F.h) * ((F.lat F.μ).x l + (F.lat F.μ).w k - F.a - F.h) by
+          rw [zT, Params.z, WT_eq]; ring]
+        exact mul_ne_zero (F.lin₂ l) (F.lin₄ k l)
+      rw [PT, QpT, QmT]
+      rw [show F.WT k ^ 2 / 4 = (F.WT k / 2) ^ 2 by ring]
+      exact cubic_pf hda hsb hdb ha hq' hQp hQm (sub_ne_zero.mpr (hy l))
+    · simp only [ℓ₀T, ℓ₁T, ℓ₂T, ℓ₃T, hq, ite_false]
+      rw [TpT, TmT, SpT, SmT, sT₁, sT₂, sT₃, sT₄, hda, hsb, hdb]
+      rw [q₀T] at hq ⊢
+      generalize (F.lat F.μ).S 0 (-F.a - F.h) = S₁
+      generalize (F.lat F.μ).S 0 (-F.a + F.h) = S₂
+      generalize (F.lat F.μ).S 0 (F.a - F.h) = S₃
+      generalize (F.lat F.μ).S 0 (F.a + F.h) = S₄
+      generalize (F.lat F.μ).S k y = Sy
+      have hq4 : (F.a : ℂ) ^ 2 * 4 - F.WT k ^ 2 ≠ 0 := fun h ↦ hq (by linear_combination h / 4)
+      field_simp
+      ring
 
 /-! ### The rank-two sums -/
 
