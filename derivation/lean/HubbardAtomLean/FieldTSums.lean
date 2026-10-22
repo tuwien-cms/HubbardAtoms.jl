@@ -39,6 +39,20 @@ theorem Params.S₀_of_exp (B : Params) {x P Q : ℝ} (hP : 0 < P) (hQ : 0 < Q)
   field_simp
   ring
 
+/-- `rank_two_pf` times `P(x)`, which needs no `P(x) ≠ 0`. -/
+theorem rank_two_pf_mul {t x n₀ n₁ n₂ n₃ κ q Pt Px : ℂ} (hPt : Pt = t ^ 4 + κ * t ^ 2 + q ^ 2)
+    (hPx : Px = x ^ 4 + κ * x ^ 2 + q ^ 2) (hPt0 : Pt ≠ 0) (htx : t - x ≠ 0) :
+    Px * ((n₀ + n₁ * t + n₂ * t ^ 2 + n₃ * t ^ 3) / (Pt * (t - x))) =
+      (Px * (n₁ + n₂ * x + n₃ * x ^ 2) -
+            (n₀ + n₁ * x + n₂ * x ^ 2 + n₃ * x ^ 3) * (x ^ 3 + κ * x) +
+          (Px * (n₂ + n₃ * x) - (n₀ + n₁ * x + n₂ * x ^ 2 + n₃ * x ^ 3) * (x ^ 2 + κ)) * t +
+          (Px * n₃ - (n₀ + n₁ * x + n₂ * x ^ 2 + n₃ * x ^ 3) * x) * t ^ 2 +
+          -(n₀ + n₁ * x + n₂ * x ^ 2 + n₃ * x ^ 3) * t ^ 3) / Pt -
+        -(n₀ + n₁ * x + n₂ * x ^ 2 + n₃ * x ^ 3) / (t - x) := by
+  field_simp
+  rw [hPt, hPx]
+  ring
+
 namespace FParams
 
 variable (F : FParams) (k : ℤ)
@@ -383,24 +397,32 @@ noncomputable def RhatT (z x : ℂ) : ℂ :=
       (F.PT k x * (F.cN₂T k z + F.cN₃T * x) - F.NT k z x * (x ^ 2 + F.κT k)) * F.ℓ₁T k +
     (F.PT k x * F.cN₃T - F.NT k z x * x) * F.ℓ₂T k - F.NT k z x * F.ℓ₃T k
 
+/-- Lemma "rank-two sums" times `P(x)`, which holds also where `P(x) = 0`:
+`∑ₗ P(x)N(z, zₗ)/(P(zₗ)(zₗ - x)) = N(z, x)S_k(x) + R̂(z, x)`. -/
+theorem hasSum_rank_two_mulT (ha : (F.a : ℂ) ≠ 0) (hW : F.WT k ≠ 0) (hq : F.q₀T k ≠ 0)
+    (z : ℂ) {x : ℂ} (hx : ∀ l, F.zT k l ≠ x) :
+    HasSum (fun l ↦ F.PT k x * (F.NT k z (F.zT k l) / (F.PT k (F.zT k l) * (F.zT k l - x))))
+      (F.NT k z x * (F.lat F.μ).S k x + F.RhatT k z x) := by
+  convert F.hasSum_cubicT k ha hW hq
+    (F.PT k x * (F.cN₁T k z + F.cN₂T k z * x + F.cN₃T * x ^ 2) -
+      F.NT k z x * (x ^ 3 + F.κT k * x))
+    (F.PT k x * (F.cN₂T k z + F.cN₃T * x) - F.NT k z x * (x ^ 2 + F.κT k))
+    (F.PT k x * F.cN₃T - F.NT k z x * x) (-F.NT k z x) hx using 1
+  · funext l
+    rw [F.NT_eq_coeffs, F.NT_eq_coeffs]
+    exact rank_two_pf_mul (F.PT_eq_poly k _) (F.PT_eq_poly k x) (F.PT_zT_ne_zero k l)
+      (sub_ne_zero.mpr (hx l))
+  · rw [RhatT]
+    ring
+
 /-- Lemma "rank-two sums": `∑ₗ N(z, zₗ)/(P(zₗ)(zₗ - x)) = (N(z, x)S_k(x) + R̂(z, x))/P(x)`. -/
 theorem hasSum_rank_twoT (ha : (F.a : ℂ) ≠ 0) (hW : F.WT k ≠ 0) (hq : F.q₀T k ≠ 0) (z : ℂ)
     {x : ℂ} (hx : ∀ l, F.zT k l ≠ x) (hPx : F.PT k x ≠ 0) :
     HasSum (fun l ↦ F.NT k z (F.zT k l) / (F.PT k (F.zT k l) * (F.zT k l - x)))
       ((F.NT k z x * (F.lat F.μ).S k x + F.RhatT k z x) / F.PT k x) := by
-  have h := (F.hasSum_cubicT k ha hW hq
-    (F.PT k x * (F.cN₁T k z + F.cN₂T k z * x + F.cN₃T * x ^ 2) -
-      F.NT k z x * (x ^ 3 + F.κT k * x))
-    (F.PT k x * (F.cN₂T k z + F.cN₃T * x) - F.NT k z x * (x ^ 2 + F.κT k))
-    (F.PT k x * F.cN₃T - F.NT k z x * x) (-F.NT k z x) hx).div_const (F.PT k x)
-  convert h using 1
-  · funext l
-    have hPl := F.PT_zT_ne_zero k l
-    rw [F.NT_eq_coeffs, F.NT_eq_coeffs]
-    exact rank_two_pf (F.PT_eq_poly k _) (F.PT_eq_poly k x) hPl hPx (sub_ne_zero.mpr (hx l))
-  · rw [RhatT]
-    field_simp
-    ring
+  convert (F.hasSum_rank_two_mulT k ha hW hq z hx).div_const (F.PT k x) using 1
+  funext l
+  field_simp
 
 /-- The constant sum of Step 2: `∑ₗ [λρ/(zₙ + zₗ) + N(zₙ, zₗ)/P(zₗ)] = λc̄ + ∑ⱼ cNⱼ(zₙ)ℓⱼ`. -/
 theorem hasSum_constT (ha : (F.a : ℂ) ≠ 0) (hW : F.WT k ≠ 0) (hq : F.q₀T k ≠ 0)

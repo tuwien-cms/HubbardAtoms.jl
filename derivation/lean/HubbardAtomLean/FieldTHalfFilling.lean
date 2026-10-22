@@ -10,7 +10,7 @@ transverse data: the inverse of the diagonal-plus-mirror part on the mirror orbi
 one separable term in `ĝ(z) = 1/(z² - ŝ)`, `ŝ = λp₀ - q₁`.
 
 * `FParams.THFHyp`: the assumptions: `U ≠ 0`, `μ = 0`, `W ≠ 0`, `q₀ ≠ 0`, `zₙ² ≠ ŝ` for all `n`,
-  `zₙ² ≠ ŝ'` off the mirror fixed points, `û² = ŝ`, `P(û) ≠ 0` and `D̂ = β + 2aS_k(û)/û ≠ 0`.
+  `zₙ² ≠ ŝ'` off the mirror fixed points, `û² = ŝ` and `D̂ = β + 2aS_k(û)/û ≠ 0`.
 * `FParams.THFHyp.chiTUp_isRightInverse`, `chiTUp_isLeftInverse`, `gammaTHF_eq`.
 -/
 
@@ -74,7 +74,6 @@ structure THFHyp (u : ℂ) : Prop where
   z_sq_ne : ∀ n, F.zT k n ^ 2 - F.shatT k ≠ 0
   odd_ne : ∀ n, n ≠ mirror k n → F.zT k n ^ 2 - F.shatT' k ≠ 0
   u_sq : u ^ 2 = F.shatT k
-  P_ne : F.PT k u ≠ 0
   D_ne : F.DhatT k u ≠ 0
 
 /-! ### The parity at `μ = 0` -/
@@ -310,39 +309,38 @@ theorem identity_hfT (ha : (F.a : ℂ) ≠ 0) (hW : F.WT k ≠ 0) (hq : F.q₀T 
   subst hQ
   ring
 
-/-- `∑ₗ N(z, zₗ)ĝ(zₗ)/P(zₗ) = β - N(z, û)D̂/(2εaP(û))`, by partial fractions in `zₗ²`:
-`N(z, t)ĝ(t)/P(t) = cĝ(t) + (N₂(z) - c(κ + ŝ) - ct²)/P(t)` with `c = N(z, û)/P(û)`. -/
+/-- `∑ₗ P(û)N(z, zₗ)ĝ(zₗ)/P(zₗ) = βP(û) - N(z, û)D̂/(2εa)` (`ε = -1`), by partial fractions in
+`zₗ²`: `P(û)N(z, t)ĝ(t)/P(t) = cĝ(t) + (N₂(z)P(û) - c(κ + ŝ) - ct²)/P(t)` with `c = N(z, û)`.
+Multiplied by `P(û)`, it needs no `P(û) ≠ 0`. -/
 theorem THFHyp.hasSum_NT_ghat (h : F.THFHyp k u) (z : ℂ) :
-    HasSum (fun l ↦ F.NT k z (F.zT k l) * F.ghatT k (F.zT k l) / F.PT k (F.zT k l))
-      (F.β - F.NT k z u * F.DhatT k u / (2 * (-F.a) * F.PT k u)) := by
+    HasSum (fun l ↦ F.PT k u * (F.NT k z (F.zT k l) * F.ghatT k (F.zT k l) / F.PT k (F.zT k l)))
+      (F.β * F.PT k u - F.NT k z u * F.DhatT k u / (2 * (-F.a))) := by
   have hμ := h.μ_eq
   have ha := h.a_ne
-  have hPu := h.P_ne
   have hPu' : F.PT k u = F.shatT k ^ 2 + F.κT k * F.shatT k + F.q₀T k ^ 2 := by
     rw [F.PT_eq_poly, show u ^ 4 = (u ^ 2) ^ 2 by ring, h.u_sq]
   have hNu : F.NT k z u = F.cN₀T k z + F.N₂T k z * F.shatT k := by
     rw [F.NT_of_mu k hμ, h.u_sq]
-  convert ((h.hasSum_That.mul_left (F.NT k z u / F.PT k u)).add
+  convert ((h.hasSum_That.mul_left (F.NT k z u)).add
     ((F.hasSum_ℓ₀T k h.a_ne h.W_ne h.q_ne).mul_left
-      (F.N₂T k z - F.NT k z u / F.PT k u * (F.κT k + F.shatT k)))).add
-    ((F.hasSum_ℓ₂T k h.a_ne h.W_ne h.q_ne).mul_left (-(F.NT k z u / F.PT k u))) using 1
+      (F.N₂T k z * F.PT k u - F.NT k z u * (F.κT k + F.shatT k)))).add
+    ((F.hasSum_ℓ₂T k h.a_ne h.W_ne h.q_ne).mul_left (-F.NT k z u)) using 1
   · funext l
     have h₁ := h.z_sq_ne l
     have h₂ := F.PT_zT_ne_zero k l
+    rw [hPu']
     rw [F.PT_eq_poly] at h₂ ⊢
-    rw [hPu'] at hPu ⊢
     rw [F.NT_of_mu k hμ, ghatT, hNu]
     -- clear the denominators as atoms, then put the polynomials back
-    generalize hD : F.shatT k ^ 2 + F.κT k * F.shatT k + F.q₀T k ^ 2 = D at hPu ⊢
+    generalize hD : F.shatT k ^ 2 + F.κT k * F.shatT k + F.q₀T k ^ 2 = D
     generalize hPl : F.zT k l ^ 4 + F.κT k * F.zT k l ^ 2 + F.q₀T k ^ 2 = Pl at h₂ ⊢
     generalize hG : F.zT k l ^ 2 - F.shatT k = G at h₁ ⊢
     field_simp
     rw [← hD, ← hPl, ← hG]
     ring
   · have key := F.identity_hfT k ha h.W_ne h.q_ne hμ z
-    rw [hPu'] at hPu ⊢
-    rw [hNu, DhatT]
-    generalize F.shatT k ^ 2 + F.κT k * F.shatT k + F.q₀T k ^ 2 = D at hPu key ⊢
+    rw [hPu', hNu, DhatT]
+    generalize F.shatT k ^ 2 + F.κT k * F.shatT k + F.q₀T k ^ 2 = D at key ⊢
     field_simp
     linear_combination key
 
@@ -399,10 +397,10 @@ theorem THFHyp.hasSum_RrowTHF (h : F.THFHyp k u) (n : ℤ) :
     rw [RrowTHF]
   · exact (F.identity_A6_hfT k h.a_ne h.W_ne h.q_ne h.μ_eq (F.zT k n)).symm
 
-/-- The image of `ĝ`: `∑ₗ P(zₙ)χ_r,nl ĝ(zₗ) = -N(zₙ, û)D̂/(2εaP(û))`. -/
+/-- The image of `P(û)ĝ`: `∑ₗ P(zₙ)χ_r,nl P(û)ĝ(zₗ) = -N(zₙ, û)D̂/(2εa)`. -/
 theorem THFHyp.hasSum_RrowTHF_ghat (h : F.THFHyp k u) (n : ℤ) :
-    HasSum (fun l ↦ F.RrowTHF k n l * F.ghatT k (F.zT k l))
-      (-(F.NT k (F.zT k n) u * F.DhatT k u / (2 * (-F.a) * F.PT k u))) := by
+    HasSum (fun l ↦ F.RrowTHF k n l * (F.PT k u * F.ghatT k (F.zT k l)))
+      (-(F.NT k (F.zT k n) u * F.DhatT k u / (2 * (-F.a)))) := by
   have hμ := h.μ_eq
   have h₁ : HasSum (fun l ↦ -F.β * F.HT k (F.zT k n) * kron n l * F.ghatT k (F.zT k l))
       (-F.β * F.HT k (F.zT k n) * F.ghatT k (F.zT k n)) := by
@@ -423,11 +421,11 @@ theorem THFHyp.hasSum_RrowTHF_ghat (h : F.THFHyp k u) (n : ℤ) :
     rw [ghatT]
     field_simp
     linear_combination -(F.β : ℂ) * hHs
-  convert (h₁.add h₂).add (h.hasSum_NT_ghat (F.zT k n)) using 1
+  convert ((h₁.add h₂).mul_left (F.PT k u)).add (h.hasSum_NT_ghat (F.zT k n)) using 1
   · funext l
     rw [RrowTHF]
     ring
-  · linear_combination -hdiag
+  · linear_combination -(F.PT k u) * hdiag
 
 /-- The diagonal and mirror part of the column `m`: with `ε±(v)` the inverse even and odd
 eigenvalues, `P(zₙ)χ_r,nm (ε₊ + ε₋)/2 + P(zₙ)χ_r,nm̄ (ε₊ - ε₋)/2 = P(zₙ)δₙₘ - N(zₙ, v)ĝ(v)/β`,
@@ -478,7 +476,6 @@ theorem THFHyp.chiTUp_isRightInverse (h : F.THFHyp k u) :
   have ha := h.a_ne
   have hβ := F.β_ne_zeroT
   have hPn := F.PT_zT_ne_zero k n
-  have hPu := h.P_ne
   have hD := h.D_ne
   have hgm := h.z_sq_ne m
   set ep := (F.ievnT k (F.zT k m) + F.ioddT k (F.zT k m)) / 2 with hep
@@ -494,7 +491,7 @@ theorem THFHyp.chiTUp_isRightInverse (h : F.THFHyp k u) :
     rw [kron_self, mul_one]
   have s₃ := (h.hasSum_RrowTHF n).mul_left (2 * (-(F.a : ℂ)) / (F.β : ℂ) ^ 2)
   have s₄ := (h.hasSum_RrowTHF_ghat n).mul_left
-    (-(2 * (-F.a) * F.PT k u / (F.β * F.DhatT k u)) * F.ghatT k (F.zT k m))
+    (-(2 * (-F.a) / (F.β * F.DhatT k u)) * F.ghatT k (F.zT k m))
   convert (((s₁.add s₂).add s₃).add s₄).div_const (F.PT k (F.zT k n)) using 1
   · funext l
     have hc : F.chiTUp k n l = F.RrowTHF k n l / F.PT k (F.zT k n) := by
