@@ -14,8 +14,10 @@ the complex transfer `W = iω_k - 2h`.
 * `FParams.S₀_of_exp`, `sT₁` … `sT₄`: the values of `S_k` at the four zeros `∓a ± W/2` of `P`, from
   the weights.
 * `FParams.hasSum_Q_subT`, `hasSum_inv_QT`, `hasSum_cubicT`: the lattice sums of `M/P` for cubic
-  `M`.
-* `FParams.hasSum_rank_twoT`, `hasSum_constT`: Lemma "rank-two sums" and the constant sum.
+  `M`, also at `q₀ = 0` (`k = 0`, `h = ±a`, `q₀T_eq_zero`), where `P(t) = t²(t² - 4a²)` has a
+  double zero and the sums `ℓ₀` … `ℓ₃` take the values `S₀(0)` (`sZT`), `S₀(±2a)` (`sPT`, `sMT`).
+* `FParams.hasSum_rank_two_mulT`, `hasSum_rank_twoT`, `hasSum_constT`: Lemma "rank-two sums",
+  times `P(x)` (which holds also where `P(x) = 0`) and divided by it, and the constant sum.
 -/
 
 open Complex Filter Topology

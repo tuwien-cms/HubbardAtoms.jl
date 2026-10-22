@@ -92,9 +92,7 @@ noncomputable def W₂T (s : ℂ) : ℂ := W₂Tpoly F.a (F.WT k) F.p₀ F.pUp F
 /-- `W(z; s) = W₀(s) + z²W₂(s)`. -/
 noncomputable def WphT (z s : ℂ) : ℂ := F.W₀T k s + z ^ 2 * F.W₂T k s
 
-/-- At `q₀ = 0` (`k = 0`, `h = ∓a`, so `W = ±2a`) the thermal values `S₀(0)`, `S₀(∓2a)` are those at
-the zeros of `P`, and the weights satisfy `p↑² = p₀p₂` (`h = -a`) or `p↓² = p₀p₂` (`h = a`). -/
-theorem q₀T_zero_data (ha : (F.a : ℂ) ≠ 0) (hq : F.q₀T k = 0) :
+private theorem q₀T_zero_cases (ha : (F.a : ℂ) ≠ 0) (hq : F.q₀T k = 0) :
     k = 0 ∧
       ((F.WT k = 2 * F.a ∧ F.sZT = F.β * (F.pUp - F.p₀) / (2 * (F.pUp + F.p₀)) ∧
           F.sMT = F.β * (F.pDn - F.p₀) / (2 * (F.pDn + F.p₀)) ∧
@@ -203,66 +201,55 @@ private theorem identity_A7T_ne (ha : (F.a : ℂ) ≠ 0) (hW : F.WT k ≠ 0) (hq
   subst hQ
   ring
 
+/-- At `q₀ = 0` (`k = 0`, `h = -σa`, so `W = 2σa`, `σ = ±1`) the thermal values `S₀(0)`,
+`S₀(±2a)` are those at the zeros of `P`, through the weights `X = p↑`, `Y = p↓` (`σ = 1`) or
+`X = p↓`, `Y = p↑` (`σ = -1`), which satisfy `X² = p₀p₂`. -/
+theorem q₀T_zero_data (ha : (F.a : ℂ) ≠ 0) (hq : F.q₀T k = 0) :
+    k = 0 ∧ ∃ (σ : ℂ) (X Y : ℝ), (σ = 1 ∨ σ = -1) ∧ 0 < X ∧ 0 < Y ∧ F.WT k = σ * (2 * F.a) ∧
+      (F.pUp : ℂ) = ((1 + σ) * X + (1 - σ) * Y) / 2 ∧
+      (F.pDn : ℂ) = ((1 - σ) * X + (1 + σ) * Y) / 2 ∧
+      F.sZT = F.β * (X - F.p₀) / (2 * (X + F.p₀)) ∧
+      F.sMT = F.β * (Y - F.p₀) / (2 * (Y + F.p₀)) ∧
+      F.sPT = F.β * (F.p₂ - Y) / (2 * (F.p₂ + Y)) ∧ (X : ℂ) ^ 2 = F.p₀ * F.p₂ := by
+  obtain ⟨hk, ⟨hW, h₁, h₂, h₃, hc⟩ | ⟨hW, h₁, h₂, h₃, hc⟩⟩ := F.q₀T_zero_cases k ha hq
+  · exact ⟨hk, 1, F.pUp, F.pDn, Or.inl rfl, F.pUp_pos, F.pDn_pos, by rw [hW]; ring, by ring,
+      by ring, h₁, h₂, h₃, hc⟩
+  · exact ⟨hk, -1, F.pDn, F.pUp, Or.inr rfl, F.pDn_pos, F.pUp_pos, by rw [hW]; ring, by ring,
+      by ring, h₁, h₂, h₃, hc⟩
+
 private theorem identity_A6T_zero (ha : (F.a : ℂ) ≠ 0) (hq : F.q₀T k = 0) (z : ℂ) :
     -F.β * F.HT k z + F.lamT * F.cbarT +
         (F.cN₀T k z * F.ℓ₀T k + F.cN₁T k z * F.ℓ₁T k + F.cN₂T k z * F.ℓ₂T k +
           F.cN₃T * F.ℓ₃T k) =
       -(F.β * F.N₂T k z / (2 * F.a)) := by
-  obtain ⟨rfl, ⟨hW, h₁, h₂, h₃, hc⟩ | ⟨hW, h₁, h₂, h₃, hc⟩⟩ := F.q₀T_zero_data k ha hq
-  · have hβ := (F.lat F.μ).β_ne_zero
-    simp only [lat_β] at hβ
-    have hp0 : (F.p₀ : ℂ) ≠ 0 := ofReal_ne_zero.mpr F.p₀_pos.ne'
-    have e₁ : (F.pUp : ℂ) + F.p₀ ≠ 0 := by exact_mod_cast (add_pos F.pUp_pos F.p₀_pos).ne'
-    have e₂ : (F.pDn : ℂ) + F.p₀ ≠ 0 := by exact_mod_cast (add_pos F.pDn_pos F.p₀_pos).ne'
-    have e₃ : (F.p₂ : ℂ) + F.pDn ≠ 0 := by exact_mod_cast (add_pos F.p₂_pos F.pDn_pos).ne'
-    have hs := F.weights_sum'
-    simp only [HT, q₁T, lamT, cbarT, cN₀T, cN₁T, cN₂T, cN₃T, ℓ₀T, ℓ₁T, ℓ₂T, ℓ₃T, N₂T, ζT, κT, ρ, mf,
-      hq, ite_true, h₁, h₂, h₃, hW]
-    push_cast
-    generalize (F.a : ℂ) = a at *
-    generalize (F.β : ℂ) = β at *
-    generalize (F.pUp : ℂ) = X at *
-    generalize (F.pDn : ℂ) = Y at *
-    generalize (F.p₂ : ℂ) = p₂ at *
-    generalize (F.p₀ : ℂ) = p₀ at *
-    -- `p_X = t p₀`, `p₂ = t² p₀` with `t = e^{βμ}`
-    generalize ht : X / p₀ = t
-    obtain rfl : X = t * p₀ := by rw [← ht]; field_simp
-    obtain rfl : p₂ = t ^ 2 * p₀ := by
-      apply mul_left_cancel₀ hp0
-      linear_combination -hc
-    obtain rfl : Y = 1 - p₀ - t * p₀ - t ^ 2 * p₀ := by linear_combination hs
-    have ht : 1 + t ≠ 0 := fun h0 ↦ e₁ (by linear_combination p₀ * h0)
-    have ht' : t + 1 ≠ 0 := by rwa [add_comm]
-    field_simp
-    ring
-  · have hβ := (F.lat F.μ).β_ne_zero
-    simp only [lat_β] at hβ
-    have hp0 : (F.p₀ : ℂ) ≠ 0 := ofReal_ne_zero.mpr F.p₀_pos.ne'
-    have e₁ : (F.pDn : ℂ) + F.p₀ ≠ 0 := by exact_mod_cast (add_pos F.pDn_pos F.p₀_pos).ne'
-    have e₂ : (F.pUp : ℂ) + F.p₀ ≠ 0 := by exact_mod_cast (add_pos F.pUp_pos F.p₀_pos).ne'
-    have e₃ : (F.p₂ : ℂ) + F.pUp ≠ 0 := by exact_mod_cast (add_pos F.p₂_pos F.pUp_pos).ne'
-    have hs := F.weights_sum'
-    simp only [HT, q₁T, lamT, cbarT, cN₀T, cN₁T, cN₂T, cN₃T, ℓ₀T, ℓ₁T, ℓ₂T, ℓ₃T, N₂T, ζT, κT, ρ, mf,
-      hq, ite_true, h₁, h₂, h₃, hW]
-    push_cast
-    generalize (F.a : ℂ) = a at *
-    generalize (F.β : ℂ) = β at *
-    generalize (F.pDn : ℂ) = X at *
-    generalize (F.pUp : ℂ) = Y at *
-    generalize (F.p₂ : ℂ) = p₂ at *
-    generalize (F.p₀ : ℂ) = p₀ at *
-    -- `p_X = t p₀`, `p₂ = t² p₀` with `t = e^{βμ}`
-    generalize ht : X / p₀ = t
-    obtain rfl : X = t * p₀ := by rw [← ht]; field_simp
-    obtain rfl : p₂ = t ^ 2 * p₀ := by
-      apply mul_left_cancel₀ hp0
-      linear_combination -hc
-    obtain rfl : Y = 1 - p₀ - t * p₀ - t ^ 2 * p₀ := by linear_combination hs
-    have ht : 1 + t ≠ 0 := fun h0 ↦ e₁ (by linear_combination p₀ * h0)
-    have ht' : t + 1 ≠ 0 := by rwa [add_comm]
-    field_simp
-    ring
+  obtain ⟨rfl, σ, X, Y, hσ, hX, hY, hW, hpu, hpd, h₁, h₂, h₃, hc⟩ := F.q₀T_zero_data k ha hq
+  have hβ := (F.lat F.μ).β_ne_zero
+  simp only [lat_β] at hβ
+  have hp0 : (F.p₀ : ℂ) ≠ 0 := ofReal_ne_zero.mpr F.p₀_pos.ne'
+  have e₁ : (X : ℂ) + F.p₀ ≠ 0 := by exact_mod_cast (add_pos hX F.p₀_pos).ne'
+  have e₂ : (Y : ℂ) + F.p₀ ≠ 0 := by exact_mod_cast (add_pos hY F.p₀_pos).ne'
+  have e₃ : (F.p₂ : ℂ) + Y ≠ 0 := by exact_mod_cast (add_pos F.p₂_pos hY).ne'
+  have hs := F.weights_sum'
+  simp only [HT, q₁T, lamT, cbarT, cN₀T, cN₁T, cN₂T, cN₃T, ℓ₀T, ℓ₁T, ℓ₂T, ℓ₃T, N₂T, ζT, κT,
+    ρ, mf, hq, ite_true, h₁, h₂, h₃, hW]
+  push_cast
+  simp only [hpu, hpd] at hs ⊢
+  generalize (F.a : ℂ) = a at *
+  generalize (F.β : ℂ) = β at *
+  generalize (X : ℂ) = X at *
+  generalize (Y : ℂ) = Y at *
+  generalize (F.p₂ : ℂ) = p₂ at *
+  generalize (F.p₀ : ℂ) = p₀ at *
+  -- `X = t p₀`, `p₂ = t² p₀` with `t = e^{βμ}`
+  generalize ht : X / p₀ = t
+  obtain rfl : X = t * p₀ := by rw [← ht]; field_simp
+  obtain rfl : p₂ = t ^ 2 * p₀ := by
+    apply mul_left_cancel₀ hp0
+    linear_combination -hc
+  obtain rfl : Y = 1 - p₀ - t * p₀ - t ^ 2 * p₀ := by linear_combination hs
+  have ht : 1 + t ≠ 0 := fun h0 ↦ e₁ (by linear_combination p₀ * h0)
+  have ht' : t + 1 ≠ 0 := by rwa [add_comm]
+  rcases hσ with rfl | rfl <;> field_simp <;> ring
 
 set_option maxHeartbeats 40000000 in
 -- a rational identity of high degree
@@ -272,65 +259,35 @@ private theorem identity_A7T_zero (ha : (F.a : ℂ) ≠ 0) (hq : F.q₀T k = 0) 
         F.lamT / F.β * (F.cbarT * F.NT k z (-v) + F.ρ * F.RhatT k z (-v)) =
       -F.eT k v * F.N₂T k z + F.lamT * F.ρ * z * (F.PT k v - F.eT k v) +
         F.lamT * F.WphT k z (v ^ 2) := by
-  obtain ⟨rfl, ⟨hW, h₁, h₂, h₃, hc⟩ | ⟨hW, h₁, h₂, h₃, hc⟩⟩ := F.q₀T_zero_data k ha hq
-  · have hβ := (F.lat F.μ).β_ne_zero
-    simp only [lat_β] at hβ
-    have hp0 : (F.p₀ : ℂ) ≠ 0 := ofReal_ne_zero.mpr F.p₀_pos.ne'
-    have e₁ : (F.pUp : ℂ) + F.p₀ ≠ 0 := by exact_mod_cast (add_pos F.pUp_pos F.p₀_pos).ne'
-    have e₂ : (F.pDn : ℂ) + F.p₀ ≠ 0 := by exact_mod_cast (add_pos F.pDn_pos F.p₀_pos).ne'
-    have e₃ : (F.p₂ : ℂ) + F.pDn ≠ 0 := by exact_mod_cast (add_pos F.p₂_pos F.pDn_pos).ne'
-    have hs := F.weights_sum'
-    simp only [RhatT, F.NT_eq_coeffs, F.PT_eq_poly, eT, HT, q₁T, WphT, W₀T, W₂T, W₀Tpoly,
-      W₂Tpoly,
-      lamT, cbarT, cN₀T, cN₁T, cN₂T, cN₃T, ℓ₀T, ℓ₁T, ℓ₂T, ℓ₃T, N₂T, ζT, κT, ρ, mf, hq, ite_true,
-      h₁, h₂, h₃, hW]
-    push_cast
-    generalize (F.a : ℂ) = a at *
-    generalize (F.β : ℂ) = β at *
-    generalize (F.pUp : ℂ) = X at *
-    generalize (F.pDn : ℂ) = Y at *
-    generalize (F.p₂ : ℂ) = p₂ at *
-    generalize (F.p₀ : ℂ) = p₀ at *
-    -- `p_X = t p₀`, `p₂ = t² p₀` with `t = e^{βμ}`
-    generalize ht : X / p₀ = t
-    obtain rfl : X = t * p₀ := by rw [← ht]; field_simp
-    obtain rfl : p₂ = t ^ 2 * p₀ := by
-      apply mul_left_cancel₀ hp0
-      linear_combination -hc
-    obtain rfl : Y = 1 - p₀ - t * p₀ - t ^ 2 * p₀ := by linear_combination hs
-    have ht : 1 + t ≠ 0 := fun h0 ↦ e₁ (by linear_combination p₀ * h0)
-    have ht' : t + 1 ≠ 0 := by rwa [add_comm]
-    field_simp
-    ring
-  · have hβ := (F.lat F.μ).β_ne_zero
-    simp only [lat_β] at hβ
-    have hp0 : (F.p₀ : ℂ) ≠ 0 := ofReal_ne_zero.mpr F.p₀_pos.ne'
-    have e₁ : (F.pDn : ℂ) + F.p₀ ≠ 0 := by exact_mod_cast (add_pos F.pDn_pos F.p₀_pos).ne'
-    have e₂ : (F.pUp : ℂ) + F.p₀ ≠ 0 := by exact_mod_cast (add_pos F.pUp_pos F.p₀_pos).ne'
-    have e₃ : (F.p₂ : ℂ) + F.pUp ≠ 0 := by exact_mod_cast (add_pos F.p₂_pos F.pUp_pos).ne'
-    have hs := F.weights_sum'
-    simp only [RhatT, F.NT_eq_coeffs, F.PT_eq_poly, eT, HT, q₁T, WphT, W₀T, W₂T, W₀Tpoly,
-      W₂Tpoly,
-      lamT, cbarT, cN₀T, cN₁T, cN₂T, cN₃T, ℓ₀T, ℓ₁T, ℓ₂T, ℓ₃T, N₂T, ζT, κT, ρ, mf, hq, ite_true,
-      h₁, h₂, h₃, hW]
-    push_cast
-    generalize (F.a : ℂ) = a at *
-    generalize (F.β : ℂ) = β at *
-    generalize (F.pDn : ℂ) = X at *
-    generalize (F.pUp : ℂ) = Y at *
-    generalize (F.p₂ : ℂ) = p₂ at *
-    generalize (F.p₀ : ℂ) = p₀ at *
-    -- `p_X = t p₀`, `p₂ = t² p₀` with `t = e^{βμ}`
-    generalize ht : X / p₀ = t
-    obtain rfl : X = t * p₀ := by rw [← ht]; field_simp
-    obtain rfl : p₂ = t ^ 2 * p₀ := by
-      apply mul_left_cancel₀ hp0
-      linear_combination -hc
-    obtain rfl : Y = 1 - p₀ - t * p₀ - t ^ 2 * p₀ := by linear_combination hs
-    have ht : 1 + t ≠ 0 := fun h0 ↦ e₁ (by linear_combination p₀ * h0)
-    have ht' : t + 1 ≠ 0 := by rwa [add_comm]
-    field_simp
-    ring
+  obtain ⟨rfl, σ, X, Y, hσ, hX, hY, hW, hpu, hpd, h₁, h₂, h₃, hc⟩ := F.q₀T_zero_data k ha hq
+  have hβ := (F.lat F.μ).β_ne_zero
+  simp only [lat_β] at hβ
+  have hp0 : (F.p₀ : ℂ) ≠ 0 := ofReal_ne_zero.mpr F.p₀_pos.ne'
+  have e₁ : (X : ℂ) + F.p₀ ≠ 0 := by exact_mod_cast (add_pos hX F.p₀_pos).ne'
+  have e₂ : (Y : ℂ) + F.p₀ ≠ 0 := by exact_mod_cast (add_pos hY F.p₀_pos).ne'
+  have e₃ : (F.p₂ : ℂ) + Y ≠ 0 := by exact_mod_cast (add_pos F.p₂_pos hY).ne'
+  have hs := F.weights_sum'
+  simp only [RhatT, F.NT_eq_coeffs, F.PT_eq_poly, eT, HT, q₁T, WphT, W₀T, W₂T, W₀Tpoly,
+    W₂Tpoly, lamT, cbarT, cN₀T, cN₁T, cN₂T, cN₃T, ℓ₀T, ℓ₁T, ℓ₂T, ℓ₃T, N₂T, ζT, κT, ρ, mf, hq,
+    ite_true, h₁, h₂, h₃, hW]
+  push_cast
+  simp only [hpu, hpd] at hs ⊢
+  generalize (F.a : ℂ) = a at *
+  generalize (F.β : ℂ) = β at *
+  generalize (X : ℂ) = X at *
+  generalize (Y : ℂ) = Y at *
+  generalize (F.p₂ : ℂ) = p₂ at *
+  generalize (F.p₀ : ℂ) = p₀ at *
+  -- `X = t p₀`, `p₂ = t² p₀` with `t = e^{βμ}`
+  generalize ht : X / p₀ = t
+  obtain rfl : X = t * p₀ := by rw [← ht]; field_simp
+  obtain rfl : p₂ = t ^ 2 * p₀ := by
+    apply mul_left_cancel₀ hp0
+    linear_combination -hc
+  obtain rfl : Y = 1 - p₀ - t * p₀ - t ^ 2 * p₀ := by linear_combination hs
+  have ht : 1 + t ≠ 0 := fun h0 ↦ e₁ (by linear_combination p₀ * h0)
+  have ht' : t + 1 ≠ 0 := by rwa [add_comm]
+  rcases hσ with rfl | rfl <;> field_simp <;> ring
 
 /-- Identity (A6): `-βH(z) + λc̄ + ∑ⱼ cNⱼ(z)ℓⱼ = -βN₂(z)/(2a)`. -/
 theorem identity_A6T (ha : (F.a : ℂ) ≠ 0) (hW : F.WT k ≠ 0) (z : ℂ) :

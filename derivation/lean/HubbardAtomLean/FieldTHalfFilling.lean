@@ -313,57 +313,28 @@ private theorem identity_hfT_zero (ha : (F.a : ℂ) ≠ 0) (hq : F.q₀T k = 0) 
       (F.cN₀T k z + F.N₂T k z * F.shatT k) * F.ℓ₂T k) =
     2 * (-F.a) * F.β * (F.shatT k ^ 2 + F.κT k * F.shatT k + F.q₀T k ^ 2) -
       F.β * (F.cN₀T k z + F.N₂T k z * F.shatT k) := by
-  obtain ⟨rfl, ⟨hW, h₁, h₂, h₃, hc⟩ | ⟨hW, h₁, h₂, h₃, hc⟩⟩ := F.q₀T_zero_data k ha hq
-  · have hβ := F.β_ne_zeroT
-    have hp0 : (F.p₀ : ℂ) ≠ 0 := ofReal_ne_zero.mpr F.p₀_pos.ne'
-    have hs := F.weights_sum'
-    have hp₂ := F.p₂_eq_p₀_of_mu hμ
-    -- `p₂ = p₀` and `F.pUp² = p₀p₂`, so `F.pUp = p₀`
-    have hX : (F.pUp : ℂ) = F.p₀ := by
-      have hc' : F.pUp ^ 2 = F.p₀ * F.p₂ := by exact_mod_cast hc
-      rw [hp₂] at hc'
-      have : (F.pUp - F.p₀) * (F.pUp + F.p₀) = 0 := by linear_combination hc'
-      have hpos := add_pos F.pUp_pos F.p₀_pos
-      exact_mod_cast sub_eq_zero.mp ((mul_eq_zero.mp this).resolve_right hpos.ne')
-    have e₂ : (F.pDn : ℂ) + F.p₀ ≠ 0 := by exact_mod_cast (add_pos F.pDn_pos F.p₀_pos).ne'
-    simp only [cN₀T, N₂T, ℓ₀T, ℓ₂T, ζT, κT, shatT, q₁T, lamT, ρ, mf, hq, ite_true, h₁, h₂, h₃,
-      hW, hp₂, hX]
-    rw [hp₂, hX] at hs
-    push_cast
-    simp only [hX]
-    generalize (F.a : ℂ) = a at *
-    generalize (F.β : ℂ) = β at *
-    generalize (F.pDn : ℂ) = Y at *
-    generalize (F.p₀ : ℂ) = p₀ at *
-    obtain rfl : Y = 1 - 3 * p₀ := by linear_combination hs
-    have e₃ : 1 - p₀ * 2 ≠ 0 := fun h0 ↦ e₂ (by linear_combination h0)
-    field_simp
-    ring
-  · have hβ := F.β_ne_zeroT
-    have hp0 : (F.p₀ : ℂ) ≠ 0 := ofReal_ne_zero.mpr F.p₀_pos.ne'
-    have hs := F.weights_sum'
-    have hp₂ := F.p₂_eq_p₀_of_mu hμ
-    -- `p₂ = p₀` and `F.pDn² = p₀p₂`, so `F.pDn = p₀`
-    have hX : (F.pDn : ℂ) = F.p₀ := by
-      have hc' : F.pDn ^ 2 = F.p₀ * F.p₂ := by exact_mod_cast hc
-      rw [hp₂] at hc'
-      have : (F.pDn - F.p₀) * (F.pDn + F.p₀) = 0 := by linear_combination hc'
-      have hpos := add_pos F.pDn_pos F.p₀_pos
-      exact_mod_cast sub_eq_zero.mp ((mul_eq_zero.mp this).resolve_right hpos.ne')
-    have e₂ : (F.pUp : ℂ) + F.p₀ ≠ 0 := by exact_mod_cast (add_pos F.pUp_pos F.p₀_pos).ne'
-    simp only [cN₀T, N₂T, ℓ₀T, ℓ₂T, ζT, κT, shatT, q₁T, lamT, ρ, mf, hq, ite_true, h₁, h₂, h₃,
-      hW, hp₂, hX]
-    rw [hp₂, hX] at hs
-    push_cast
-    simp only [hX]
-    generalize (F.a : ℂ) = a at *
-    generalize (F.β : ℂ) = β at *
-    generalize (F.pUp : ℂ) = Y at *
-    generalize (F.p₀ : ℂ) = p₀ at *
-    obtain rfl : Y = 1 - 3 * p₀ := by linear_combination hs
-    have e₃ : 1 - p₀ * 2 ≠ 0 := fun h0 ↦ e₂ (by linear_combination h0)
-    field_simp
-    ring
+  obtain ⟨rfl, σ, X, Y, hσ, hX, hY, hW, hpu, hpd, h₁, h₂, h₃, hc⟩ := F.q₀T_zero_data k ha hq
+  have hβ := F.β_ne_zeroT
+  have hs := F.weights_sum'
+  have hp₂ := F.p₂_eq_p₀_of_mu hμ
+  -- `p₂ = p₀` and `X² = p₀p₂`, so `X = p₀`
+  have hXp : (X : ℂ) = F.p₀ := by
+    have hc' : X ^ 2 = F.p₀ * F.p₂ := by exact_mod_cast hc
+    rw [hp₂] at hc'
+    have : (X - F.p₀) * (X + F.p₀) = 0 := by linear_combination hc'
+    exact_mod_cast sub_eq_zero.mp ((mul_eq_zero.mp this).resolve_right (add_pos hX F.p₀_pos).ne')
+  have e₂ : (Y : ℂ) + F.p₀ ≠ 0 := by exact_mod_cast (add_pos hY F.p₀_pos).ne'
+  simp only [cN₀T, N₂T, ℓ₀T, ℓ₂T, ζT, κT, shatT, q₁T, lamT, ρ, mf, hq, ite_true, h₁, h₂, h₃,
+    hW, hp₂]
+  push_cast
+  simp only [hpu, hpd, hp₂, hXp] at hs ⊢
+  generalize (F.a : ℂ) = a at *
+  generalize (F.β : ℂ) = β at *
+  generalize (Y : ℂ) = Y at *
+  generalize (F.p₀ : ℂ) = p₀ at *
+  obtain rfl : Y = 1 - 3 * p₀ := by linear_combination hs
+  have e₃ : 1 - p₀ * 2 ≠ 0 := fun h0 ↦ e₂ (by linear_combination h0)
+  rcases hσ with rfl | rfl <;> field_simp <;> ring
 
 variable (F k) in
 /-- The rational identity behind `THFHyp.hasSum_NT_ghat`, with `P(û) = ŝ² + κŝ + q₀²` and
