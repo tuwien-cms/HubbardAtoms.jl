@@ -124,5 +124,16 @@ In this directory, with the toolchain of `lean-toolchain` (via elan) and Mathlib
 ```sh
 lake exe cache get   # prebuilt Mathlib
 lake build
-./scripts/check.sh   # about 5 min once Mathlib is built (peak memory about 37 GB)
+./scripts/check.sh   # about 4 min once Mathlib is built
 ```
+
+CI does not build the Lean project:
+green CI checks the Julia package only, and the proofs are checked by running `scripts/check.sh`
+by hand.
+Its memory peak, measured as the `memory.peak` of its cgroup, is 8.4 GiB,
+plus about 6 GB of Mathlib's `.olean` files, which every Lean process maps and shares
+(so plan for about 15 GB).
+Compiled alone, each module needs at most 4.4 GiB besides the mapped Mathlib files
+(`FieldTIdentities.lean`; most need less than 1 GiB).
+`SERIAL=1 ./scripts/check.sh` compiles the modules one at a time,
+which lowers the peak to 6.2 GiB plus the mapped files, in about 7 min.
