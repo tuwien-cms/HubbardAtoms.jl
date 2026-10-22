@@ -9,7 +9,7 @@ The transverse vertex at half filling, Eq. (field-T-axis) of the note (App. F.6.
 transverse data: the inverse of the diagonal-plus-mirror part on the mirror orbits, a constant and
 one separable term in `ĝ(z) = 1/(z² - ŝ)`, `ŝ = λp₀ - q₁`.
 
-* `FParams.THFHyp`: the assumptions: `U ≠ 0`, `μ = 0`, `W ≠ 0`, `q₀ ≠ 0`, `zₙ² ≠ ŝ` for all `n`,
+* `FParams.THFHyp`: the assumptions: `U ≠ 0`, `μ = 0`, `W ≠ 0`, `zₙ² ≠ ŝ` for all `n`,
   `zₙ² ≠ ŝ'` off the mirror fixed points, `û² = ŝ` and `D̂ = β + 2aS_k(û)/û ≠ 0`.
 * `FParams.THFHyp.chiTUp_isRightInverse`, `chiTUp_isLeftInverse`, `gammaTHF_eq`.
 -/
@@ -70,7 +70,6 @@ structure THFHyp (u : ℂ) : Prop where
   a_ne : (F.a : ℂ) ≠ 0
   μ_eq : F.μ = 0
   W_ne : F.WT k ≠ 0
-  q_ne : F.q₀T k ≠ 0
   z_sq_ne : ∀ n, F.zT k n ^ 2 - F.shatT k ≠ 0
   odd_ne : ∀ n, n ≠ mirror k n → F.zT k n ^ 2 - F.shatT' k ≠ 0
   u_sq : u ^ 2 = F.shatT k
@@ -198,27 +197,27 @@ theorem PT_mul_chiTUp_hf (hμ : F.μ = 0) (hW0 : F.WT k ≠ 0) (n m : ℤ) :
 
 /-! ### The lattice sums -/
 
-theorem hasSum_ℓ₀T (ha : (F.a : ℂ) ≠ 0) (hW : F.WT k ≠ 0) (hq : F.q₀T k ≠ 0) :
+theorem hasSum_ℓ₀T (ha : (F.a : ℂ) ≠ 0) (hW : F.WT k ≠ 0) :
     HasSum (fun l ↦ 1 / F.PT k (F.zT k l)) (F.ℓ₀T k) := by
-  convert F.hasSum_cubicT k ha hW hq 1 0 0 0 ((F.lat F.μ).z_ne_neg_add k 0) using 1
+  convert F.hasSum_cubicT k ha hW 1 0 0 0 ((F.lat F.μ).z_ne_neg_add k 0) using 1
   · funext l
     ring
   · ring
 
-theorem hasSum_ℓ₂T (ha : (F.a : ℂ) ≠ 0) (hW : F.WT k ≠ 0) (hq : F.q₀T k ≠ 0) :
+theorem hasSum_ℓ₂T (ha : (F.a : ℂ) ≠ 0) (hW : F.WT k ≠ 0) :
     HasSum (fun l ↦ F.zT k l ^ 2 / F.PT k (F.zT k l)) (F.ℓ₂T k) := by
-  convert F.hasSum_cubicT k ha hW hq 0 0 1 0 ((F.lat F.μ).z_ne_neg_add k 0) using 1
+  convert F.hasSum_cubicT k ha hW 0 0 1 0 ((F.lat F.μ).z_ne_neg_add k 0) using 1
   · funext l
     ring
   · ring
 
 /-- `∑ₗ N(z, zₗ)/P(zₗ) = N₀(z)ℓ₀ + N₂(z)ℓ₂` at `μ = 0`. -/
-theorem hasSum_NT_div (ha : (F.a : ℂ) ≠ 0) (hW : F.WT k ≠ 0) (hq : F.q₀T k ≠ 0)
+theorem hasSum_NT_div (ha : (F.a : ℂ) ≠ 0) (hW : F.WT k ≠ 0)
     (hμ : F.μ = 0) (z : ℂ) :
     HasSum (fun l ↦ F.NT k z (F.zT k l) / F.PT k (F.zT k l))
       (F.cN₀T k z * F.ℓ₀T k + F.N₂T k z * F.ℓ₂T k) := by
-  convert ((F.hasSum_ℓ₀T k ha hW hq).mul_left (F.cN₀T k z)).add
-    ((F.hasSum_ℓ₂T k ha hW hq).mul_left (F.N₂T k z)) using 1
+  convert ((F.hasSum_ℓ₀T k ha hW).mul_left (F.cN₀T k z)).add
+    ((F.hasSum_ℓ₂T k ha hW).mul_left (F.N₂T k z)) using 1
   funext l
   rw [F.NT_of_mu k hμ]
   ring
@@ -276,12 +275,8 @@ theorem THFHyp.hasSum_That (h : F.THFHyp k u) :
 
 set_option maxHeartbeats 4000000 in
 -- a rational identity of high degree in the weights and the transfer
-variable (F k) in
-/-- The rational identity behind `THFHyp.hasSum_NT_ghat`, with `P(û) = ŝ² + κŝ + q₀²` and
-`N(z, û) = N₀(z) + N₂(z)ŝ`: `-2a[(N₂(z)P(û) - N(z, û)(κ + ŝ))ℓ₀ - N(z, û)ℓ₂]
-= -2aβP(û) - βN(z, û)`. -/
-theorem identity_hfT (ha : (F.a : ℂ) ≠ 0) (hW : F.WT k ≠ 0) (hq : F.q₀T k ≠ 0) (hμ : F.μ = 0)
-    (z : ℂ) :
+private theorem identity_hfT_ne (ha : (F.a : ℂ) ≠ 0) (hW : F.WT k ≠ 0) (hq : F.q₀T k ≠ 0)
+    (hμ : F.μ = 0) (z : ℂ) :
     2 * (-F.a) * ((F.N₂T k z * (F.shatT k ^ 2 + F.κT k * F.shatT k + F.q₀T k ^ 2) -
         (F.cN₀T k z + F.N₂T k z * F.shatT k) * (F.κT k + F.shatT k)) * F.ℓ₀T k -
       (F.cN₀T k z + F.N₂T k z * F.shatT k) * F.ℓ₂T k) =
@@ -295,7 +290,7 @@ theorem identity_hfT (ha : (F.a : ℂ) ≠ 0) (hW : F.WT k ≠ 0) (hq : F.q₀T 
   have hs := F.weights_sum'
   have hp₂ := F.p₂_eq_p₀_of_mu hμ
   simp only [cN₀T, N₂T, ℓ₀T, ℓ₂T, TpT, TmT, SpT, SmT, F.sT₁_eq, F.sT₂_eq, F.sT₃_eq, F.sT₄_eq,
-    ζT, κT, shatT, q₁T, lamT, ρ, mf, hp₂]
+    ζT, κT, shatT, q₁T, lamT, ρ, mf, hp₂, hq, ite_false]
   rw [hp₂] at hs
   rw [q₀T] at hq ⊢
   push_cast
@@ -308,6 +303,81 @@ theorem identity_hfT (ha : (F.a : ℂ) ≠ 0) (hW : F.WT k ≠ 0) (hq : F.q₀T 
   field_simp
   subst hQ
   ring
+
+set_option maxHeartbeats 4000000 in
+-- a rational identity of high degree in the weights
+private theorem identity_hfT_zero (ha : (F.a : ℂ) ≠ 0) (hq : F.q₀T k = 0) (hμ : F.μ = 0)
+    (z : ℂ) :
+    2 * (-F.a) * ((F.N₂T k z * (F.shatT k ^ 2 + F.κT k * F.shatT k + F.q₀T k ^ 2) -
+        (F.cN₀T k z + F.N₂T k z * F.shatT k) * (F.κT k + F.shatT k)) * F.ℓ₀T k -
+      (F.cN₀T k z + F.N₂T k z * F.shatT k) * F.ℓ₂T k) =
+    2 * (-F.a) * F.β * (F.shatT k ^ 2 + F.κT k * F.shatT k + F.q₀T k ^ 2) -
+      F.β * (F.cN₀T k z + F.N₂T k z * F.shatT k) := by
+  obtain ⟨rfl, ⟨hW, h₁, h₂, h₃, hc⟩ | ⟨hW, h₁, h₂, h₃, hc⟩⟩ := F.q₀T_zero_data k ha hq
+  · have hβ := F.β_ne_zeroT
+    have hp0 : (F.p₀ : ℂ) ≠ 0 := ofReal_ne_zero.mpr F.p₀_pos.ne'
+    have hs := F.weights_sum'
+    have hp₂ := F.p₂_eq_p₀_of_mu hμ
+    -- `p₂ = p₀` and `F.pUp² = p₀p₂`, so `F.pUp = p₀`
+    have hX : (F.pUp : ℂ) = F.p₀ := by
+      have hc' : F.pUp ^ 2 = F.p₀ * F.p₂ := by exact_mod_cast hc
+      rw [hp₂] at hc'
+      have : (F.pUp - F.p₀) * (F.pUp + F.p₀) = 0 := by linear_combination hc'
+      have hpos := add_pos F.pUp_pos F.p₀_pos
+      exact_mod_cast sub_eq_zero.mp ((mul_eq_zero.mp this).resolve_right hpos.ne')
+    have e₂ : (F.pDn : ℂ) + F.p₀ ≠ 0 := by exact_mod_cast (add_pos F.pDn_pos F.p₀_pos).ne'
+    simp only [cN₀T, N₂T, ℓ₀T, ℓ₂T, ζT, κT, shatT, q₁T, lamT, ρ, mf, hq, ite_true, h₁, h₂, h₃,
+      hW, hp₂, hX]
+    rw [hp₂, hX] at hs
+    push_cast
+    simp only [hX]
+    generalize (F.a : ℂ) = a at *
+    generalize (F.β : ℂ) = β at *
+    generalize (F.pDn : ℂ) = Y at *
+    generalize (F.p₀ : ℂ) = p₀ at *
+    obtain rfl : Y = 1 - 3 * p₀ := by linear_combination hs
+    have e₃ : 1 - p₀ * 2 ≠ 0 := fun h0 ↦ e₂ (by linear_combination h0)
+    field_simp
+    ring
+  · have hβ := F.β_ne_zeroT
+    have hp0 : (F.p₀ : ℂ) ≠ 0 := ofReal_ne_zero.mpr F.p₀_pos.ne'
+    have hs := F.weights_sum'
+    have hp₂ := F.p₂_eq_p₀_of_mu hμ
+    -- `p₂ = p₀` and `F.pDn² = p₀p₂`, so `F.pDn = p₀`
+    have hX : (F.pDn : ℂ) = F.p₀ := by
+      have hc' : F.pDn ^ 2 = F.p₀ * F.p₂ := by exact_mod_cast hc
+      rw [hp₂] at hc'
+      have : (F.pDn - F.p₀) * (F.pDn + F.p₀) = 0 := by linear_combination hc'
+      have hpos := add_pos F.pDn_pos F.p₀_pos
+      exact_mod_cast sub_eq_zero.mp ((mul_eq_zero.mp this).resolve_right hpos.ne')
+    have e₂ : (F.pUp : ℂ) + F.p₀ ≠ 0 := by exact_mod_cast (add_pos F.pUp_pos F.p₀_pos).ne'
+    simp only [cN₀T, N₂T, ℓ₀T, ℓ₂T, ζT, κT, shatT, q₁T, lamT, ρ, mf, hq, ite_true, h₁, h₂, h₃,
+      hW, hp₂, hX]
+    rw [hp₂, hX] at hs
+    push_cast
+    simp only [hX]
+    generalize (F.a : ℂ) = a at *
+    generalize (F.β : ℂ) = β at *
+    generalize (F.pUp : ℂ) = Y at *
+    generalize (F.p₀ : ℂ) = p₀ at *
+    obtain rfl : Y = 1 - 3 * p₀ := by linear_combination hs
+    have e₃ : 1 - p₀ * 2 ≠ 0 := fun h0 ↦ e₂ (by linear_combination h0)
+    field_simp
+    ring
+
+variable (F k) in
+/-- The rational identity behind `THFHyp.hasSum_NT_ghat`, with `P(û) = ŝ² + κŝ + q₀²` and
+`N(z, û) = N₀(z) + N₂(z)ŝ`: `-2a[(N₂(z)P(û) - N(z, û)(κ + ŝ))ℓ₀ - N(z, û)ℓ₂]
+= -2aβP(û) - βN(z, û)`. -/
+theorem identity_hfT (ha : (F.a : ℂ) ≠ 0) (hW : F.WT k ≠ 0) (hμ : F.μ = 0) (z : ℂ) :
+    2 * (-F.a) * ((F.N₂T k z * (F.shatT k ^ 2 + F.κT k * F.shatT k + F.q₀T k ^ 2) -
+        (F.cN₀T k z + F.N₂T k z * F.shatT k) * (F.κT k + F.shatT k)) * F.ℓ₀T k -
+      (F.cN₀T k z + F.N₂T k z * F.shatT k) * F.ℓ₂T k) =
+    2 * (-F.a) * F.β * (F.shatT k ^ 2 + F.κT k * F.shatT k + F.q₀T k ^ 2) -
+      F.β * (F.cN₀T k z + F.N₂T k z * F.shatT k) := by
+  by_cases hq : F.q₀T k = 0
+  · exact identity_hfT_zero (F := F) (k := k) ha hq hμ z
+  · exact identity_hfT_ne (F := F) (k := k) ha hW hq hμ z
 
 /-- `∑ₗ P(û)N(z, zₗ)ĝ(zₗ)/P(zₗ) = βP(û) - N(z, û)D̂/(2εa)` (`ε = -1`), by partial fractions in
 `zₗ²`: `P(û)N(z, t)ĝ(t)/P(t) = cĝ(t) + (N₂(z)P(û) - c(κ + ŝ) - ct²)/P(t)` with `c = N(z, û)`.
@@ -322,9 +392,9 @@ theorem THFHyp.hasSum_NT_ghat (h : F.THFHyp k u) (z : ℂ) :
   have hNu : F.NT k z u = F.cN₀T k z + F.N₂T k z * F.shatT k := by
     rw [F.NT_of_mu k hμ, h.u_sq]
   convert ((h.hasSum_That.mul_left (F.NT k z u)).add
-    ((F.hasSum_ℓ₀T k h.a_ne h.W_ne h.q_ne).mul_left
+    ((F.hasSum_ℓ₀T k h.a_ne h.W_ne).mul_left
       (F.N₂T k z * F.PT k u - F.NT k z u * (F.κT k + F.shatT k)))).add
-    ((F.hasSum_ℓ₂T k h.a_ne h.W_ne h.q_ne).mul_left (-F.NT k z u)) using 1
+    ((F.hasSum_ℓ₂T k h.a_ne h.W_ne).mul_left (-F.NT k z u)) using 1
   · funext l
     have h₁ := h.z_sq_ne l
     have h₂ := F.PT_zT_ne_zero k l
@@ -338,7 +408,7 @@ theorem THFHyp.hasSum_NT_ghat (h : F.THFHyp k u) (z : ℂ) :
     field_simp
     rw [← hD, ← hPl, ← hG]
     ring
-  · have key := F.identity_hfT k ha h.W_ne h.q_ne hμ z
+  · have key := F.identity_hfT k ha h.W_ne hμ z
     rw [hPu', hNu, DhatT]
     generalize F.shatT k ^ 2 + F.κT k * F.shatT k + F.q₀T k ^ 2 = D at key ⊢
     field_simp
@@ -354,11 +424,11 @@ noncomputable def RrowTHF (n l : ℤ) : ℂ :=
 
 variable (F k) in
 /-- Identity (A6) at `μ = 0`: `-βH(z) + λβp₀ + N₀(z)ℓ₀ + N₂(z)ℓ₂ = -βN₂(z)/(2a)`. -/
-theorem identity_A6_hfT (ha : (F.a : ℂ) ≠ 0) (hW : F.WT k ≠ 0) (hq : F.q₀T k ≠ 0)
+theorem identity_A6_hfT (ha : (F.a : ℂ) ≠ 0) (hW : F.WT k ≠ 0)
     (hμ : F.μ = 0) (z : ℂ) :
     -F.β * F.HT k z + F.lamT * (F.β * F.p₀) + (F.cN₀T k z * F.ℓ₀T k + F.N₂T k z * F.ℓ₂T k) =
       F.β * F.N₂T k z / (2 * (-F.a)) := by
-  have h6 := F.identity_A6T k ha hW hq z
+  have h6 := F.identity_A6T k ha hW z
   have hρ := F.rho_eq_zeroT hμ
   have hc : (F.cbarT : ℂ) = F.β * F.p₀ := by
     rw [cbarT, F.p₂_eq_p₀_of_mu hμ]
@@ -392,10 +462,10 @@ theorem THFHyp.hasSum_RrowTHF (h : F.THFHyp k u) (n : ℤ) :
     convert hasSum_single (f := fun l ↦ F.lamT * (F.β * F.p₀) * kron l (mirror k n))
       (mirror k n) (fun l hl ↦ by simp only [kron_of_ne hl, mul_zero]) using 1
     rw [kron_self, mul_one]
-  convert (h₁.add h₂).add (F.hasSum_NT_div k h.a_ne h.W_ne h.q_ne h.μ_eq (F.zT k n)) using 1
+  convert (h₁.add h₂).add (F.hasSum_NT_div k h.a_ne h.W_ne h.μ_eq (F.zT k n)) using 1
   · funext l
     rw [RrowTHF]
-  · exact (F.identity_A6_hfT k h.a_ne h.W_ne h.q_ne h.μ_eq (F.zT k n)).symm
+  · exact (F.identity_A6_hfT k h.a_ne h.W_ne h.μ_eq (F.zT k n)).symm
 
 /-- The image of `P(û)ĝ`: `∑ₗ P(zₙ)χ_r,nl P(û)ĝ(zₗ) = -N(zₙ, û)D̂/(2εa)`. -/
 theorem THFHyp.hasSum_RrowTHF_ghat (h : F.THFHyp k u) (n : ℤ) :

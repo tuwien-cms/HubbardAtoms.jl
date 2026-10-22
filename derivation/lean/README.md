@@ -100,19 +100,21 @@ Lean checks how they conjugate `c↑`, `c↓` and `H`.
   reformulations are exact identities, not that its loss estimates are right.
 * With field:
   the coupled longitudinal vertex, Eq. (field-L), of which only the input is formalized.
-  `TGeneric` assumes, besides the conditions of Eq. (field-T)
-  (`U ≠ 0`, `μ ≠ 0`, `e(zₙ) ≠ 0`, `s₁ ≠ s₂`, `Kⱼ ≠ 0`),
-  also `W ≠ 0` (the case `W = 0` is `FieldTZero.lean`), `q₀ = a² - W²/4 ≠ 0`
-  (it excludes `k = 0`, `|h| = |U|/2`, where `P` has a double zero);
-  `THFHyp` assumes `W ≠ 0` and `q₀ ≠ 0` besides the note's conditions.
+  `TGeneric` assumes the conditions of Eq. (field-T)
+  (`U ≠ 0`, `μ ≠ 0`, `e(zₙ) ≠ 0`, `s₁ ≠ s₂`, `Kⱼ ≠ 0`)
+  and `W ≠ 0` (the case `W = 0` is `FieldTZero.lean`);
+  `THFHyp` assumes `W ≠ 0` besides the note's conditions.
   Roots at a zero of `P`, `P(uⱼ) = 0` or `P(û) = 0`, are included:
   Step 3 is used multiplied by `P(u)`, which the inverse carries as a factor.
+  So is `W = ±2a` (`k = 0`, `|h| = |U|/2`), where `q₀ = a² - W²/4 = 0` and `P(t) = t²(t² - 4a²)`
+  has a double zero: there the lattice sums of `M/P` take the values of `hasSum_cubicT` at
+  `q₀ = 0`, and identities (A6), (A7) hold with them (`q₀T_zero_data`).
   The equal-spin vertex assumes `ℒ(tₙ) ≠ 0` for all `n ≠ n̄`,
   where the note states Eq. (field-E) entrywise.
   At `h = 0`, `k = 0` (`W = 0`) the transverse vertex is that of the zero-field magnetic channel
   (`FieldTZero.lean`), under the zero-field assumptions.
   Not covered are the transverse exceptional sets
-  (confluent roots, lattice roots, `W = ±2a`),
+  (confluent roots, lattice roots),
   the axis reductions of Eqs. (field-h0), (field-mu0) as identities between closed forms,
   and the divergences of Section G.5.
 

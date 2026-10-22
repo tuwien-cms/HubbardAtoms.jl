@@ -11,7 +11,7 @@ of Steps 1, 3 and 4 is the free-variable algebra of `DensityMagnetic.lean` (`ste
 `step1_diag`, `step3_identity`, `step4_identity`); the lattice sums are those of `FieldTSums.lean`
 and the rational identities those of `FieldTIdentities.lean`.
 
-* `FParams.TGeneric`: the assumptions: `U ≠ 0`, `μ ≠ 0`, `W ≠ 0`, `q₀ = a² - W²/4 ≠ 0`,
+* `FParams.TGeneric`: the assumptions: `U ≠ 0`, `μ ≠ 0`, `W ≠ 0`,
   `e(zₙ) ≠ 0` for all `n`, two roots `u₁`, `u₂` of `e` with `u₁² ≠ u₂²`, and `Kⱼ ≠ 0`; a root
   may lie at a zero of `P`.
 * `FParams.invTUp`: the inverse; `TGeneric.chiTUp_isRightInverse`, `chiTUp_isLeftInverse`.
@@ -111,7 +111,6 @@ structure TGeneric (u₁ u₂ : ℂ) : Prop where
   a_ne : (F.a : ℂ) ≠ 0
   μ_ne : F.μ ≠ 0
   W_ne : F.WT k ≠ 0
-  q_ne : F.q₀T k ≠ 0
   e_ne : ∀ n, F.eT k (F.zT k n) ≠ 0
   e_u₁ : F.eT k u₁ = 0
   e_u₂ : F.eT k u₂ = 0
@@ -250,7 +249,7 @@ theorem TGeneric.hasSum_step1 (h : F.TGeneric k u₁ u₂) (n m : ℤ) :
       (fun l hl ↦ by simp only [kron_of_ne (Ne.symm hl), mul_zero, zero_div]) using 1
     rw [kron_self, mul_one]
   have h₃ := (F.hasSum_squareT k hμ n m).mul_left (F.lamT * F.EvT k (F.zT k m) / F.ρ)
-  have h₄ := (F.hasSum_rank_twoT k ha h.W_ne h.q_ne (F.zT k n) (x := -F.zT k m)
+  have h₄ := (F.hasSum_rank_twoT k ha h.W_ne (F.zT k n) (x := -F.zT k m)
     (fun l ↦ F.zT_ne_neg_zT k hμ m l) (by rw [F.PT_neg]; exact hPm)).mul_left
       (F.EvT k (F.zT k m))
   convert ((h₁.add h₂).add h₃).add h₄ using 1
@@ -262,7 +261,7 @@ theorem TGeneric.hasSum_step1 (h : F.TGeneric k u₁ u₂) (n m : ℤ) :
     field_simp
     ring
   · rw [F.PT_neg, hS]
-    have h7 := F.identity_A7T k ha h.W_ne h.q_ne (F.zT k n) (F.zT k m)
+    have h7 := F.identity_A7T k ha h.W_ne (F.zT k n) (F.zT k m)
     simp only [RrowT, DvT, EvT, FT, HT] at h7 ⊢
     have hR := h7
     by_cases hnm : n = m
@@ -292,11 +291,11 @@ theorem TGeneric.hasSum_step2 (h : F.TGeneric k u₁ u₂) (n : ℤ) :
     convert hasSum_single (f := fun l ↦ -F.β * F.HT k (F.zT k n) * kron n l) n
       (fun l hl ↦ by simp only [kron_of_ne (Ne.symm hl), mul_zero]) using 1
     rw [kron_self, mul_one]
-  convert h₁.add (F.hasSum_constT k h.a_ne h.W_ne h.q_ne h.μ_ne n) using 1
+  convert h₁.add (F.hasSum_constT k h.a_ne h.W_ne h.μ_ne n) using 1
   · funext l
     rw [RrowT]
     ring
-  · rw [← F.identity_A6T k h.a_ne h.W_ne h.q_ne]
+  · rw [← F.identity_A6T k h.a_ne h.W_ne]
     ring
 
 /-! ### Step 3 -/
@@ -326,9 +325,9 @@ theorem TGeneric.hasSum_step3 (h : F.TGeneric k u₁ u₂) {u : ℂ} (hu : F.eT 
     rw [kron_self, mul_one]
   have h₂ := (F.hasSum_cauchyT k hμ n hoff hun).mul_left (F.lamT * (F.β * F.HT k (-u)))
   have h₃ := (F.hasSum_cauchyT k hμ n hoff' hun').mul_left (F.lamT * (F.lamT * F.αT k u))
-  have h₄ := (F.hasSum_rank_two_mulT k ha h.W_ne h.q_ne (F.zT k n) hoff).mul_left
+  have h₄ := (F.hasSum_rank_two_mulT k ha h.W_ne (F.zT k n) hoff).mul_left
     (F.β * F.HT k (-u))
-  have h₅ := (F.hasSum_rank_two_mulT k ha h.W_ne h.q_ne (F.zT k n) hoff').mul_left
+  have h₅ := (F.hasSum_rank_two_mulT k ha h.W_ne (F.zT k n) hoff').mul_left
     (F.lamT * F.αT k u)
   rw [F.PT_neg] at h₅
   convert ((((h₁.add h₂).add h₃).mul_left (F.PT k u)).add h₄).add h₅ using 1
@@ -349,8 +348,8 @@ theorem TGeneric.hasSum_step3 (h : F.TGeneric k u₁ u₂) {u : ℂ} (hu : F.eT 
       field_simp
       ring
     rw [hSu, hSmu]
-    have h7p := F.identity_A7T k ha h.W_ne h.q_ne (F.zT k n) (-u)
-    have h7m := F.identity_A7T k ha h.W_ne h.q_ne (F.zT k n) u
+    have h7p := F.identity_A7T k ha h.W_ne (F.zT k n) (-u)
+    have h7m := F.identity_A7T k ha h.W_ne (F.zT k n) u
     rw [neg_neg, F.PT_neg, F.eT_neg, hu, neg_sq] at h7p
     rw [hu] at h7m
     have hrel := h.hrel hu
