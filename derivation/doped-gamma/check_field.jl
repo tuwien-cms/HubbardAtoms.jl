@@ -175,11 +175,14 @@ function check_formulas()
         counts[name] += 1
     end
     # Both signs, both orientations, all spin entries, static/nonstatic/odd fixed-point transfers,
-    # and all four axes (μ=0, h=0, μ=±h) at two temperatures.
+    # all four axes (μ=0, h=0, μ=±h) at two temperatures, and the double zero of P_T at
+    # W = ±2a (k = 0, |h| = |U|/2: h = 0.65 for U = 1.3, h = -1.05 for U = -2.1).
     for U in (big"1.3", big"-2.1"), β in (big"0.8", big"2.5"),
         (μ, h) in ((big"0.37", big"0.21"), (big"-0.9", big"0.4"),
                    (big"0.0", big"0.4"), (big"0.37", big"0.0"),
-                   (big"0.3", big"0.3"), (big"0.3", big"-0.3")), k in (-1, 0, 2)
+                   (big"0.3", big"0.3"), (big"0.3", big"-0.3"),
+                   (big"0.37", big"0.65"), (big"0.0", big"0.65"),
+                   (big"0.3", big"-1.05")), k in (-1, 0, 2)
 
         c = field_data(U, β, μ, h, k)
         l, lm = longitudinal_data(c), longitudinal_data(c; branch=-1)
