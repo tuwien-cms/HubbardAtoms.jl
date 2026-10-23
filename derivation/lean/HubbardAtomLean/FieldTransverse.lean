@@ -180,13 +180,14 @@ theorem WphT_affine (z s : ℂ) :
   ring
 
 /-- At `q₀ = 0` (`k = 0`, `W = ±2a`), `u = 0` is a root of `e` with `P(0) = q₀² = 0` and
-`W(z; 0) = 0`: `q₁ = λX` with `X² = p₀p₂` (`X = p↑` or `p↓`). There `K(0) = 0` as well. -/
+`W(z; 0) = 0`: `q₁ = λX` with `X² = p₀p₂` (`X = p↑` or `p↓`). Its thermal denominator vanishes,
+`K(0) = 0`, since `α(0) = ρS₀(0) - c̄ = -βX`; so the root is omitted, not a pole pair. -/
 theorem q₀T_zero_root (ha : (F.a : ℂ) ≠ 0) (hq : F.q₀T k = 0) :
-    F.eT k 0 = 0 ∧ F.ModeOKT k 0 := by
-  obtain ⟨rfl, σ, X, Y, hσ, -, -, hW, hpu, hpd, -, -, -, hc⟩ := F.q₀T_zero_data k ha hq
+    F.eT k 0 = 0 ∧ F.ModeOKT k 0 ∧ F.KT k 0 = 0 := by
+  obtain ⟨rfl, σ, X, Y, hσ, hX, -, hW, hpu, hpd, hS, -, -, hc⟩ := F.q₀T_zero_data k ha hq
   have hp0 : (F.p₀ : ℂ) ≠ 0 := ofReal_ne_zero.mpr F.p₀_pos.ne'
   have hs := F.weights_sum'
-  refine ⟨?_, Or.inr ⟨by rw [F.PT_eq_poly, hq]; ring, fun z ↦ ?_⟩⟩
+  refine ⟨?_, Or.inr ⟨by rw [F.PT_eq_poly, hq]; ring, fun z ↦ ?_⟩, ?_⟩
   · simp only [eT, HT, q₁T, lamT, mf, hq, hW]
     push_cast
     rw [hpu, hpd]
@@ -206,6 +207,23 @@ theorem q₀T_zero_root (ha : (F.a : ℂ) ≠ 0) (hq : F.q₀T k = 0) :
       linear_combination -hc
     obtain rfl : Y = 1 - p₀ - t * p₀ - t ^ 2 * p₀ := by linear_combination hs
     rcases hσ with rfl | rfl <;> ring
+  · have e₁ : (X : ℂ) + F.p₀ ≠ 0 := by exact_mod_cast (add_pos hX F.p₀_pos).ne'
+    simp only [KT, HT, αT, q₁T, lamT, mf, ρ, cbarT, hq, hW, neg_zero]
+    rw [show (F.lat F.μ).S 0 0 = F.sZT from rfl, hS]
+    push_cast
+    rw [hpu, hpd]
+    generalize (F.a : ℂ) = a at *
+    generalize (F.β : ℂ) = β at *
+    generalize (X : ℂ) = X at *
+    generalize (F.p₂ : ℂ) = p₂ at *
+    generalize (F.p₀ : ℂ) = p₀ at *
+    generalize ht : X / p₀ = t
+    obtain rfl : X = t * p₀ := by rw [← ht]; field_simp
+    obtain rfl : p₂ = t ^ 2 * p₀ := by
+      apply mul_left_cancel₀ hp0
+      linear_combination -hc
+    have ht' : t + 1 ≠ 0 := fun h0 ↦ e₁ (by linear_combination p₀ * h0)
+    rcases hσ with rfl | rfl <;> field_simp <;> ring
 
 /-- At `q₀ = 0` (`W = ±2a`) take `u₁ = 0` (`q₀T_zero_root`): only the other root needs
 `ModeOKT`. -/
@@ -216,7 +234,7 @@ theorem TGeneric.of_q₀T_zero (ha : (F.a : ℂ) ≠ 0) (hμ : F.μ ≠ 0) (hq :
   have hW' : F.WT k ≠ 0 := by
     rw [hW]
     rcases hσ with rfl | rfl <;> simpa using ha
-  obtain ⟨he₀, hmode₀⟩ := F.q₀T_zero_root k ha hq
+  obtain ⟨he₀, hmode₀, -⟩ := F.q₀T_zero_root k ha hq
   exact ⟨ha, hμ, hW', he, he₀, hu₂, by simpa [eq_comm] using pow_ne_zero 2 hne, hmode₀, hmode⟩
 
 theorem PT_sub_eT (t : ℂ) : F.PT k t - F.eT k t =

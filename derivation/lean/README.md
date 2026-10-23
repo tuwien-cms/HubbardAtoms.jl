@@ -114,7 +114,7 @@ Lean checks how they conjugate `c↑`, `c↓` and `H`.
   and identities (A6), (A7) hold with them (`q₀T_zero_data`).
   There `q₁ = -4a²p↑` with `p↑² = p₀p₂` (`h = -a`; `p↓` for `h = a`),
   so `e(0) = 0`, and one root is `u = 0` (`û = 0` at `μ = 0`), at the double zero of `P`.
-  For `μ ≠ 0` also `K(0) = 0`, and the note omits this root:
+  There also `K(0) = 0`, and Eq. (field-T) omits this root:
   like the atomic pair of `DMGeneric`, it satisfies the alternative of `ModeOKT`,
   `P(u) = 0` and `W(z; u²) = 0`, instead of `K(u) ≠ 0`
   (`q₀T_zero_root`, `TGeneric.of_q₀T_zero`),
