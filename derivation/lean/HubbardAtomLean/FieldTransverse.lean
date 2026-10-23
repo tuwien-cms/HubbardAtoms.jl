@@ -12,8 +12,11 @@ of Steps 1, 3 and 4 is the free-variable algebra of `DensityMagnetic.lean` (`ste
 and the rational identities those of `FieldTIdentities.lean`.
 
 * `FParams.TGeneric`: the assumptions: `U ≠ 0`, `μ ≠ 0`, `W ≠ 0`,
-  `e(zₙ) ≠ 0` for all `n`, two roots `u₁`, `u₂` of `e` with `u₁² ≠ u₂²`, and `Kⱼ ≠ 0`; a root
-  may lie at a zero of `P`.
+  `e(zₙ) ≠ 0` for all `n`, two roots `u₁`, `u₂` of `e` with `u₁² ≠ u₂²`, and for each root
+  `Kⱼ ≠ 0` or the alternative `P(uⱼ) = 0`, `W(z; sⱼ) = 0` (`FParams.ModeOKT`); a root may lie at a
+  zero of `P`.
+* `FParams.q₀T_zero_root`, `TGeneric.of_q₀T_zero`: at `q₀ = 0` (`W = ±2a`) the root `u = 0` of `e`
+  satisfies the alternative, and drops out; only the other root needs `K ≠ 0`.
 * `FParams.invTUp`: the inverse; `TGeneric.chiTUp_isRightInverse`, `chiTUp_isLeftInverse`.
 * `FParams.gammaTUp`, `TGeneric.gammaTUp_eq`: **the transverse vertex**,
   `β²(χ_T↑⁻¹ - b_T↑⁻¹) = Γ_T↑` of Eq. (field-T).
@@ -105,6 +108,11 @@ noncomputable def RrowT (n l : ℤ) : ℂ :=
   -F.β * F.HT k (F.zT k n) * kron n l + F.lamT * F.ρ / (F.zT k n + F.zT k l) +
     F.NT k (F.zT k n) (F.zT k l) / F.PT k (F.zT k l)
 
+/-- The condition on a root `u` of `e` in Eq. (field-T): `K(u) ≠ 0` (a pole pair of Step 3), or
+`P(u) = 0` and `W(z; u²) = 0` for all `z` (the root `u = 0` at `W = ±2a`, `q₀T_zero_root`, which
+drops out). -/
+def ModeOKT (u : ℂ) : Prop := F.KT k u ≠ 0 ∨ (F.PT k u = 0 ∧ ∀ z, F.WphT k z (u ^ 2) = 0)
+
 /-- The assumptions of the transverse vertex, Eq. (field-T), for the roots `u₁² = s₁`, `u₂² = s₂`
 of `e`. -/
 structure TGeneric (u₁ u₂ : ℂ) : Prop where
@@ -115,8 +123,8 @@ structure TGeneric (u₁ u₂ : ℂ) : Prop where
   e_u₁ : F.eT k u₁ = 0
   e_u₂ : F.eT k u₂ = 0
   s_ne : u₁ ^ 2 ≠ u₂ ^ 2
-  K_u₁ : F.KT k u₁ ≠ 0
-  K_u₂ : F.KT k u₂ ≠ 0
+  mode₁ : F.ModeOKT k u₁
+  mode₂ : F.ModeOKT k u₂
 
 /-! ### Consequences of the assumptions -/
 
@@ -170,6 +178,64 @@ theorem WphT_affine (z s : ℂ) :
     F.WphT k z s = F.WphT k z 0 + (F.WphT k z 1 - F.WphT k z 0) * s := by
   simp only [WphT, W₀T, W₂T, W₀Tpoly, W₂Tpoly]
   ring
+
+/-- At `q₀ = 0` (`k = 0`, `W = ±2a`), `u = 0` is a root of `e` with `P(0) = q₀² = 0` and
+`W(z; 0) = 0`: `q₁ = λX` with `X² = p₀p₂` (`X = p↑` or `p↓`). Its thermal denominator vanishes,
+`K(0) = 0`, since `α(0) = ρS₀(0) - c̄ = -βX`; so the root is omitted, not a pole pair. -/
+theorem q₀T_zero_root (ha : (F.a : ℂ) ≠ 0) (hq : F.q₀T k = 0) :
+    F.eT k 0 = 0 ∧ F.ModeOKT k 0 ∧ F.KT k 0 = 0 := by
+  obtain ⟨rfl, σ, X, Y, hσ, hX, -, hW, hpu, hpd, hS, -, -, hc⟩ := F.q₀T_zero_data k ha hq
+  have hp0 : (F.p₀ : ℂ) ≠ 0 := ofReal_ne_zero.mpr F.p₀_pos.ne'
+  have hs := F.weights_sum'
+  refine ⟨?_, Or.inr ⟨by rw [F.PT_eq_poly, hq]; ring, fun z ↦ ?_⟩, ?_⟩
+  · simp only [eT, HT, q₁T, lamT, mf, hq, hW]
+    push_cast
+    rw [hpu, hpd]
+    rcases hσ with rfl | rfl <;> linear_combination 16 * (F.a : ℂ) ^ 4 * hc
+  · simp only [WphT, W₀T, W₂T, W₀Tpoly, W₂Tpoly, hW]
+    rw [hpu, hpd] at hs ⊢
+    generalize (F.a : ℂ) = a at *
+    generalize (X : ℂ) = X at *
+    generalize (Y : ℂ) = Y at *
+    generalize (F.p₂ : ℂ) = p₂ at *
+    generalize (F.p₀ : ℂ) = p₀ at *
+    -- `X = t p₀`, `p₂ = t² p₀` with `t = e^{βμ}`
+    generalize ht : X / p₀ = t
+    obtain rfl : X = t * p₀ := by rw [← ht]; field_simp
+    obtain rfl : p₂ = t ^ 2 * p₀ := by
+      apply mul_left_cancel₀ hp0
+      linear_combination -hc
+    obtain rfl : Y = 1 - p₀ - t * p₀ - t ^ 2 * p₀ := by linear_combination hs
+    rcases hσ with rfl | rfl <;> ring
+  · have e₁ : (X : ℂ) + F.p₀ ≠ 0 := by exact_mod_cast (add_pos hX F.p₀_pos).ne'
+    simp only [KT, HT, αT, q₁T, lamT, mf, ρ, cbarT, hq, hW, neg_zero]
+    rw [show (F.lat F.μ).S 0 0 = F.sZT from rfl, hS]
+    push_cast
+    rw [hpu, hpd]
+    generalize (F.a : ℂ) = a at *
+    generalize (F.β : ℂ) = β at *
+    generalize (X : ℂ) = X at *
+    generalize (F.p₂ : ℂ) = p₂ at *
+    generalize (F.p₀ : ℂ) = p₀ at *
+    generalize ht : X / p₀ = t
+    obtain rfl : X = t * p₀ := by rw [← ht]; field_simp
+    obtain rfl : p₂ = t ^ 2 * p₀ := by
+      apply mul_left_cancel₀ hp0
+      linear_combination -hc
+    have ht' : t + 1 ≠ 0 := fun h0 ↦ e₁ (by linear_combination p₀ * h0)
+    rcases hσ with rfl | rfl <;> field_simp <;> ring
+
+/-- At `q₀ = 0` (`W = ±2a`) take `u₁ = 0` (`q₀T_zero_root`): only the other root needs
+`ModeOKT`. -/
+theorem TGeneric.of_q₀T_zero (ha : (F.a : ℂ) ≠ 0) (hμ : F.μ ≠ 0) (hq : F.q₀T k = 0)
+    (he : ∀ n, F.eT k (F.zT k n) ≠ 0) {u₂ : ℂ} (hu₂ : F.eT k u₂ = 0) (hne : u₂ ≠ 0)
+    (hmode : F.ModeOKT k u₂) : F.TGeneric k 0 u₂ := by
+  obtain ⟨-, σ, -, -, hσ, -, -, hW, -⟩ := F.q₀T_zero_data k ha hq
+  have hW' : F.WT k ≠ 0 := by
+    rw [hW]
+    rcases hσ with rfl | rfl <;> simpa using ha
+  obtain ⟨he₀, hmode₀, -⟩ := F.q₀T_zero_root k ha hq
+  exact ⟨ha, hμ, hW', he, he₀, hu₂, by simpa [eq_comm] using pow_ne_zero 2 hne, hmode₀, hmode⟩
 
 theorem PT_sub_eT (t : ℂ) : F.PT k t - F.eT k t =
     ((F.PT k 1 - F.eT k 1) - (F.PT k 0 - F.eT k 0)) * t ^ 2 + (F.PT k 0 - F.eT k 0) := by
@@ -365,19 +431,22 @@ theorem TGeneric.hasSum_step3 (h : F.TGeneric k u₁ u₂) {u : ℂ} (hu : F.eT 
 
 /-- The contribution of one root pair to the column. -/
 theorem TGeneric.hasSum_mode (h : F.TGeneric k u₁ u₂) {u u' : ℂ} (hu : F.eT k u = 0)
-    (hK : F.KT k u ≠ 0) (hs : u ^ 2 - u' ^ 2 ≠ 0) (n m : ℤ)
+    (hmode : F.ModeOKT k u) (hs : u ^ 2 - u' ^ 2 ≠ 0) (n m : ℤ)
     (hv : F.zT k m ^ 2 - u ^ 2 ≠ 0) :
     HasSum (fun l ↦ F.cmodeT k u u' (F.zT k m) * (F.RrowT k n l * F.modeT k u (F.zT k l)))
       (-(F.lamT / F.β) * (F.ρ * F.zT k n * F.PT k u + F.WphT k (F.zT k n) (u ^ 2)) /
         ((u ^ 2 - u' ^ 2) * (F.zT k m ^ 2 - u ^ 2))) := by
-  have hβ := F.β_ne_zeroT
-  have hρ := F.rho_ne_zeroT h.μ_ne
-  convert (h.hasSum_step3 hu n).mul_left
-    (F.lamT * F.ρ / ((u ^ 2 - u' ^ 2) * (F.zT k m ^ 2 - u ^ 2) * (F.β ^ 2 * F.KT k u))) using 1
-  · funext l
-    rw [cmodeT]
-    field_simp
-  · field_simp
+  rcases hmode with hK | ⟨hP, hW⟩
+  · have hβ := F.β_ne_zeroT
+    have hρ := F.rho_ne_zeroT h.μ_ne
+    convert (h.hasSum_step3 hu n).mul_left
+      (F.lamT * F.ρ / ((u ^ 2 - u' ^ 2) * (F.zT k m ^ 2 - u ^ 2) * (F.β ^ 2 * F.KT k u))) using 1
+    · funext l
+      rw [cmodeT]
+      field_simp
+    · field_simp
+  · simp only [cmodeT, hP, hW, zero_div, mul_zero, zero_mul, add_zero]
+    exact hasSum_zero
 
 /-- **The transverse vertex**, the inverse: `χ_T↑ invTUp = 1`. -/
 theorem TGeneric.chiTUp_isRightInverse (h : F.TGeneric k u₁ u₂) :
@@ -391,8 +460,8 @@ theorem TGeneric.chiTUp_isRightInverse (h : F.TGeneric k u₁ u₂) :
   have hs' : u₂ ^ 2 - u₁ ^ 2 ≠ 0 := fun h0 ↦ hs (by linear_combination -h0)
   have hS1 := h.hasSum_step1 n m
   have hS2 := (h.hasSum_step2 n).mul_left (2 * (-(F.a : ℂ)) / (F.β : ℂ) ^ 2)
-  have hS3 := h.hasSum_mode h.e_u₁ h.K_u₁ hs n m (h.z_sq_ne₁ m)
-  have hS4 := h.hasSum_mode h.e_u₂ h.K_u₂ hs' n m (h.z_sq_ne₂ m)
+  have hS3 := h.hasSum_mode h.e_u₁ h.mode₁ hs n m (h.z_sq_ne₁ m)
+  have hS4 := h.hasSum_mode h.e_u₂ h.mode₂ hs' n m (h.z_sq_ne₂ m)
   convert (((hS1.add hS2).add hS3).add hS4).div_const (F.PT k (F.zT k n)) using 1
   · funext l
     have hc : F.chiTUp k n l = F.RrowT k n l / F.PT k (F.zT k n) := by
@@ -557,8 +626,8 @@ theorem TGeneric.DDT_eq (h : F.TGeneric k u₁ u₂) (n m : ℤ) :
     field_simp
     ring
 
-/-- `β²cⱼφⱼ(z)` splits into the `DD` part and the `γⱼ` part. -/
-theorem cmodeT_mul_modeT {u u' z v : ℂ} (hK : F.KT k u ≠ 0) (hs : u ^ 2 - u' ^ 2 ≠ 0)
+/-- `β²cⱼφⱼ(z)` splits into the `DD` part and the `γⱼ` part; for `P(u) = 0` all three vanish. -/
+theorem cmodeT_mul_modeT {u u' z v : ℂ} (hK : F.KT k u ≠ 0 ∨ F.PT k u = 0) (hs : u ^ 2 - u' ^ 2 ≠ 0)
     (hzu : z - u ≠ 0) (hzu' : z + u ≠ 0) (hv : v ^ 2 - u ^ 2 ≠ 0) :
     (F.β : ℂ) ^ 2 * (F.cmodeT k u u' v * F.modeT k u z) =
       F.lamT * F.ρ * (F.PT k u / (u ^ 2 - u' ^ 2)) * z * (1 / (z ^ 2 - u ^ 2)) *
@@ -569,10 +638,13 @@ theorem cmodeT_mul_modeT {u u' z v : ℂ} (hK : F.KT k u ≠ 0) (hs : u ^ 2 - u'
   have hz : z ^ 2 - u ^ 2 ≠ 0 := by
     rw [show z ^ 2 - u ^ 2 = (z - u) * (z + u) by ring]
     exact mul_ne_zero hzu hzu'
-  rw [KT] at hK
-  simp only [cmodeT, modeT, ZT, KT]
-  field_simp
-  ring
+  rcases hK with hK | hP
+  · rw [KT] at hK
+    simp only [cmodeT, modeT, ZT, KT]
+    field_simp
+    ring
+  · simp only [cmodeT, ZT, hP]
+    simp
 
 /-- **The transverse vertex**, the closed form: `β²(χ_T↑⁻¹ - b_T↑⁻¹) = Γ_T↑`. -/
 theorem TGeneric.gammaTUp_eq (h : F.TGeneric k u₁ u₂) (n m : ℤ) :
@@ -590,9 +662,11 @@ theorem TGeneric.gammaTUp_eq (h : F.TGeneric k u₁ u₂) (n m : ℤ) :
   have hn₂ := h.z_sq_ne₂ n
   have hm₁ := h.z_sq_ne₁ m
   have hm₂ := h.z_sq_ne₂ m
-  have e₁ := cmodeT_mul_modeT (F := F) (k := k) h.K_u₁ hs (sub_ne_zero.mpr (h.z_ne h.e_u₁ n))
+  have e₁ := cmodeT_mul_modeT (F := F) (k := k) (h.mode₁.imp_right And.left) hs
+    (sub_ne_zero.mpr (h.z_ne h.e_u₁ n))
     (fun h0 ↦ h.z_ne_neg h.e_u₁ n (by linear_combination h0)) hm₁
-  have e₂ := cmodeT_mul_modeT (F := F) (k := k) h.K_u₂ hs' (sub_ne_zero.mpr (h.z_ne h.e_u₂ n))
+  have e₂ := cmodeT_mul_modeT (F := F) (k := k) (h.mode₂.imp_right And.left) hs'
+    (sub_ne_zero.mpr (h.z_ne h.e_u₂ n))
     (fun h0 ↦ h.z_ne_neg h.e_u₂ n (by linear_combination h0)) hm₂
   have hsplit : (F.β : ℂ) ^ 2 * (F.invTUp k u₁ u₂ n m - kron n m / F.bTUp k n) =
       F.β ^ 2 * (F.DvT k (F.zT k m) * kron n m + F.EvT k (F.zT k m) / (F.zT k n + F.zT k m) -

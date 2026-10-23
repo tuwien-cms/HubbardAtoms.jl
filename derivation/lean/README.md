@@ -101,7 +101,7 @@ Lean checks how they conjugate `c↑`, `c↓` and `H`.
 * With field:
   the coupled longitudinal vertex, Eq. (field-L), of which only the input is formalized.
   `TGeneric` assumes the conditions of Eq. (field-T)
-  (`U ≠ 0`, `μ ≠ 0`, `e(zₙ) ≠ 0`, `s₁ ≠ s₂`, `Kⱼ ≠ 0`)
+  (`U ≠ 0`, `μ ≠ 0`, `e(zₙ) ≠ 0`, `s₁ ≠ s₂`, `Kⱼ ≠ 0` except for a root that is omitted)
   and `W ≠ 0` (the case `W = 0` is `FieldTZero.lean`);
   `THFHyp` assumes `W ≠ 0` besides the note's conditions.
   Roots at a zero of `P` are included,
@@ -112,8 +112,13 @@ Lean checks how they conjugate `c↑`, `c↓` and `H`.
   has a double zero:
   the lattice sums of `M/P` take the values of `hasSum_cubicT` at `q₀ = 0`,
   and identities (A6), (A7) hold with them (`q₀T_zero_data`).
-  There the two cases meet: `q₁ = -4a²p↑` with `p↑² = p₀p₂` (`h = -a`; `p↓` for `h = a`),
+  There `q₁ = -4a²p↑` with `p↑² = p₀p₂` (`h = -a`; `p↓` for `h = a`),
   so `e(0) = 0`, and one root is `u = 0` (`û = 0` at `μ = 0`), at the double zero of `P`.
+  There also `K(0) = 0`, and Eq. (field-T) omits this root:
+  like the atomic pair of `DMGeneric`, it satisfies the alternative of `ModeOKT`,
+  `P(u) = 0` and `W(z; u²) = 0`, instead of `K(u) ≠ 0`
+  (`q₀T_zero_root`, `TGeneric.of_q₀T_zero`),
+  and its term in the inverse vanishes.
   The pair vertices of `FieldPair.lean` inherit all of this.
   The equal-spin vertex assumes `ℒ(tₙ) ≠ 0` for all `n ≠ n̄`,
   where the note states Eq. (field-E) entrywise.
