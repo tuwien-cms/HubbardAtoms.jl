@@ -76,7 +76,8 @@ lake exe cache get && lake build                           # Lean 4 and Mathlib 
 ```
 
 The rebuilt note has 45 pages. The field check's worst normalized vertex difference is
-`6.4e-63` over 2882 comparisons; the longitudinal ratio identity has error at most `2.3e-60`.
+`6.4e-63` over 4322 comparisons, including the double zero of `P_T` at `W = ±2a`;
+the longitudinal ratio identity has error at most `2.3e-60`.
 At the nonstatic transverse/pair example the smallest box eigenvalue decreases from `3.7e-8`
 to `3.8e-11` over 24–96 frequencies, with overlap deficit at most `3.2e-8`; restricted equal-spin
 zeros are below `1.5e-18`. The exceptional pairs shrink to `3.4e-8` (transverse) and `2.6e-8`

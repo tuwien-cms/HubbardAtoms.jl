@@ -11,8 +11,9 @@ of Steps 1, 3 and 4 is the free-variable algebra of `DensityMagnetic.lean` (`ste
 `step1_diag`, `step3_identity`, `step4_identity`); the lattice sums are those of `FieldTSums.lean`
 and the rational identities those of `FieldTIdentities.lean`.
 
-* `FParams.TGeneric`: the assumptions: `U ≠ 0`, `μ ≠ 0`, `W ≠ 0`, `q₀ = a² - W²/4 ≠ 0`,
-  `e(zₙ) ≠ 0` for all `n`, two roots `u₁`, `u₂` of `e` with `u₁² ≠ u₂²`, and `P(uⱼ) ≠ 0`, `Kⱼ ≠ 0`.
+* `FParams.TGeneric`: the assumptions: `U ≠ 0`, `μ ≠ 0`, `W ≠ 0`,
+  `e(zₙ) ≠ 0` for all `n`, two roots `u₁`, `u₂` of `e` with `u₁² ≠ u₂²`, and `Kⱼ ≠ 0`; a root
+  may lie at a zero of `P`.
 * `FParams.invTUp`: the inverse; `TGeneric.chiTUp_isRightInverse`, `chiTUp_isLeftInverse`.
 * `FParams.gammaTUp`, `TGeneric.gammaTUp_eq`: **the transverse vertex**,
   `β²(χ_T↑⁻¹ - b_T↑⁻¹) = Γ_T↑` of Eq. (field-T).
@@ -21,6 +22,46 @@ and the rational identities those of `FieldTIdentities.lean`.
 open Complex Filter Topology
 
 namespace HubbardAtom
+
+/-- `step3_identity` times `P = P(u)`, which needs no `P ≠ 0`: the image of `P(u)φ_u` is
+`-βK(u)[P(u)z + W(z; u²)/ρ]`. -/
+theorem step3_identity_mul {β lam ρ a q₁ z u P W αu αmu Nu Nmu Ru Rmu cb : ℂ} (hβ : β ≠ 0)
+    (hlam : lam ≠ 0) (hρ : ρ ≠ 0) (hzu : z - u ≠ 0) (hzu' : z + u ≠ 0) (hαu : αu ≠ 0)
+    (hrel : β ^ 2 * (u ^ 2 + 2 * a * ρ * u + q₁) * ((-u) ^ 2 + 2 * a * ρ * (-u) + q₁) =
+      lam ^ 2 * (αu * αmu))
+    (hp : lam / β * (cb * Nu + ρ * Ru) = lam * ρ * (z + u + 2 * a * ρ) * P -
+      (u ^ 2 + 2 * a * ρ * u + q₁) * Nmu - lam * ρ * z * P - lam * W)
+    (hm : lam / β * (cb * Nmu + ρ * Rmu) = lam * ρ * (z - u + 2 * a * ρ) * P -
+      ((-u) ^ 2 + 2 * a * ρ * (-u) + q₁) * Nu - lam * ρ * z * P - lam * W) :
+    P * (-β * (z ^ 2 + 2 * a * ρ * z + q₁) * (β * ((-u) ^ 2 + 2 * a * ρ * (-u) + q₁) / (z - u) +
+          lam * αu / (z + u)) +
+        lam * (β * ((-u) ^ 2 + 2 * a * ρ * (-u) + q₁)) * (αu / (z + u)) +
+        lam * (lam * αu) * (αmu / (z + -u))) +
+        β * ((-u) ^ 2 + 2 * a * ρ * (-u) + q₁) * (Nu * ((αu + cb) / ρ) + Ru) +
+      lam * αu * (Nmu * ((αmu + cb) / ρ) + Rmu) =
+    -β * (β * ((-u) ^ 2 + 2 * a * ρ * (-u) + q₁) + lam * αu) * (P * z + W / ρ) := by
+  have hYp : cb * Nu + ρ * Ru = β / lam * (lam * ρ * (z + u + 2 * a * ρ) * P -
+      (u ^ 2 + 2 * a * ρ * u + q₁) * Nmu - lam * ρ * z * P - lam * W) := by
+    rw [← hp]
+    field_simp
+  have hYm : cb * Nmu + ρ * Rmu = β / lam * (lam * ρ * (z - u + 2 * a * ρ) * P -
+      ((-u) ^ 2 + 2 * a * ρ * (-u) + q₁) * Nu - lam * ρ * z * P - lam * W) := by
+    rw [← hm]
+    field_simp
+  have hαmu : αmu = β ^ 2 * (u ^ 2 + 2 * a * ρ * u + q₁) * ((-u) ^ 2 + 2 * a * ρ * (-u) + q₁) /
+      (lam ^ 2 * αu) := by
+    rw [hrel]
+    field_simp
+  have e₁ : Nu * ((αu + cb) / ρ) + Ru = (αu * Nu + (cb * Nu + ρ * Ru)) / ρ := by
+    field_simp
+    ring
+  have e₂ : Nmu * ((αmu + cb) / ρ) + Rmu = (αmu * Nmu + (cb * Nmu + ρ * Rmu)) / ρ := by
+    field_simp
+    ring
+  have hzu'' : z + -u ≠ 0 := by rwa [← sub_eq_add_neg]
+  rw [e₁, e₂, hYp, hYm, hαmu]
+  field_simp
+  ring
 
 namespace FParams
 
@@ -70,13 +111,10 @@ structure TGeneric (u₁ u₂ : ℂ) : Prop where
   a_ne : (F.a : ℂ) ≠ 0
   μ_ne : F.μ ≠ 0
   W_ne : F.WT k ≠ 0
-  q_ne : F.q₀T k ≠ 0
   e_ne : ∀ n, F.eT k (F.zT k n) ≠ 0
   e_u₁ : F.eT k u₁ = 0
   e_u₂ : F.eT k u₂ = 0
   s_ne : u₁ ^ 2 ≠ u₂ ^ 2
-  P_u₁ : F.PT k u₁ ≠ 0
-  P_u₂ : F.PT k u₂ ≠ 0
   K_u₁ : F.KT k u₁ ≠ 0
   K_u₂ : F.KT k u₂ ≠ 0
 
@@ -211,7 +249,7 @@ theorem TGeneric.hasSum_step1 (h : F.TGeneric k u₁ u₂) (n m : ℤ) :
       (fun l hl ↦ by simp only [kron_of_ne (Ne.symm hl), mul_zero, zero_div]) using 1
     rw [kron_self, mul_one]
   have h₃ := (F.hasSum_squareT k hμ n m).mul_left (F.lamT * F.EvT k (F.zT k m) / F.ρ)
-  have h₄ := (F.hasSum_rank_twoT k ha h.W_ne h.q_ne (F.zT k n) (x := -F.zT k m)
+  have h₄ := (F.hasSum_rank_twoT k ha h.W_ne (F.zT k n) (x := -F.zT k m)
     (fun l ↦ F.zT_ne_neg_zT k hμ m l) (by rw [F.PT_neg]; exact hPm)).mul_left
       (F.EvT k (F.zT k m))
   convert ((h₁.add h₂).add h₃).add h₄ using 1
@@ -223,7 +261,7 @@ theorem TGeneric.hasSum_step1 (h : F.TGeneric k u₁ u₂) (n m : ℤ) :
     field_simp
     ring
   · rw [F.PT_neg, hS]
-    have h7 := F.identity_A7T k ha h.W_ne h.q_ne (F.zT k n) (F.zT k m)
+    have h7 := F.identity_A7T k ha h.W_ne (F.zT k n) (F.zT k m)
     simp only [RrowT, DvT, EvT, FT, HT] at h7 ⊢
     have hR := h7
     by_cases hnm : n = m
@@ -253,21 +291,21 @@ theorem TGeneric.hasSum_step2 (h : F.TGeneric k u₁ u₂) (n : ℤ) :
     convert hasSum_single (f := fun l ↦ -F.β * F.HT k (F.zT k n) * kron n l) n
       (fun l hl ↦ by simp only [kron_of_ne (Ne.symm hl), mul_zero]) using 1
     rw [kron_self, mul_one]
-  convert h₁.add (F.hasSum_constT k h.a_ne h.W_ne h.q_ne h.μ_ne n) using 1
+  convert h₁.add (F.hasSum_constT k h.a_ne h.W_ne h.μ_ne n) using 1
   · funext l
     rw [RrowT]
     ring
-  · rw [← F.identity_A6T k h.a_ne h.W_ne h.q_ne]
+  · rw [← F.identity_A6T k h.a_ne h.W_ne]
     ring
 
 /-! ### Step 3 -/
 
-/-- Step 3 (pole pairs), Eq. (mode-image): for a root `u` of `e` with `P(u) ≠ 0`,
-`∑ₗ P(zₙ)χ_T↑,nl φ_u(zₗ) = -βK(u)[zₙ + W(zₙ; u²)/(ρP(u))]`. -/
-theorem TGeneric.hasSum_step3 (h : F.TGeneric k u₁ u₂) {u : ℂ} (hu : F.eT k u = 0)
-    (hPu : F.PT k u ≠ 0) (n : ℤ) :
-    HasSum (fun l ↦ F.RrowT k n l * F.modeT k u (F.zT k l))
-      (-F.β * F.KT k u * (F.zT k n + F.WphT k (F.zT k n) (u ^ 2) / (F.ρ * F.PT k u))) := by
+/-- Step 3 (pole pairs), Eq. (mode-image), times `P(u)`, for a root `u` of `e`:
+`∑ₗ P(zₙ)χ_T↑,nl P(u)φ_u(zₗ) = -βK(u)[P(u)zₙ + W(zₙ; u²)/ρ]`. Multiplying by `P(u)` removes
+`P(u)` from the denominators, so that roots at a zero of `P` need no separate treatment. -/
+theorem TGeneric.hasSum_step3 (h : F.TGeneric k u₁ u₂) {u : ℂ} (hu : F.eT k u = 0) (n : ℤ) :
+    HasSum (fun l ↦ F.RrowT k n l * (F.PT k u * F.modeT k u (F.zT k l)))
+      (-F.β * F.KT k u * (F.PT k u * F.zT k n + F.WphT k (F.zT k n) (u ^ 2) / F.ρ)) := by
   have hμ := h.μ_ne
   have ha := h.a_ne
   have hβ := F.β_ne_zeroT
@@ -279,7 +317,6 @@ theorem TGeneric.hasSum_step3 (h : F.TGeneric k u₁ u₂) {u : ℂ} (hu : F.eT 
   have hzu' : F.zT k n + u ≠ 0 := fun h0 ↦ hoff' n (by linear_combination h0)
   have hun : u ≠ -F.zT k n := fun h0 ↦ hoff' n (by rw [h0, neg_neg])
   have hun' : -u ≠ -F.zT k n := fun h0 ↦ hoff n (neg_inj.mp h0).symm
-  have hPmu : F.PT k (-u) ≠ 0 := by rwa [F.PT_neg]
   have h₁ : HasSum (fun l ↦ -F.β * F.HT k (F.zT k n) * kron n l * F.modeT k u (F.zT k l))
       (-F.β * F.HT k (F.zT k n) * F.modeT k u (F.zT k n)) := by
     convert hasSum_single (f := fun l ↦ -F.β * F.HT k (F.zT k n) * kron n l *
@@ -288,11 +325,12 @@ theorem TGeneric.hasSum_step3 (h : F.TGeneric k u₁ u₂) {u : ℂ} (hu : F.eT 
     rw [kron_self, mul_one]
   have h₂ := (F.hasSum_cauchyT k hμ n hoff hun).mul_left (F.lamT * (F.β * F.HT k (-u)))
   have h₃ := (F.hasSum_cauchyT k hμ n hoff' hun').mul_left (F.lamT * (F.lamT * F.αT k u))
-  have h₄ := (F.hasSum_rank_twoT k ha h.W_ne h.q_ne (F.zT k n) hoff hPu).mul_left
+  have h₄ := (F.hasSum_rank_two_mulT k ha h.W_ne (F.zT k n) hoff).mul_left
     (F.β * F.HT k (-u))
-  have h₅ := (F.hasSum_rank_twoT k ha h.W_ne h.q_ne (F.zT k n) hoff' hPmu).mul_left
+  have h₅ := (F.hasSum_rank_two_mulT k ha h.W_ne (F.zT k n) hoff').mul_left
     (F.lamT * F.αT k u)
-  convert (((h₁.add h₂).add h₃).add h₄).add h₅ using 1
+  rw [F.PT_neg] at h₅
+  convert ((((h₁.add h₂).add h₃).mul_left (F.PT k u)).add h₄).add h₅ using 1
   · funext l
     have h₆ := sub_ne_zero.mpr (hoff l)
     have h₇ : F.zT k l + u ≠ 0 := fun h0 ↦ hoff' l (by linear_combination h0)
@@ -309,17 +347,17 @@ theorem TGeneric.hasSum_step3 (h : F.TGeneric k u₁ u₂) {u : ℂ} (hu : F.eT 
       rw [αT]
       field_simp
       ring
-    rw [hSu, hSmu, F.PT_neg]
-    have h7p := F.identity_A7T k ha h.W_ne h.q_ne (F.zT k n) (-u)
-    have h7m := F.identity_A7T k ha h.W_ne h.q_ne (F.zT k n) u
+    rw [hSu, hSmu]
+    have h7p := F.identity_A7T k ha h.W_ne (F.zT k n) (-u)
+    have h7m := F.identity_A7T k ha h.W_ne (F.zT k n) u
     rw [neg_neg, F.PT_neg, F.eT_neg, hu, neg_sq] at h7p
     rw [hu] at h7m
     have hrel := h.hrel hu
     simp only [KT, modeT, HT] at h7p h7m hrel ⊢
-    have key := step3_identity (a := F.a) (q₁ := F.q₁T k)
+    have key := step3_identity_mul (a := F.a) (q₁ := F.q₁T k)
       (z := F.zT k n) (Nu := F.NT k (F.zT k n) u) (Nmu := F.NT k (F.zT k n) (-u))
       (Ru := F.RhatT k (F.zT k n) u) (Rmu := F.RhatT k (F.zT k n) (-u)) (cb := F.cbarT)
-      (W := F.WphT k (F.zT k n) (u ^ 2)) hβ hlam hρ hPu hzu hzu' (h.α_ne hu) hrel
+      (W := F.WphT k (F.zT k n) (u ^ 2)) (P := F.PT k u) hβ hlam hρ hzu hzu' (h.α_ne hu) hrel
       (by linear_combination -h7p) (by linear_combination -h7m)
     linear_combination -key
 
@@ -327,16 +365,19 @@ theorem TGeneric.hasSum_step3 (h : F.TGeneric k u₁ u₂) {u : ℂ} (hu : F.eT 
 
 /-- The contribution of one root pair to the column. -/
 theorem TGeneric.hasSum_mode (h : F.TGeneric k u₁ u₂) {u u' : ℂ} (hu : F.eT k u = 0)
-    (hP : F.PT k u ≠ 0) (hK : F.KT k u ≠ 0) (hs : u ^ 2 - u' ^ 2 ≠ 0) (n m : ℤ)
+    (hK : F.KT k u ≠ 0) (hs : u ^ 2 - u' ^ 2 ≠ 0) (n m : ℤ)
     (hv : F.zT k m ^ 2 - u ^ 2 ≠ 0) :
     HasSum (fun l ↦ F.cmodeT k u u' (F.zT k m) * (F.RrowT k n l * F.modeT k u (F.zT k l)))
       (-(F.lamT / F.β) * (F.ρ * F.zT k n * F.PT k u + F.WphT k (F.zT k n) (u ^ 2)) /
         ((u ^ 2 - u' ^ 2) * (F.zT k m ^ 2 - u ^ 2))) := by
   have hβ := F.β_ne_zeroT
   have hρ := F.rho_ne_zeroT h.μ_ne
-  convert (h.hasSum_step3 hu hP n).mul_left (F.cmodeT k u u' (F.zT k m)) using 1
-  rw [cmodeT]
-  field_simp
+  convert (h.hasSum_step3 hu n).mul_left
+    (F.lamT * F.ρ / ((u ^ 2 - u' ^ 2) * (F.zT k m ^ 2 - u ^ 2) * (F.β ^ 2 * F.KT k u))) using 1
+  · funext l
+    rw [cmodeT]
+    field_simp
+  · field_simp
 
 /-- **The transverse vertex**, the inverse: `χ_T↑ invTUp = 1`. -/
 theorem TGeneric.chiTUp_isRightInverse (h : F.TGeneric k u₁ u₂) :
@@ -350,8 +391,8 @@ theorem TGeneric.chiTUp_isRightInverse (h : F.TGeneric k u₁ u₂) :
   have hs' : u₂ ^ 2 - u₁ ^ 2 ≠ 0 := fun h0 ↦ hs (by linear_combination -h0)
   have hS1 := h.hasSum_step1 n m
   have hS2 := (h.hasSum_step2 n).mul_left (2 * (-(F.a : ℂ)) / (F.β : ℂ) ^ 2)
-  have hS3 := h.hasSum_mode h.e_u₁ h.P_u₁ h.K_u₁ hs n m (h.z_sq_ne₁ m)
-  have hS4 := h.hasSum_mode h.e_u₂ h.P_u₂ h.K_u₂ hs' n m (h.z_sq_ne₂ m)
+  have hS3 := h.hasSum_mode h.e_u₁ h.K_u₁ hs n m (h.z_sq_ne₁ m)
+  have hS4 := h.hasSum_mode h.e_u₂ h.K_u₂ hs' n m (h.z_sq_ne₂ m)
   convert (((hS1.add hS2).add hS3).add hS4).div_const (F.PT k (F.zT k n)) using 1
   · funext l
     have hc : F.chiTUp k n l = F.RrowT k n l / F.PT k (F.zT k n) := by

@@ -9,8 +9,8 @@ The transverse vertex at half filling, Eq. (field-T-axis) of the note (App. F.6.
 transverse data: the inverse of the diagonal-plus-mirror part on the mirror orbits, a constant and
 one separable term in `ĝ(z) = 1/(z² - ŝ)`, `ŝ = λp₀ - q₁`.
 
-* `FParams.THFHyp`: the assumptions: `U ≠ 0`, `μ = 0`, `W ≠ 0`, `q₀ ≠ 0`, `zₙ² ≠ ŝ` for all `n`,
-  `zₙ² ≠ ŝ'` off the mirror fixed points, `û² = ŝ`, `P(û) ≠ 0` and `D̂ = β + 2aS_k(û)/û ≠ 0`.
+* `FParams.THFHyp`: the assumptions: `U ≠ 0`, `μ = 0`, `W ≠ 0`, `zₙ² ≠ ŝ` for all `n`,
+  `zₙ² ≠ ŝ'` off the mirror fixed points, `û² = ŝ` and `D̂ = β + 2aS_k(û)/û ≠ 0`.
 * `FParams.THFHyp.chiTUp_isRightInverse`, `chiTUp_isLeftInverse`, `gammaTHF_eq`.
 -/
 
@@ -70,11 +70,9 @@ structure THFHyp (u : ℂ) : Prop where
   a_ne : (F.a : ℂ) ≠ 0
   μ_eq : F.μ = 0
   W_ne : F.WT k ≠ 0
-  q_ne : F.q₀T k ≠ 0
   z_sq_ne : ∀ n, F.zT k n ^ 2 - F.shatT k ≠ 0
   odd_ne : ∀ n, n ≠ mirror k n → F.zT k n ^ 2 - F.shatT' k ≠ 0
   u_sq : u ^ 2 = F.shatT k
-  P_ne : F.PT k u ≠ 0
   D_ne : F.DhatT k u ≠ 0
 
 /-! ### The parity at `μ = 0` -/
@@ -199,27 +197,27 @@ theorem PT_mul_chiTUp_hf (hμ : F.μ = 0) (hW0 : F.WT k ≠ 0) (n m : ℤ) :
 
 /-! ### The lattice sums -/
 
-theorem hasSum_ℓ₀T (ha : (F.a : ℂ) ≠ 0) (hW : F.WT k ≠ 0) (hq : F.q₀T k ≠ 0) :
+theorem hasSum_ℓ₀T (ha : (F.a : ℂ) ≠ 0) (hW : F.WT k ≠ 0) :
     HasSum (fun l ↦ 1 / F.PT k (F.zT k l)) (F.ℓ₀T k) := by
-  convert F.hasSum_cubicT k ha hW hq 1 0 0 0 ((F.lat F.μ).z_ne_neg_add k 0) using 1
+  convert F.hasSum_cubicT k ha hW 1 0 0 0 ((F.lat F.μ).z_ne_neg_add k 0) using 1
   · funext l
     ring
   · ring
 
-theorem hasSum_ℓ₂T (ha : (F.a : ℂ) ≠ 0) (hW : F.WT k ≠ 0) (hq : F.q₀T k ≠ 0) :
+theorem hasSum_ℓ₂T (ha : (F.a : ℂ) ≠ 0) (hW : F.WT k ≠ 0) :
     HasSum (fun l ↦ F.zT k l ^ 2 / F.PT k (F.zT k l)) (F.ℓ₂T k) := by
-  convert F.hasSum_cubicT k ha hW hq 0 0 1 0 ((F.lat F.μ).z_ne_neg_add k 0) using 1
+  convert F.hasSum_cubicT k ha hW 0 0 1 0 ((F.lat F.μ).z_ne_neg_add k 0) using 1
   · funext l
     ring
   · ring
 
 /-- `∑ₗ N(z, zₗ)/P(zₗ) = N₀(z)ℓ₀ + N₂(z)ℓ₂` at `μ = 0`. -/
-theorem hasSum_NT_div (ha : (F.a : ℂ) ≠ 0) (hW : F.WT k ≠ 0) (hq : F.q₀T k ≠ 0)
+theorem hasSum_NT_div (ha : (F.a : ℂ) ≠ 0) (hW : F.WT k ≠ 0)
     (hμ : F.μ = 0) (z : ℂ) :
     HasSum (fun l ↦ F.NT k z (F.zT k l) / F.PT k (F.zT k l))
       (F.cN₀T k z * F.ℓ₀T k + F.N₂T k z * F.ℓ₂T k) := by
-  convert ((F.hasSum_ℓ₀T k ha hW hq).mul_left (F.cN₀T k z)).add
-    ((F.hasSum_ℓ₂T k ha hW hq).mul_left (F.N₂T k z)) using 1
+  convert ((F.hasSum_ℓ₀T k ha hW).mul_left (F.cN₀T k z)).add
+    ((F.hasSum_ℓ₂T k ha hW).mul_left (F.N₂T k z)) using 1
   funext l
   rw [F.NT_of_mu k hμ]
   ring
@@ -277,12 +275,9 @@ theorem THFHyp.hasSum_That (h : F.THFHyp k u) :
 
 set_option maxHeartbeats 4000000 in
 -- a rational identity of high degree in the weights and the transfer
-variable (F k) in
-/-- The rational identity behind `THFHyp.hasSum_NT_ghat`, with `P(û) = ŝ² + κŝ + q₀²` and
-`N(z, û) = N₀(z) + N₂(z)ŝ`: `-2a[(N₂(z)P(û) - N(z, û)(κ + ŝ))ℓ₀ - N(z, û)ℓ₂]
-= -2aβP(û) - βN(z, û)`. -/
-theorem identity_hfT (ha : (F.a : ℂ) ≠ 0) (hW : F.WT k ≠ 0) (hq : F.q₀T k ≠ 0) (hμ : F.μ = 0)
-    (z : ℂ) :
+/-- `identity_hfT` for `q₀ ≠ 0`. -/
+private theorem identity_hfT_ne (ha : (F.a : ℂ) ≠ 0) (hW : F.WT k ≠ 0) (hq : F.q₀T k ≠ 0)
+    (hμ : F.μ = 0) (z : ℂ) :
     2 * (-F.a) * ((F.N₂T k z * (F.shatT k ^ 2 + F.κT k * F.shatT k + F.q₀T k ^ 2) -
         (F.cN₀T k z + F.N₂T k z * F.shatT k) * (F.κT k + F.shatT k)) * F.ℓ₀T k -
       (F.cN₀T k z + F.N₂T k z * F.shatT k) * F.ℓ₂T k) =
@@ -296,7 +291,7 @@ theorem identity_hfT (ha : (F.a : ℂ) ≠ 0) (hW : F.WT k ≠ 0) (hq : F.q₀T 
   have hs := F.weights_sum'
   have hp₂ := F.p₂_eq_p₀_of_mu hμ
   simp only [cN₀T, N₂T, ℓ₀T, ℓ₂T, TpT, TmT, SpT, SmT, F.sT₁_eq, F.sT₂_eq, F.sT₃_eq, F.sT₄_eq,
-    ζT, κT, shatT, q₁T, lamT, ρ, mf, hp₂]
+    ζT, κT, shatT, q₁T, lamT, ρ, mf, hp₂, hq, ite_false]
   rw [hp₂] at hs
   rw [q₀T] at hq ⊢
   push_cast
@@ -310,39 +305,85 @@ theorem identity_hfT (ha : (F.a : ℂ) ≠ 0) (hW : F.WT k ≠ 0) (hq : F.q₀T 
   subst hQ
   ring
 
-/-- `∑ₗ N(z, zₗ)ĝ(zₗ)/P(zₗ) = β - N(z, û)D̂/(2εaP(û))`, by partial fractions in `zₗ²`:
-`N(z, t)ĝ(t)/P(t) = cĝ(t) + (N₂(z) - c(κ + ŝ) - ct²)/P(t)` with `c = N(z, û)/P(û)`. -/
+set_option maxHeartbeats 4000000 in
+-- a rational identity of high degree in the weights
+/-- `identity_hfT` at `q₀ = 0`, where `μ = 0` gives `X = p₀`. -/
+private theorem identity_hfT_zero (ha : (F.a : ℂ) ≠ 0) (hq : F.q₀T k = 0) (hμ : F.μ = 0)
+    (z : ℂ) :
+    2 * (-F.a) * ((F.N₂T k z * (F.shatT k ^ 2 + F.κT k * F.shatT k + F.q₀T k ^ 2) -
+        (F.cN₀T k z + F.N₂T k z * F.shatT k) * (F.κT k + F.shatT k)) * F.ℓ₀T k -
+      (F.cN₀T k z + F.N₂T k z * F.shatT k) * F.ℓ₂T k) =
+    2 * (-F.a) * F.β * (F.shatT k ^ 2 + F.κT k * F.shatT k + F.q₀T k ^ 2) -
+      F.β * (F.cN₀T k z + F.N₂T k z * F.shatT k) := by
+  obtain ⟨rfl, σ, X, Y, hσ, hX, hY, hW, hpu, hpd, h₁, h₂, h₃, hc⟩ := F.q₀T_zero_data k ha hq
+  have hβ := F.β_ne_zeroT
+  have hs := F.weights_sum'
+  have hp₂ := F.p₂_eq_p₀_of_mu hμ
+  -- `p₂ = p₀` and `X² = p₀p₂`, so `X = p₀`
+  have hXp : (X : ℂ) = F.p₀ := by
+    have hc' : X ^ 2 = F.p₀ * F.p₂ := by exact_mod_cast hc
+    rw [hp₂] at hc'
+    have : (X - F.p₀) * (X + F.p₀) = 0 := by linear_combination hc'
+    exact_mod_cast sub_eq_zero.mp ((mul_eq_zero.mp this).resolve_right (add_pos hX F.p₀_pos).ne')
+  have e₂ : (Y : ℂ) + F.p₀ ≠ 0 := by exact_mod_cast (add_pos hY F.p₀_pos).ne'
+  simp only [cN₀T, N₂T, ℓ₀T, ℓ₂T, ζT, κT, shatT, q₁T, lamT, ρ, mf, hq, ite_true, h₁, h₂, h₃,
+    hW, hp₂]
+  push_cast
+  simp only [hpu, hpd, hp₂, hXp] at hs ⊢
+  generalize (F.a : ℂ) = a at *
+  generalize (F.β : ℂ) = β at *
+  generalize (Y : ℂ) = Y at *
+  generalize (F.p₀ : ℂ) = p₀ at *
+  obtain rfl : Y = 1 - 3 * p₀ := by linear_combination hs
+  have e₃ : 1 - p₀ * 2 ≠ 0 := fun h0 ↦ e₂ (by linear_combination h0)
+  rcases hσ with rfl | rfl <;> field_simp <;> ring
+
+variable (F k) in
+/-- The rational identity behind `THFHyp.hasSum_NT_ghat`, with `P(û) = ŝ² + κŝ + q₀²` and
+`N(z, û) = N₀(z) + N₂(z)ŝ`: `-2a[(N₂(z)P(û) - N(z, û)(κ + ŝ))ℓ₀ - N(z, û)ℓ₂]
+= -2aβP(û) - βN(z, û)`. -/
+theorem identity_hfT (ha : (F.a : ℂ) ≠ 0) (hW : F.WT k ≠ 0) (hμ : F.μ = 0) (z : ℂ) :
+    2 * (-F.a) * ((F.N₂T k z * (F.shatT k ^ 2 + F.κT k * F.shatT k + F.q₀T k ^ 2) -
+        (F.cN₀T k z + F.N₂T k z * F.shatT k) * (F.κT k + F.shatT k)) * F.ℓ₀T k -
+      (F.cN₀T k z + F.N₂T k z * F.shatT k) * F.ℓ₂T k) =
+    2 * (-F.a) * F.β * (F.shatT k ^ 2 + F.κT k * F.shatT k + F.q₀T k ^ 2) -
+      F.β * (F.cN₀T k z + F.N₂T k z * F.shatT k) := by
+  by_cases hq : F.q₀T k = 0
+  · exact identity_hfT_zero (F := F) (k := k) ha hq hμ z
+  · exact identity_hfT_ne (F := F) (k := k) ha hW hq hμ z
+
+/-- `∑ₗ P(û)N(z, zₗ)ĝ(zₗ)/P(zₗ) = βP(û) - N(z, û)D̂/(2εa)` (`ε = -1`), by partial fractions in
+`zₗ²`: `P(û)N(z, t)ĝ(t)/P(t) = cĝ(t) + (N₂(z)P(û) - c(κ + ŝ) - ct²)/P(t)` with `c = N(z, û)`.
+Multiplied by `P(û)`, it needs no `P(û) ≠ 0`. -/
 theorem THFHyp.hasSum_NT_ghat (h : F.THFHyp k u) (z : ℂ) :
-    HasSum (fun l ↦ F.NT k z (F.zT k l) * F.ghatT k (F.zT k l) / F.PT k (F.zT k l))
-      (F.β - F.NT k z u * F.DhatT k u / (2 * (-F.a) * F.PT k u)) := by
+    HasSum (fun l ↦ F.PT k u * (F.NT k z (F.zT k l) * F.ghatT k (F.zT k l) / F.PT k (F.zT k l)))
+      (F.β * F.PT k u - F.NT k z u * F.DhatT k u / (2 * (-F.a))) := by
   have hμ := h.μ_eq
   have ha := h.a_ne
-  have hPu := h.P_ne
   have hPu' : F.PT k u = F.shatT k ^ 2 + F.κT k * F.shatT k + F.q₀T k ^ 2 := by
     rw [F.PT_eq_poly, show u ^ 4 = (u ^ 2) ^ 2 by ring, h.u_sq]
   have hNu : F.NT k z u = F.cN₀T k z + F.N₂T k z * F.shatT k := by
     rw [F.NT_of_mu k hμ, h.u_sq]
-  convert ((h.hasSum_That.mul_left (F.NT k z u / F.PT k u)).add
-    ((F.hasSum_ℓ₀T k h.a_ne h.W_ne h.q_ne).mul_left
-      (F.N₂T k z - F.NT k z u / F.PT k u * (F.κT k + F.shatT k)))).add
-    ((F.hasSum_ℓ₂T k h.a_ne h.W_ne h.q_ne).mul_left (-(F.NT k z u / F.PT k u))) using 1
+  convert ((h.hasSum_That.mul_left (F.NT k z u)).add
+    ((F.hasSum_ℓ₀T k h.a_ne h.W_ne).mul_left
+      (F.N₂T k z * F.PT k u - F.NT k z u * (F.κT k + F.shatT k)))).add
+    ((F.hasSum_ℓ₂T k h.a_ne h.W_ne).mul_left (-F.NT k z u)) using 1
   · funext l
     have h₁ := h.z_sq_ne l
     have h₂ := F.PT_zT_ne_zero k l
+    rw [hPu']
     rw [F.PT_eq_poly] at h₂ ⊢
-    rw [hPu'] at hPu ⊢
     rw [F.NT_of_mu k hμ, ghatT, hNu]
     -- clear the denominators as atoms, then put the polynomials back
-    generalize hD : F.shatT k ^ 2 + F.κT k * F.shatT k + F.q₀T k ^ 2 = D at hPu ⊢
+    generalize hD : F.shatT k ^ 2 + F.κT k * F.shatT k + F.q₀T k ^ 2 = D
     generalize hPl : F.zT k l ^ 4 + F.κT k * F.zT k l ^ 2 + F.q₀T k ^ 2 = Pl at h₂ ⊢
     generalize hG : F.zT k l ^ 2 - F.shatT k = G at h₁ ⊢
     field_simp
     rw [← hD, ← hPl, ← hG]
     ring
-  · have key := F.identity_hfT k ha h.W_ne h.q_ne hμ z
-    rw [hPu'] at hPu ⊢
-    rw [hNu, DhatT]
-    generalize F.shatT k ^ 2 + F.κT k * F.shatT k + F.q₀T k ^ 2 = D at hPu key ⊢
+  · have key := F.identity_hfT k ha h.W_ne hμ z
+    rw [hPu', hNu, DhatT]
+    generalize F.shatT k ^ 2 + F.κT k * F.shatT k + F.q₀T k ^ 2 = D at key ⊢
     field_simp
     linear_combination key
 
@@ -356,11 +397,11 @@ noncomputable def RrowTHF (n l : ℤ) : ℂ :=
 
 variable (F k) in
 /-- Identity (A6) at `μ = 0`: `-βH(z) + λβp₀ + N₀(z)ℓ₀ + N₂(z)ℓ₂ = -βN₂(z)/(2a)`. -/
-theorem identity_A6_hfT (ha : (F.a : ℂ) ≠ 0) (hW : F.WT k ≠ 0) (hq : F.q₀T k ≠ 0)
+theorem identity_A6_hfT (ha : (F.a : ℂ) ≠ 0) (hW : F.WT k ≠ 0)
     (hμ : F.μ = 0) (z : ℂ) :
     -F.β * F.HT k z + F.lamT * (F.β * F.p₀) + (F.cN₀T k z * F.ℓ₀T k + F.N₂T k z * F.ℓ₂T k) =
       F.β * F.N₂T k z / (2 * (-F.a)) := by
-  have h6 := F.identity_A6T k ha hW hq z
+  have h6 := F.identity_A6T k ha hW z
   have hρ := F.rho_eq_zeroT hμ
   have hc : (F.cbarT : ℂ) = F.β * F.p₀ := by
     rw [cbarT, F.p₂_eq_p₀_of_mu hμ]
@@ -394,15 +435,15 @@ theorem THFHyp.hasSum_RrowTHF (h : F.THFHyp k u) (n : ℤ) :
     convert hasSum_single (f := fun l ↦ F.lamT * (F.β * F.p₀) * kron l (mirror k n))
       (mirror k n) (fun l hl ↦ by simp only [kron_of_ne hl, mul_zero]) using 1
     rw [kron_self, mul_one]
-  convert (h₁.add h₂).add (F.hasSum_NT_div k h.a_ne h.W_ne h.q_ne h.μ_eq (F.zT k n)) using 1
+  convert (h₁.add h₂).add (F.hasSum_NT_div k h.a_ne h.W_ne h.μ_eq (F.zT k n)) using 1
   · funext l
     rw [RrowTHF]
-  · exact (F.identity_A6_hfT k h.a_ne h.W_ne h.q_ne h.μ_eq (F.zT k n)).symm
+  · exact (F.identity_A6_hfT k h.a_ne h.W_ne h.μ_eq (F.zT k n)).symm
 
-/-- The image of `ĝ`: `∑ₗ P(zₙ)χ_r,nl ĝ(zₗ) = -N(zₙ, û)D̂/(2εaP(û))`. -/
+/-- The image of `P(û)ĝ`: `∑ₗ P(zₙ)χ_r,nl P(û)ĝ(zₗ) = -N(zₙ, û)D̂/(2εa)`. -/
 theorem THFHyp.hasSum_RrowTHF_ghat (h : F.THFHyp k u) (n : ℤ) :
-    HasSum (fun l ↦ F.RrowTHF k n l * F.ghatT k (F.zT k l))
-      (-(F.NT k (F.zT k n) u * F.DhatT k u / (2 * (-F.a) * F.PT k u))) := by
+    HasSum (fun l ↦ F.RrowTHF k n l * (F.PT k u * F.ghatT k (F.zT k l)))
+      (-(F.NT k (F.zT k n) u * F.DhatT k u / (2 * (-F.a)))) := by
   have hμ := h.μ_eq
   have h₁ : HasSum (fun l ↦ -F.β * F.HT k (F.zT k n) * kron n l * F.ghatT k (F.zT k l))
       (-F.β * F.HT k (F.zT k n) * F.ghatT k (F.zT k n)) := by
@@ -423,11 +464,11 @@ theorem THFHyp.hasSum_RrowTHF_ghat (h : F.THFHyp k u) (n : ℤ) :
     rw [ghatT]
     field_simp
     linear_combination -(F.β : ℂ) * hHs
-  convert (h₁.add h₂).add (h.hasSum_NT_ghat (F.zT k n)) using 1
+  convert ((h₁.add h₂).mul_left (F.PT k u)).add (h.hasSum_NT_ghat (F.zT k n)) using 1
   · funext l
     rw [RrowTHF]
     ring
-  · linear_combination -hdiag
+  · linear_combination -(F.PT k u) * hdiag
 
 /-- The diagonal and mirror part of the column `m`: with `ε±(v)` the inverse even and odd
 eigenvalues, `P(zₙ)χ_r,nm (ε₊ + ε₋)/2 + P(zₙ)χ_r,nm̄ (ε₊ - ε₋)/2 = P(zₙ)δₙₘ - N(zₙ, v)ĝ(v)/β`,
@@ -478,7 +519,6 @@ theorem THFHyp.chiTUp_isRightInverse (h : F.THFHyp k u) :
   have ha := h.a_ne
   have hβ := F.β_ne_zeroT
   have hPn := F.PT_zT_ne_zero k n
-  have hPu := h.P_ne
   have hD := h.D_ne
   have hgm := h.z_sq_ne m
   set ep := (F.ievnT k (F.zT k m) + F.ioddT k (F.zT k m)) / 2 with hep
@@ -494,7 +534,7 @@ theorem THFHyp.chiTUp_isRightInverse (h : F.THFHyp k u) :
     rw [kron_self, mul_one]
   have s₃ := (h.hasSum_RrowTHF n).mul_left (2 * (-(F.a : ℂ)) / (F.β : ℂ) ^ 2)
   have s₄ := (h.hasSum_RrowTHF_ghat n).mul_left
-    (-(2 * (-F.a) * F.PT k u / (F.β * F.DhatT k u)) * F.ghatT k (F.zT k m))
+    (-(2 * (-F.a) / (F.β * F.DhatT k u)) * F.ghatT k (F.zT k m))
   convert (((s₁.add s₂).add s₃).add s₄).div_const (F.PT k (F.zT k n)) using 1
   · funext l
     have hc : F.chiTUp k n l = F.RrowTHF k n l / F.PT k (F.zT k n) := by
