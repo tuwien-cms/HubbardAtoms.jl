@@ -24,7 +24,8 @@ Off the diagonal, each susceptibility is a divided difference of one function of
   `(z↑ₙ² - z↑ₘ²)χ↑↑,nm = U[f↑↓(z↑ₙ) - f↑↓(z↑ₘ)]` for `n ≠ m`, where `f_σσ` is `f_r` of the density
   channel with `r_σ` and `ζ_L` (`fL_up_eq_G`, `fL_dn_eq_G`: `[G_σ(ν) - G_σ(ν + ω)]/w` for
   `k ≠ 0`) and
-  `f↑↓ = -δ_k0 ζ↑/(2a(z² - a²))`.
+  `f↑↓ = -δ_k0 ζ↑/(2a(z² - a²))`; the rows of spin `↓` by the spin flip
+  (`chiL_dnup_divided_difference`, `chiL_dndn_divided_difference`).
 -/
 
 open Complex
@@ -427,6 +428,42 @@ theorem chiL_upup_divided_difference {n m : ℤ} (hnm : n ≠ m) :
     field_simp
     ring
   · simp [kron_of_ne hk]
+
+/-! ### The rows of spin `↓`, by the spin flip -/
+
+theorem flip_Bup : F.flip.Bup = F.Bdn := rfl
+
+theorem flip_Bdn : F.flip.Bdn = F.Bup := by
+  simp only [Bup, Bdn, lat, flip_μ, flip_h, flip_U, flip_β, sub_neg_eq_add]
+
+theorem flip_fL (r : ℝ) (z : ℂ) : F.flip.fL k r z = F.fL k r z := by
+  simp only [fL, ζL, flip_p₀, flip_p₂, flip_pUp, flip_pDn]
+  rw [mul_comm (F.pDn : ℂ)]
+  rfl
+
+theorem flip_rUp : F.flip.rUp = F.rDn := by
+  rw [rUp, rDn, F.flip_ρ, F.flip_mf, sub_neg_eq_add]
+
+theorem flip_rDn : F.flip.rDn = F.rUp := by
+  rw [rUp, rDn, F.flip_ρ, F.flip_mf, ← sub_eq_add_neg]
+
+/-- **Divided differences, longitudinal, opposite spins, rows `↓`**: off the axes,
+`(z↓ₙ² - z↑ₘ²)χ↓↑,nm = U[f↓↓(z↓ₙ) - f↑↑(z↑ₘ)]`, by the spin flip. -/
+theorem chiL_dnup_divided_difference (hμ : F.μ ≠ 0) (hh : F.h ≠ 0) (n m : ℤ) :
+    (F.Bdn.z k n ^ 2 - F.Bup.z k m ^ 2) * F.chiL false true k n m =
+      F.U * (F.fL k F.rDn (F.Bdn.z k n) - F.fL k F.rUp (F.Bup.z k m)) := by
+  rw [F.chiL_flip]
+  simpa [flip_Bup, flip_Bdn, flip_fL, flip_rUp, flip_rDn] using
+    F.flip.chiL_updn_divided_difference k hμ (neg_ne_zero.mpr hh) n m
+
+/-- **Divided differences, longitudinal, equal spins, rows `↓`**: for `n ≠ m`,
+`(z↓ₙ² - z↓ₘ²)χ↓↓,nm = U[f↓↑(z↓ₙ) - f↓↑(z↓ₘ)]` with `f↓↑ = -δ_k0 ζ↓/(2a(z² - a²))`,
+`ζ↓ = 4βa²(p₀ + p↓)(p↑ + p₂)` (`f↑↓` of the flipped atom), by the spin flip. -/
+theorem chiL_dndn_divided_difference {n m : ℤ} (hnm : n ≠ m) :
+    (F.Bdn.z k n ^ 2 - F.Bdn.z k m ^ 2) * F.chiL false false k n m =
+      F.U * (F.flip.fLUpDn k (F.Bdn.z k n) - F.flip.fLUpDn k (F.Bdn.z k m)) := by
+  rw [F.chiL_flip]
+  simpa [flip_Bup] using F.flip.chiL_upup_divided_difference k hnm
 
 end FParams
 
