@@ -31,3 +31,4 @@ import HubbardAtomLean.FieldEqualSpin
 import HubbardAtomLean.FieldTHalfFilling
 import HubbardAtomLean.FieldLInput
 import HubbardAtomLean.FieldTZero
+import HubbardAtomLean.DividedDifferences
