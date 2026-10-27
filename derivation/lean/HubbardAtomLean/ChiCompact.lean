@@ -34,6 +34,12 @@ theorem Dhalf_sq (n : ℤ) : A.Dhalf k n ^ 2 = -A.β / A.z k n ^ 2 := by
   rw [Dhalf, div_pow, mul_pow, I_sq, ← ofReal_pow, Real.sq_sqrt A.β_pos.le]
   ring
 
+/-- `dₙ ≠ 0` for `μ ≠ 0`. -/
+theorem Dhalf_ne_zero (hμ : A.μ ≠ 0) (n : ℤ) : A.Dhalf k n ≠ 0 := by
+  rw [Dhalf]
+  exact div_ne_zero (mul_ne_zero I_ne_zero (ofReal_ne_zero.mpr
+    (Real.sqrt_pos.mpr A.β_pos).ne')) (A.z_ne_zero k hμ n)
+
 /-- `𝒦_nm = -(zₙzₘ/β)χ_r,nm - δ_nm`. -/
 noncomputable def Kr (n m : ℤ) : ℂ := -(A.z k n * A.z k m / A.β) * A.chiR k ε n m - kron n m
 
@@ -66,18 +72,19 @@ theorem summable_sq_of_norm_mul_z_le (hμ : A.μ ≠ 0) {f : ℤ → ℂ} {C : �
   rw [le_mul_inv_iff₀ hz, mul_comm, ← norm_mul]
   exact h n
 
-/-- **`𝒦` is Hilbert–Schmidt**: `|𝒦_nm| ≤ c|zₙ|⁻¹|zₘ|⁻¹` off the diagonal and `|𝒦_nn| ≤ c|zₙ|⁻¹`,
-by `norm_chiR_le` and `norm_chiR_diag_le`. -/
-theorem summable_Kr_sq (hμ : A.μ ≠ 0) :
-    Summable fun p : ℤ × ℤ ↦ ‖A.Kr k ε p.1 p.2‖ ^ 2 := by
+/-- `|𝒦_nm|² ≤ C|zₙ|⁻²(|zₘ|⁻² + δ_nm)`: `|𝒦_nm| ≤ c|zₙ|⁻¹|zₘ|⁻¹` off the diagonal and
+`|𝒦_nn| ≤ c|zₙ|⁻¹`, by `norm_chiR_le` and `norm_chiR_diag_le`. -/
+theorem norm_Kr_sq_le (hμ : A.μ ≠ 0) : ∃ C, ∀ n m, ‖A.Kr k ε n m‖ ^ 2 ≤
+    C * (‖A.z k n‖⁻¹ ^ 2 * (‖A.z k m‖⁻¹ ^ 2 + if n = m then 1 else 0)) := by
   obtain ⟨c₁, hc₁⟩ := A.norm_chiR_le k ε hμ
   obtain ⟨c₂, hc₂⟩ := A.norm_chiR_diag_le k ε hμ
   have hβ := A.β_pos
-  have ha := A.summable_inv_norm_z_sq k hμ
-  -- the diagonal, with `|zₙ𝒦_nn| = |zₙ|³|χ_r,nn + β/zₙ²|/β ≤ c₂/β`
-  have hd := A.summable_sq_of_norm_mul_z_le k hμ (f := fun n ↦ A.Kr k ε n n) (C := c₂ / A.β)
-    fun n ↦ by
-    have hz := norm_pos_iff.mpr (A.z_ne_zero k hμ n)
+  refine ⟨(c₁ / A.β) ^ 2 + (c₂ / A.β) ^ 2, fun n m ↦ ?_⟩
+  have hz := norm_pos_iff.mpr (A.z_ne_zero k hμ n)
+  have hv := norm_pos_iff.mpr (A.z_ne_zero k hμ m)
+  by_cases hnm : n = m
+  · subst hnm
+    -- `|zₙ𝒦_nn| = |zₙ|³|χ_r,nn + β/zₙ²|/β ≤ c₂/β`
     have h : A.z k n * A.Kr k ε n n =
         -(A.z k n ^ 3 / A.β) * (A.chiR k ε n n + A.β / A.z k n ^ 2) := by
       have := A.z_ne_zero k hμ n
@@ -85,30 +92,46 @@ theorem summable_Kr_sq (hμ : A.μ ≠ 0) :
       rw [Kr, kron_self]
       field_simp
       ring
-    rw [h, norm_mul, norm_neg, norm_div, norm_pow, norm_real, Real.norm_of_nonneg hβ.le,
-      div_mul_eq_mul_div, div_le_div_iff_of_pos_right hβ, mul_comm, ← le_div_iff₀ (by positivity)]
-    exact hc₂ n
-  refine ((((ha.mul_of_nonneg ha (fun _ ↦ by positivity) fun _ ↦ by positivity).mul_left
-    ((c₁ / A.β) ^ 2)).add (summable_diag_sq hd))).of_nonneg_of_le
-    (fun _ ↦ by positivity) fun p ↦ ?_
-  obtain ⟨n, m⟩ := p
-  by_cases hnm : n = m
-  · subst hnm
-    simp only [diagK, ite_true]
-    exact le_add_of_nonneg_left (by positivity)
-  · simp only [diagK, hnm, ite_false, norm_zero, ne_eq, OfNat.ofNat_ne_zero, not_false_eq_true,
-      zero_pow, add_zero]
-    have hz := norm_pos_iff.mpr (A.z_ne_zero k hμ n)
-    have hv := norm_pos_iff.mpr (A.z_ne_zero k hμ m)
-    rw [show (c₁ / A.β) ^ 2 * (‖A.z k n‖⁻¹ ^ 2 * ‖A.z k m‖⁻¹ ^ 2) =
-      (c₁ / A.β * ‖A.z k n‖⁻¹ * ‖A.z k m‖⁻¹) ^ 2 by ring]
-    refine pow_le_pow_left₀ (norm_nonneg _) ?_ 2
-    rw [Kr, kron_of_ne hnm, sub_zero, norm_mul, norm_neg, norm_div, norm_mul, norm_real,
-      Real.norm_of_nonneg hβ.le]
-    calc ‖A.z k n‖ * ‖A.z k m‖ / A.β * ‖A.chiR k ε n m‖
-        ≤ ‖A.z k n‖ * ‖A.z k m‖ / A.β * (c₁ / (‖A.z k n‖ ^ 2 * ‖A.z k m‖ ^ 2)) :=
-          mul_le_mul_of_nonneg_left (hc₁ n m hnm) (by positivity)
-      _ = c₁ / A.β * ‖A.z k n‖⁻¹ * ‖A.z k m‖⁻¹ := by field_simp
+    have hb : ‖A.z k n * A.Kr k ε n n‖ ≤ c₂ / A.β := by
+      rw [h, norm_mul, norm_neg, norm_div, norm_pow, norm_real, Real.norm_of_nonneg hβ.le,
+        div_mul_eq_mul_div, div_le_div_iff_of_pos_right hβ, mul_comm,
+        ← le_div_iff₀ (by positivity)]
+      exact hc₂ n
+    have hK : ‖A.Kr k ε n n‖ ≤ c₂ / A.β * ‖A.z k n‖⁻¹ := by
+      rw [le_mul_inv_iff₀ hz, mul_comm, ← norm_mul]
+      exact hb
+    calc ‖A.Kr k ε n n‖ ^ 2 ≤ (c₂ / A.β * ‖A.z k n‖⁻¹) ^ 2 :=
+          pow_le_pow_left₀ (norm_nonneg _) hK 2
+      _ ≤ _ := by
+        simp only [ite_true]
+        nlinarith [sq_nonneg (c₁ / A.β), sq_nonneg (c₂ / A.β), sq_nonneg ‖A.z k n‖⁻¹,
+          mul_nonneg (sq_nonneg (c₁ / A.β + c₂ / A.β)) (pow_nonneg (sq_nonneg ‖A.z k n‖⁻¹) 2)]
+  · have hK : ‖A.Kr k ε n m‖ ≤ c₁ / A.β * ‖A.z k n‖⁻¹ * ‖A.z k m‖⁻¹ := by
+      rw [Kr, kron_of_ne hnm, sub_zero, norm_mul, norm_neg, norm_div, norm_mul, norm_real,
+        Real.norm_of_nonneg hβ.le]
+      calc ‖A.z k n‖ * ‖A.z k m‖ / A.β * ‖A.chiR k ε n m‖
+          ≤ ‖A.z k n‖ * ‖A.z k m‖ / A.β * (c₁ / (‖A.z k n‖ ^ 2 * ‖A.z k m‖ ^ 2)) :=
+            mul_le_mul_of_nonneg_left (hc₁ n m hnm) (by positivity)
+        _ = c₁ / A.β * ‖A.z k n‖⁻¹ * ‖A.z k m‖⁻¹ := by field_simp
+    calc ‖A.Kr k ε n m‖ ^ 2 ≤ (c₁ / A.β * ‖A.z k n‖⁻¹ * ‖A.z k m‖⁻¹) ^ 2 :=
+          pow_le_pow_left₀ (norm_nonneg _) hK 2
+      _ ≤ _ := by
+        simp only [hnm, ite_false, add_zero]
+        nlinarith [mul_nonneg (sq_nonneg (c₂ / A.β))
+          (mul_nonneg (sq_nonneg ‖A.z k n‖⁻¹) (sq_nonneg ‖A.z k m‖⁻¹))]
+
+/-- **`𝒦` is Hilbert–Schmidt**, by `norm_Kr_sq_le`. -/
+theorem summable_Kr_sq (hμ : A.μ ≠ 0) :
+    Summable fun p : ℤ × ℤ ↦ ‖A.Kr k ε p.1 p.2‖ ^ 2 := by
+  obtain ⟨C, hC⟩ := A.norm_Kr_sq_le k ε hμ
+  have ha := A.summable_inv_norm_z_sq k hμ
+  -- the diagonal part, through `(n, n)`
+  have hd : Summable fun p : ℤ × ℤ ↦ ‖A.z k p.1‖⁻¹ ^ 2 * if p.1 = p.2 then (1 : ℝ) else 0 := by
+    refine (summable_diag_sq (c := fun n ↦ (‖A.z k n‖⁻¹ : ℂ)) (by simpa using ha)).congr
+      fun p ↦ ?_
+    by_cases h : p.1 = p.2 <;> simp [diagK, h]
+  refine (((ha.mul_of_nonneg ha (fun _ ↦ by positivity) fun _ ↦ by positivity).add hd).mul_left
+    C).of_nonneg_of_le (fun _ ↦ by positivity) fun p ↦ (hC p.1 p.2).trans_eq (by ring)
 
 /-- **`𝒦` is compact** on `ℓ²(ℤ)`. -/
 theorem isCompactOperator_Kr (hμ : A.μ ≠ 0) :
