@@ -475,13 +475,7 @@ theorem tendsto_tsum_norm_Kr_sub_sq (hμ₀ : μ x₀ ≠ 0) :
   obtain ⟨C, hC⟩ := eventually_norm_Kr_sq_le k ε hU hb hm hμ₀
   have hC₀ := hC.self_of_nhds
   set A₀ := fam U β μ hβ x₀
-  have ha := A₀.summable_inv_norm_z_sq k hμ₀
-  have hδ : Summable fun p : ℤ × ℤ ↦ ‖A₀.z k p.1‖⁻¹ ^ 2 * if p.1 = p.2 then (1 : ℝ) else 0 := by
-    refine (summable_diag_sq (c := fun n ↦ (‖A₀.z k n‖⁻¹ : ℂ)) (by simpa using ha)).congr
-      fun p ↦ ?_
-    by_cases h : p.1 = p.2 <;> simp [diagK, h]
-  have hsum := ((ha.mul_of_nonneg ha (fun _ ↦ by positivity) fun _ ↦ by positivity).add hδ).mul_left
-    (4 * C)
+  have hsum := (A₀.summable_majorant k hμ₀).mul_left (4 * C)
   have h := tendsto_tsum_of_dominated_convergence (f := fun x (p : ℤ × ℤ) ↦
       ‖(fam U β μ hβ x).Kr k ε p.1 p.2 - A₀.Kr k ε p.1 p.2‖ ^ 2)
     (g := fun p ↦ ‖A₀.Kr k ε p.1 p.2 - A₀.Kr k ε p.1 p.2‖ ^ 2) hsum
