@@ -51,7 +51,7 @@ run_cmd Elab.Command.liftCoreM do
       ``HubbardAtom.FParams.gammaTUp_static_hf,
       ``HubbardAtom.FParams.chiL_updn_divided_difference,
       ``HubbardAtom.FParams.hasDerivAt_Gs_up_h, ``HubbardAtom.FParams.hasSum_chiL_updn,
-      ``HubbardAtom.Params.hasSum_chiR_mul_g] do
+      ``HubbardAtom.Params.hasSum_chiR_mul_g, ``HubbardAtom.Params.lam_rho_Zph_eq] do
     unless audited.contains anchor do
       throwError "{anchor} was not audited; the check is vacuous"
   if checked < 100 then
