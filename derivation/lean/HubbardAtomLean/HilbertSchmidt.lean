@@ -1,0 +1,163 @@
+import Mathlib.Analysis.InnerProductSpace.l2Space
+import Mathlib.Analysis.Normed.Operator.Compact.Basic
+
+/-!
+# Hilbert–Schmidt matrices on `ℓ²(ℤ)`
+
+A matrix `K : ℤ → ℤ → ℂ` with square-summable entries acts on `ℓ²(ℤ)` as a compact operator:
+
+* `hsOp K hK`: `(Kv)ₙ = ∑ₘ Kₙₘvₘ` (`hsOp_apply`), with `‖Kv‖² ≤ ∑ₙ‖Kₙ·‖²‖v‖²`;
+* `isCompactOperator_hsOp`: `hsOp K hK` is compact, as the norm limit of its restrictions to
+  finitely many rows, which have finite rank;
+* `hsOp_diag_apply`: a diagonal matrix `diagK c` acts by multiplication.
+
+Row `n` acts as the inner product with `m ↦ conj Kₙₘ`, so linearity and the Cauchy–Schwarz bound
+come from `ℓ²(ℤ)`.
+-/
+
+open Filter Topology
+open scoped lp ComplexConjugate
+
+namespace HubbardAtom
+
+/-- `v ∈ ℓ²` iff `∑ₙ ‖vₙ‖²` converges. -/
+theorem memℓp_two_iff {f : ℤ → ℂ} : Memℓp f 2 ↔ Summable fun n ↦ ‖f n‖ ^ 2 := by
+  rw [memℓp_gen_iff (by norm_num)]
+  norm_num
+
+/-- `‖v‖² = ∑ₙ ‖vₙ‖²`. -/
+theorem lp_norm_sq_eq_tsum (v : ℓ²(ℤ, ℂ)) : ‖v‖ ^ 2 = ∑' n, ‖v n‖ ^ 2 := by
+  have h := lp.norm_rpow_eq_tsum (p := 2) (by norm_num) v
+  norm_num at h
+  exact_mod_cast h
+
+/-- A componentwise bound by a summable sequence bounds `‖v‖²`. -/
+theorem lp_norm_sq_le {v : ℓ²(ℤ, ℂ)} {c : ℤ → ℝ} (hc : Summable c) (h : ∀ n, ‖v n‖ ^ 2 ≤ c n) :
+    ‖v‖ ^ 2 ≤ ∑' n, c n := by
+  rw [lp_norm_sq_eq_tsum]
+  exact (memℓp_two_iff.mp (lp.memℓp v)).tsum_le_tsum h hc
+
+/-- `x² ≤ Cy²` gives `x ≤ √C y`, for `x, y, C ≥ 0`. -/
+theorem le_sqrt_mul_of_sq_le {x y C : ℝ} (hx : 0 ≤ x) (hy : 0 ≤ y) (hC : 0 ≤ C)
+    (h : x ^ 2 ≤ C * y ^ 2) : x ≤ √C * y := by
+  rw [← Real.sqrt_sq hx, ← Real.sqrt_sq hy, ← Real.sqrt_mul hC]
+  exact Real.sqrt_le_sqrt h
+
+/-- Cauchy–Schwarz, squared: `|⟪x, y⟫|² ≤ ‖x‖²‖y‖²`. -/
+theorem norm_inner_sq_le (x y : ℓ²(ℤ, ℂ)) : ‖inner ℂ x y‖ ^ 2 ≤ ‖x‖ ^ 2 * ‖y‖ ^ 2 := by
+  rw [← mul_pow]
+  exact pow_le_pow_left₀ (norm_nonneg _) (norm_inner_le_norm _ _) 2
+
+variable (K : ℤ → ℤ → ℂ) (hK : Summable fun p : ℤ × ℤ ↦ ‖K p.1 p.2‖ ^ 2)
+
+/-- Row `n` of `K`, conjugated, as an element of `ℓ²`. -/
+noncomputable def hsRow (n : ℤ) : ℓ²(ℤ, ℂ) :=
+  ⟨fun m ↦ conj (K n m), memℓp_two_iff.mpr (by simpa using hK.prod_factor n)⟩
+
+/-- `‖Kₙ·‖²` is summable over the rows. -/
+theorem summable_norm_hsRow_sq : Summable fun n ↦ ‖hsRow K hK n‖ ^ 2 := by
+  have h := ((summable_prod_of_nonneg fun _ ↦ by positivity).mp hK).2
+  refine h.congr fun n ↦ ?_
+  rw [lp_norm_sq_eq_tsum]
+  simp [hsRow]
+
+/-- `Kv ∈ ℓ²`, with `|(Kv)ₙ| ≤ ‖Kₙ·‖‖v‖`. -/
+theorem memℓp_hsRow_inner (v : ℓ²(ℤ, ℂ)) :
+    Memℓp (fun n ↦ inner ℂ (hsRow K hK n) v) 2 := by
+  refine memℓp_two_iff.mpr (((summable_norm_hsRow_sq K hK).mul_right (‖v‖ ^ 2)).of_nonneg_of_le
+    (fun _ ↦ by positivity) fun n ↦ norm_inner_sq_le _ _)
+
+/-- The operator of a Hilbert–Schmidt matrix. -/
+noncomputable def hsOp : ℓ²(ℤ, ℂ) →L[ℂ] ℓ²(ℤ, ℂ) :=
+  LinearMap.mkContinuous
+    { toFun := fun v ↦ ⟨fun n ↦ inner ℂ (hsRow K hK n) v, memℓp_hsRow_inner K hK v⟩
+      map_add' := fun v w ↦ by ext n; exact inner_add_right _ _ _
+      map_smul' := fun c v ↦ by ext n; exact inner_smul_right _ _ _ }
+    √(∑' n, ‖hsRow K hK n‖ ^ 2) fun v ↦ by
+      refine le_sqrt_mul_of_sq_le (norm_nonneg _) (norm_nonneg _)
+        (tsum_nonneg fun _ ↦ by positivity) ?_
+      exact (lp_norm_sq_le ((summable_norm_hsRow_sq K hK).mul_right (‖v‖ ^ 2)) fun n ↦
+        norm_inner_sq_le _ _).trans (by rw [tsum_mul_right])
+
+/-- Row `n` of `Kv` is the inner product with row `n` of `K`, conjugated. -/
+theorem hsOp_apply_eq_inner (v : ℓ²(ℤ, ℂ)) (n : ℤ) : hsOp K hK v n = inner ℂ (hsRow K hK n) v :=
+  rfl
+
+/-- `(Kv)ₙ = ∑ₘ Kₙₘvₘ`. -/
+theorem hsOp_apply (v : ℓ²(ℤ, ℂ)) (n : ℤ) : hsOp K hK v n = ∑' m, K n m * v m := by
+  rw [hsOp_apply_eq_inner, lp.inner_eq_tsum]
+  simp [hsRow, RCLike.inner_apply, mul_comm]
+
+/-- The coordinates in `s`, as a map to `s → ℂ`. -/
+noncomputable def finEval (s : Finset ℤ) : ℓ²(ℤ, ℂ) →L[ℂ] (s → ℂ) :=
+  ContinuousLinearMap.pi fun i : s ↦ lp.evalCLM ℂ (fun _ : ℤ ↦ ℂ) 2 i.1
+
+/-- `finEval s v` takes the coordinates of `v`. -/
+theorem finEval_apply (s : Finset ℤ) (v : ℓ²(ℤ, ℂ)) (i : s) : finEval s v i = v i :=
+  rfl
+
+/-- The vector of `ℓ²` with the coordinates in `s` given, zero elsewhere. -/
+noncomputable def finSpan (s : Finset ℤ) : (s → ℂ) →L[ℂ] ℓ²(ℤ, ℂ) :=
+  ∑ i : s, (lp.singleContinuousLinearMap ℂ (fun _ : ℤ ↦ ℂ) 2 i.1).comp
+    (ContinuousLinearMap.proj i)
+
+/-- The projection of `ℓ²` onto the coordinates in `s`, of finite rank. -/
+noncomputable def finProj (s : Finset ℤ) : ℓ²(ℤ, ℂ) →L[ℂ] ℓ²(ℤ, ℂ) :=
+  (finSpan s).comp (finEval s)
+
+/-- `finProj s` zeroes the coordinates outside `s`. -/
+theorem finProj_apply (s : Finset ℤ) (v : ℓ²(ℤ, ℂ)) (n : ℤ) :
+    finProj s v n = if n ∈ s then v n else 0 := by
+  simp only [finProj, finSpan, ContinuousLinearMap.comp_apply,
+    FunLike.coe_sum, Finset.sum_apply, lp.coeFn_sum]
+  simp only [ContinuousLinearMap.proj_apply, lp.singleContinuousLinearMap_apply, lp.single_apply,
+    finEval_apply]
+  rw [Finset.sum_coe_sort s (fun i ↦ Pi.single i (v i) n)]
+  exact Finset.sum_pi_single n (fun i ↦ v i) s
+
+/-- **Hilbert–Schmidt matrices are compact.** -/
+theorem isCompactOperator_hsOp : IsCompactOperator (hsOp K hK) := by
+  have hc := summable_norm_hsRow_sq K hK
+  refine isCompactOperator_of_tendsto (l := atTop) (F := fun s ↦ (finProj s).comp (hsOp K hK))
+    ?_ (Eventually.of_forall fun s ↦ ?_)
+  · rw [tendsto_iff_norm_sub_tendsto_zero]
+    have ht := ((tendsto_tsum_compl_atTop_zero fun n ↦ ‖hsRow K hK n‖ ^ 2).sqrt)
+    rw [Real.sqrt_zero] at ht
+    refine squeeze_zero (fun _ ↦ norm_nonneg _) (fun s ↦ ?_) ht
+    refine ContinuousLinearMap.opNorm_le_bound _ (Real.sqrt_nonneg _) fun v ↦ ?_
+    refine le_sqrt_mul_of_sq_le (norm_nonneg _) (norm_nonneg _)
+      (tsum_nonneg fun _ ↦ by positivity) ?_
+    rw [show (∑' n : {n // n ∉ s}, ‖hsRow K hK n‖ ^ 2) =
+        ∑' n, ({n | n ∉ s} : Set ℤ).indicator (fun n ↦ ‖hsRow K hK n‖ ^ 2) n from
+      tsum_subtype ({n | n ∉ s} : Set ℤ) fun n ↦ ‖hsRow K hK n‖ ^ 2, ← tsum_mul_right]
+    refine lp_norm_sq_le ((hc.indicator _).mul_right _) fun n ↦ ?_
+    simp only [_root_.sub_apply, ContinuousLinearMap.comp_apply, lp.coeFn_sub,
+      Pi.sub_apply, finProj_apply, Set.indicator, Set.mem_ofPred_eq]
+    by_cases hn : n ∈ s
+    · simp [hn]
+    · simp only [hn, ite_false, zero_sub, norm_neg, not_false_eq_true, ite_true]
+      exact norm_inner_sq_le _ _
+  · rw [show (finProj s).comp (hsOp K hK) = (finSpan s).comp ((finEval s).comp (hsOp K hK))
+      from rfl, ContinuousLinearMap.coe_comp]
+    exact (isCompactOperator_of_locallyCompactSpace_dom _).clm_comp _
+
+/-- The diagonal matrix `diag(c)`. -/
+def diagK (c : ℤ → ℂ) (n m : ℤ) : ℂ := if n = m then c n else 0
+
+/-- A diagonal matrix with square-summable diagonal is Hilbert–Schmidt. -/
+theorem summable_diag_sq {c : ℤ → ℂ} (hc : Summable fun n ↦ ‖c n‖ ^ 2) :
+    Summable fun p : ℤ × ℤ ↦ ‖diagK c p.1 p.2‖ ^ 2 := by
+  refine (Function.Injective.summable_iff (g := fun n : ℤ ↦ (n, n))
+    (fun a b h ↦ (Prod.ext_iff.mp h).1) fun p hp ↦ ?_).mp ?_
+  · have h : p.1 ≠ p.2 := fun h ↦ hp ⟨p.1, Prod.ext rfl h⟩
+    simp [diagK, h]
+  · simpa [Function.comp_def, diagK] using hc
+
+/-- A diagonal matrix acts by multiplication. -/
+theorem hsOp_diag_apply {c : ℤ → ℂ} (hc : Summable fun n ↦ ‖c n‖ ^ 2) (v : ℓ²(ℤ, ℂ)) (n : ℤ) :
+    hsOp (diagK c) (summable_diag_sq hc) v n = c n * v n := by
+  rw [hsOp_apply]
+  simp_rw [diagK, ite_mul, zero_mul, @eq_comm _ n]
+  exact tsum_ite_eq n fun m ↦ c n * v m
+
+end HubbardAtom

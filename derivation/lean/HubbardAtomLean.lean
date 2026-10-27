@@ -36,3 +36,5 @@ import HubbardAtomLean.StaticResponse
 import HubbardAtomLean.WardIdentities
 import HubbardAtomLean.SpectralIdentity
 import HubbardAtomLean.ChiBounds
+import HubbardAtomLean.HilbertSchmidt
+import HubbardAtomLean.ChiCompact
