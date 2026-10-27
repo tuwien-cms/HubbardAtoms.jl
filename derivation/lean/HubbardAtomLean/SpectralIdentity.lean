@@ -15,8 +15,7 @@ For `g_s(n) = 1/(zₙ² - s)`, `s = u²` off the lattice, and `f_r` of `DividedD
   `ℓ(s) = -εU ∑ₙ f_r(zₙ)g_s(n)`, by the divided differences and the Ward identity
   (`hasSum_chiR`);
 * `Params.hasSum_chiR_mul_g_of`: where `1 - (εU/β)𝒯(s) = 0`, `g_s` is an eigenvector of `χ_r`
-  with eigenvalue `ℓ(s)`. (By `D_k`, `Φ_k` of `DivergenceAlgebra.lean`,
-  `1 - (εU/β)𝒯(s) = Φ_k(s)/D_k(s)`; that link, and `ℓ(s) = -K_e(s)/P(s)`, are not proved here.)
+  with eigenvalue `ℓ(s)`. `SpectralLink.lean` writes both in terms of `Φ_k`, `D_k` and `K_e`.
 -/
 
 open Complex
