@@ -341,23 +341,26 @@ theorem hasDerivAt_S {k : ℤ} {x : ℂ} (hx : ∀ n, A.z k n ≠ x) :
     field_simp
     linear_combination -4 * cosh_sq_sub_sinh_sq (A.β * (x - A.μ) / 2)
 
-/-- The lattice keeps a positive distance from every point off it. -/
-theorem exists_lattice_dist {k : ℤ} {x : ℂ} (hx : ∀ n, A.z k n ≠ x) :
-    ∃ r > 0, ∀ n, r ≤ ‖A.z k n - x‖ := by
+/-- The distance of the lattice points from any point tends to infinity. -/
+theorem tendsto_norm_z_sub (k : ℤ) (x : ℂ) :
+    Tendsto (fun n : ℤ ↦ ‖A.z k n - x‖) cofinite atTop := by
   have hβ := A.β_ne_zero
   have hπ : (Real.pi : ℂ) ≠ 0 := ofReal_ne_zero.mpr Real.pi_ne_zero
   have hc : (2 * Real.pi / A.β * I : ℂ) ≠ 0 :=
     mul_ne_zero (div_ne_zero (mul_ne_zero two_ne_zero hπ) hβ) I_ne_zero
-  have ht : Tendsto (fun n : ℤ ↦ ‖A.z k n - x‖) cofinite atTop := by
-    have h := (isTheta_linear (A.μ + (1 + k) * Real.pi / A.β * I - x) hc).tendsto_norm_atTop_iff.mpr
-      (tendsto_norm_comp_cofinite_atTop_of_isClosedEmbedding Int.isClosedEmbedding_coe_real)
-    refine h.congr fun n ↦ ?_
-    simp only [Function.comp_apply]
-    congr 1
-    rw [A.z_eq]
-    push_cast
-    ring
-  obtain ⟨n₀, hn₀⟩ := ht.exists_forall_le
+  have h := (isTheta_linear (A.μ + (1 + k) * Real.pi / A.β * I - x) hc).tendsto_norm_atTop_iff.mpr
+    (tendsto_norm_comp_cofinite_atTop_of_isClosedEmbedding Int.isClosedEmbedding_coe_real)
+  refine h.congr fun n ↦ ?_
+  simp only [Function.comp_apply]
+  congr 1
+  rw [A.z_eq]
+  push_cast
+  ring
+
+/-- The lattice keeps a positive distance from every point off it. -/
+theorem exists_lattice_dist {k : ℤ} {x : ℂ} (hx : ∀ n, A.z k n ≠ x) :
+    ∃ r > 0, ∀ n, r ≤ ‖A.z k n - x‖ := by
+  obtain ⟨n₀, hn₀⟩ := (A.tendsto_norm_z_sub k x).exists_forall_le
   exact ⟨_, norm_pos_iff.mpr (sub_ne_zero.mpr (hx n₀)), hn₀⟩
 
 /-- Lemma "basic sum" for double poles: `∑ₙ 1/(zₙ - x)² = S_k'(x) = S_k(x)² - β²/4` off the
