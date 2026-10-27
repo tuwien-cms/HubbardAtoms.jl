@@ -36,3 +36,4 @@ import HubbardAtomLean.StaticResponse
 import HubbardAtomLean.WardIdentities
 import HubbardAtomLean.SpectralIdentity
 import HubbardAtomLean.DivergenceAlgebra
+import HubbardAtomLean.SpectralLink
