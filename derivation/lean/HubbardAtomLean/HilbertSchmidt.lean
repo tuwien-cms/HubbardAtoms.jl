@@ -10,7 +10,9 @@ A matrix `K : ℤ → ℤ → ℂ` with square-summable entries acts on `ℓ²(�
 * `isCompactOperator_hsOp`: `hsOp K hK` is compact, as the norm limit of its restrictions to
   finitely many rows, which have finite rank;
 * `hsOp_diag_apply`: a diagonal matrix `diagK c` acts by multiplication;
-* `tsum_mul_one_add_hsOp_comm`: for a symmetric `K`, `∑ₙ xₙ((1 + K)c)ₙ = ∑ₙ cₙ((1 + K)x)ₙ`.
+* `tsum_mul_one_add_hsOp_comm`: for a symmetric `K`, `∑ₙ xₙ((1 + K)c)ₙ = ∑ₙ cₙ((1 + K)x)ₙ`;
+* `tendsto_hsOp_truncK`: the restrictions `truncK K s` of `K` to `s × s` converge in norm as `s`
+  grows, by the Hilbert–Schmidt bound `norm_hsOp_le`.
 
 Row `n` acts as the inner product with `m ↦ conj Kₙₘ`, so linearity and the Cauchy–Schwarz bound
 come from `ℓ²(ℤ)`.
@@ -193,5 +195,72 @@ theorem hsOp_diag_apply {c : ℤ → ℂ} (hc : Summable fun n ↦ ‖c n‖ ^ 2
   rw [hsOp_apply]
   simp_rw [diagK, ite_mul, zero_mul, @eq_comm _ n]
   exact tsum_ite_eq n fun m ↦ c n * v m
+
+/-- `‖hsOp K‖ ≤ (∑ₙₘ |Kₙₘ|²)^(1/2)`, the Hilbert–Schmidt norm. -/
+theorem norm_hsOp_le : ‖hsOp K hK‖ ≤ √(∑' p : ℤ × ℤ, ‖K p.1 p.2‖ ^ 2) := by
+  have hrows : ∑' n, ‖hsRow K hK n‖ ^ 2 = ∑' p : ℤ × ℤ, ‖K p.1 p.2‖ ^ 2 := by
+    rw [hK.tsum_prod]
+    exact tsum_congr fun n ↦ by rw [lp_norm_sq_eq_tsum]; simp [hsRow]
+  refine ContinuousLinearMap.opNorm_le_bound _ (Real.sqrt_nonneg _) fun v ↦
+    le_sqrt_mul_of_sq_le (norm_nonneg _) (norm_nonneg _) (tsum_nonneg fun _ ↦ by positivity) ?_
+  rw [← hrows, ← tsum_mul_right]
+  exact lp_norm_sq_le ((summable_norm_hsRow_sq K hK).mul_right _) fun n ↦ by
+    rw [hsOp_apply_eq_inner]
+    exact norm_inner_sq_le _ _
+
+/-- `hsOp` is additive in the matrix: `hsOp K - hsOp K' = hsOp (K - K')`. -/
+theorem hsOp_sub (K' : ℤ → ℤ → ℂ) (hK' : Summable fun p : ℤ × ℤ ↦ ‖K' p.1 p.2‖ ^ 2)
+    (hd : Summable fun p : ℤ × ℤ ↦ ‖K p.1 p.2 - K' p.1 p.2‖ ^ 2) :
+    hsOp K hK - hsOp K' hK' = hsOp (fun n m ↦ K n m - K' n m) hd := by
+  ext v n
+  have h := hasSum_hsOp (fun n m ↦ K n m - K' n m) hd v n
+  simp only [sub_mul] at h
+  rw [_root_.sub_apply, lp.coeFn_sub, Pi.sub_apply]
+  exact ((hasSum_hsOp K hK v n).sub (hasSum_hsOp K' hK' v n)).unique h
+
+/-- `K` restricted to `s × s`, zero elsewhere. -/
+def truncK (s : Finset ℤ) (n m : ℤ) : ℂ := if n ∈ s ∧ m ∈ s then K n m else 0
+
+include hK in
+/-- The restriction of `K` to `s × s` is Hilbert–Schmidt. -/
+theorem summable_truncK_sq (s : Finset ℤ) :
+    Summable fun p : ℤ × ℤ ↦ ‖truncK K s p.1 p.2‖ ^ 2 :=
+  hK.of_nonneg_of_le (fun _ ↦ by positivity) fun p ↦ by
+    unfold truncK
+    split_ifs <;> simp
+
+/-- The restriction of `K` acts on the coordinates in `s`: `(K_s v)ₙ = ∑_{l ∈ s} Kₙₗvₗ` for
+`n ∈ s`, and `0` otherwise. -/
+theorem hsOp_truncK_apply (s : Finset ℤ) (v : ℓ²(ℤ, ℂ)) (n : ℤ) :
+    hsOp (truncK K s) (summable_truncK_sq K hK s) v n =
+      if n ∈ s then ∑ l ∈ s, K n l * v l else 0 := by
+  rw [hsOp_apply, tsum_eq_sum (s := s) fun l hl ↦ by simp [truncK, hl]]
+  split_ifs with hn
+  · exact Finset.sum_congr rfl fun l hl ↦ by simp [truncK, hn, hl]
+  · simp [truncK, hn]
+
+/-- **The restrictions to finite sets converge in norm**: `‖K - K_s‖` is bounded by the
+Hilbert–Schmidt norm of the entries outside `s × s`, which tends to `0`. -/
+theorem tendsto_hsOp_truncK :
+    Tendsto (fun s ↦ hsOp (truncK K s) (summable_truncK_sq K hK s)) atTop (𝓝 (hsOp K hK)) := by
+  rw [tendsto_iff_norm_sub_tendsto_zero]
+  have ht := ((tendsto_tsum_compl_atTop_zero fun p : ℤ × ℤ ↦ ‖K p.1 p.2‖ ^ 2).comp
+    (tendsto_finsetProd_atTop.comp tendsto_atTop_diagonal)).sqrt
+  rw [Real.sqrt_zero] at ht
+  refine squeeze_zero (fun _ ↦ norm_nonneg _) (fun s ↦ ?_) ht
+  have hd : Summable fun p : ℤ × ℤ ↦ ‖truncK K s p.1 p.2 - K p.1 p.2‖ ^ 2 :=
+    hK.of_nonneg_of_le (fun _ ↦ by positivity) fun p ↦ by
+      unfold truncK
+      split_ifs <;> simp
+  rw [hsOp_sub (truncK K s) (summable_truncK_sq K hK s) K hK hd]
+  refine (norm_hsOp_le (fun n m ↦ truncK K s n m - K n m) hd).trans
+    (Real.sqrt_le_sqrt (le_of_eq ?_))
+  simp only [Function.comp_apply]
+  rw [show (∑' p : {p // p ∉ s ×ˢ s}, ‖K p.1.1 p.1.2‖ ^ 2) =
+      ∑' p, ({p | p ∉ s ×ˢ s} : Set (ℤ × ℤ)).indicator (fun p ↦ ‖K p.1 p.2‖ ^ 2) p from
+    tsum_subtype ({p | p ∉ s ×ˢ s} : Set (ℤ × ℤ)) fun p ↦ ‖K p.1 p.2‖ ^ 2]
+  refine tsum_congr fun p ↦ ?_
+  by_cases hp : p ∈ s ×ˢ s <;> rw [Finset.mem_product] at hp <;>
+    simp [truncK, hp, Set.indicator, Finset.mem_product]
 
 end HubbardAtom
