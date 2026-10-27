@@ -120,18 +120,24 @@ theorem norm_Kr_sq_le (hμ : A.μ ≠ 0) : ∃ C, ∀ n m, ‖A.Kr k ε n m‖ ^
         nlinarith [mul_nonneg (sq_nonneg (c₂ / A.β))
           (mul_nonneg (sq_nonneg ‖A.z k n‖⁻¹) (sq_nonneg ‖A.z k m‖⁻¹))]
 
+/-- `∑ₙₘ |zₙ|⁻²(|zₘ|⁻² + δₙₘ)` converges, for `μ ≠ 0`. -/
+theorem summable_majorant (hμ : A.μ ≠ 0) :
+    Summable fun p : ℤ × ℤ ↦
+      ‖A.z k p.1‖⁻¹ ^ 2 * (‖A.z k p.2‖⁻¹ ^ 2 + if p.1 = p.2 then (1 : ℝ) else 0) := by
+  have ha := A.summable_inv_norm_z_sq k hμ
+  have hδ : Summable fun p : ℤ × ℤ ↦ ‖A.z k p.1‖⁻¹ ^ 2 * if p.1 = p.2 then (1 : ℝ) else 0 := by
+    refine (summable_diag_sq (c := fun n ↦ (‖A.z k n‖⁻¹ : ℂ)) (by simpa using ha)).congr
+      fun p ↦ ?_
+    by_cases h : p.1 = p.2 <;> simp [diagK, h]
+  exact ((ha.mul_of_nonneg ha (fun _ ↦ by positivity) fun _ ↦ by positivity).add hδ).congr
+    fun p ↦ by ring
+
 /-- **`𝒦` is Hilbert–Schmidt**, by `norm_Kr_sq_le`. -/
 theorem summable_Kr_sq (hμ : A.μ ≠ 0) :
     Summable fun p : ℤ × ℤ ↦ ‖A.Kr k ε p.1 p.2‖ ^ 2 := by
   obtain ⟨C, hC⟩ := A.norm_Kr_sq_le k ε hμ
-  have ha := A.summable_inv_norm_z_sq k hμ
-  -- the diagonal part, through `(n, n)`
-  have hd : Summable fun p : ℤ × ℤ ↦ ‖A.z k p.1‖⁻¹ ^ 2 * if p.1 = p.2 then (1 : ℝ) else 0 := by
-    refine (summable_diag_sq (c := fun n ↦ (‖A.z k n‖⁻¹ : ℂ)) (by simpa using ha)).congr
-      fun p ↦ ?_
-    by_cases h : p.1 = p.2 <;> simp [diagK, h]
-  refine (((ha.mul_of_nonneg ha (fun _ ↦ by positivity) fun _ ↦ by positivity).add hd).mul_left
-    C).of_nonneg_of_le (fun _ ↦ by positivity) fun p ↦ (hC p.1 p.2).trans_eq (by ring)
+  exact ((A.summable_majorant k hμ).mul_left C).of_nonneg_of_le (fun _ ↦ by positivity)
+    fun p ↦ (hC p.1 p.2).trans_eq (by ring)
 
 /-- **`𝒦` is compact** on `ℓ²(ℤ)`. -/
 theorem isCompactOperator_Kr (hμ : A.μ ≠ 0) :
