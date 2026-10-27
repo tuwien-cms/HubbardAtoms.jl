@@ -33,6 +33,10 @@ import HubbardAtomLean.FieldLInput
 import HubbardAtomLean.FieldTZero
 import HubbardAtomLean.DividedDifferences
 import HubbardAtomLean.StaticResponse
+import HubbardAtomLean.WardIdentities
+import HubbardAtomLean.SpectralIdentity
+import HubbardAtomLean.DivergenceAlgebra
+import HubbardAtomLean.SpectralLink
 import HubbardAtomLean.ChiBounds
 import HubbardAtomLean.HilbertSchmidt
 import HubbardAtomLean.ChiCompact

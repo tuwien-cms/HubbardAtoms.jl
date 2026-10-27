@@ -7,8 +7,8 @@ modules="Basic Triplet StableForms Thermal Matsubara SingletInput Singlet PHInpu
   PHIdentities DensityMagnetic OrderedIntegrals Lehmann LehmannInput UZero DMLifts SingletZero
   HalfFilling Confluent SingletLZ HalfFillingLZ FieldBasic FieldLehmann FieldTAlg FieldInput
   FieldTSums FieldTIdentities FieldTransverse FieldPair FieldEqualSpin FieldTHalfFilling
-  FieldLInput FieldTZero DividedDifferences StaticResponse ChiBounds
-  HilbertSchmidt ChiCompact GammaOperator GammaClosedForm
+  FieldLInput FieldTZero DividedDifferences StaticResponse WardIdentities SpectralIdentity
+  DivergenceAlgebra SpectralLink ChiBounds HilbertSchmidt ChiCompact GammaOperator GammaClosedForm
   GammaBoxes GammaContinuity"
 
 # 1. Rebuild the library from a cold cache, so that every module is compiled and linted, and fail
