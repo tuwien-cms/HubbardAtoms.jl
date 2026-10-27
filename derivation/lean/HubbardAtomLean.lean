@@ -37,3 +37,4 @@ import HubbardAtomLean.ChiBounds
 import HubbardAtomLean.HilbertSchmidt
 import HubbardAtomLean.ChiCompact
 import HubbardAtomLean.GammaOperator
+import HubbardAtomLean.GammaClosedForm
