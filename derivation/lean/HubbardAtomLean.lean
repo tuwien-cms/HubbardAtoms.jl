@@ -34,3 +34,5 @@ import HubbardAtomLean.FieldTZero
 import HubbardAtomLean.DividedDifferences
 import HubbardAtomLean.StaticResponse
 import HubbardAtomLean.ChiBounds
+import HubbardAtomLean.HilbertSchmidt
+import HubbardAtomLean.ChiCompact
