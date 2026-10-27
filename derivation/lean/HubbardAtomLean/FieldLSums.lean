@@ -670,6 +670,155 @@ theorem αPL_mul_αPL (σ : Bool) {x : ℂ} (hx₁ : ∀ n, (F.BL σ).z k n ≠ 
     rw [Bool.not_false, mul_comm, this]
   · exact F.αPL_mul_αPL_true k hx₁ hx₂
 
+/-! ### The blocks of `Pχ_L` on simple poles -/
+
+/-- The coefficients of `N(z, t) = N₀_{-σ}(t) + z²N₂_{-σ}(t)` in `t` (`NL_cubic`). -/
+noncomputable def cN0L (z : ℂ) : ℂ :=
+  4 * F.a ^ 4 * kron k 0 * F.ζL + 8 * F.a ^ 3 * F.q₀L k -
+    2 * F.a ^ 2 * kron k 0 * F.q₀L k * F.ζL - F.a ^ 2 * kron k 0 * z ^ 2 * F.ζL -
+    2 * F.a * F.q₀L k ^ 2 - 2 * F.a * F.q₀L k * z ^ 2 - kron k 0 * F.q₀L k ^ 2 * F.ζL
+
+noncomputable def cN1L (σ : Bool) (z : ℂ) : ℂ :=
+  -4 * F.a ^ 2 * F.rL (!σ) * (-4 * F.a ^ 2 + 2 * F.q₀L k + z ^ 2)
+
+noncomputable def cN2L (z : ℂ) : ℂ :=
+  -(F.a ^ 2 * kron k 0 * F.ζL) - 2 * F.a * F.q₀L k - 2 * F.a * z ^ 2 + kron k 0 * z ^ 2 * F.ζL
+
+noncomputable def cN3L (σ : Bool) : ℂ := -4 * F.a ^ 2 * F.rL (!σ)
+
+theorem NL_eq_cubic (σ : Bool) (z t : ℂ) :
+    F.N₀L k (F.rL (!σ)) t + z ^ 2 * F.N₂L k (F.rL (!σ)) t =
+      F.cN0L k z + F.cN1L k σ z * t + F.cN2L k z * t ^ 2 + F.cN3L σ * t ^ 3 := by
+  rw [F.NL_cubic, cN0L, cN1L, cN2L, cN3L]
+
+/-- `R̂(z, x)` of the opposite-spin rank-two part of row `σ`, on the lattice of spin `-σ`. -/
+noncomputable def RhatL (σ : Bool) (z x : ℂ) : ℂ :=
+  (F.BL (!σ)).RhatC k (F.cN0L k z) (F.cN1L k σ z) (F.cN2L k z) (F.cN3L σ) x
+
+/-- `R̂(x)` of the same-spin rank-one part (`k = 0`) of row `σ`, for `t² - a²`. -/
+noncomputable def RhatSL (σ : Bool) (x : ℂ) : ℂ := (F.BL σ).RhatC k (-F.a ^ 2) 0 1 0 x
+
+theorem PL_BL (σ : Bool) (z : ℂ) : (F.BL σ).Pph k z = F.PL k z := rfl
+
+theorem PL_BL_ne (σ : Bool) (j : ℤ) : F.PL k ((F.BL σ).z k j) ≠ 0 :=
+  (F.BL σ).Pph_z_ne_zero k j
+
+/-- **The same-spin block on a simple pole**, times `P(x)`: for `x` off `L_σ`,
+`∑ₗ P(z)χ_σσ(z, l)P(x)/(l - x) = -βH_σ(z)P(x)/(z - x) + δ_k0 ζ_σ(z² - a²)[(x² - a²)S_σ(x) + R̂]`. -/
+theorem hasSum_self_pole (ha : (F.a : ℂ) ≠ 0) (σ : Bool) (n : ℤ) {x : ℂ}
+    (hx : ∀ l, (F.BL σ).z k l ≠ x) :
+    HasSum (fun l ↦ F.PL k ((F.BL σ).z k n) * F.chiL σ σ k n l *
+        (F.PL k x / ((F.BL σ).z k l - x)))
+      (-F.β * F.HL k (F.rL σ) ((F.BL σ).z k n) * F.PL k x / ((F.BL σ).z k n - x) +
+        kron k 0 * F.ζLs σ * ((F.BL σ).z k n ^ 2 - F.a ^ 2) *
+          ((x ^ 2 - F.a ^ 2) * (F.BL σ).S k x + F.RhatSL k σ x)) := by
+  have h₁ := hasSum_single (f := fun l ↦ -F.β * F.HL k (F.rL σ) ((F.BL σ).z k n) * kron n l *
+    (F.PL k x / ((F.BL σ).z k l - x))) n
+    (fun l hl ↦ by simp only [kron_of_ne (Ne.symm hl), mul_zero, zero_mul])
+  have h₂ := ((F.BL σ).hasSum_cubic_mul k ha (-F.a ^ 2) 0 1 0 hx).mul_left
+    (kron k 0 * F.ζLs σ * ((F.BL σ).z k n ^ 2 - F.a ^ 2))
+  simp only [PL_BL] at h₂
+  convert h₁.add h₂ using 1
+  · funext l
+    have hPl := F.PL_BL_ne k σ l
+    rw [F.PL_mul_chiL_self k σ n l]
+    by_cases hnl : n = l
+    · subst hnl
+      rw [kron_self]
+      field_simp
+      ring
+    · rw [kron_of_ne hnl]
+      field_simp
+      ring
+  · rw [kron_self, RhatSL]
+    ring
+
+/-- **The opposite-spin block on a simple pole**, times `P(x)`: for `x` off `L_{-σ}`, `x ≠ ±z`,
+`∑ₗ P(z)χ_{σ,-σ}(z, l)P(x)/(l - x) = λP(x)[α^P_σ(x)/(z + x) + α^S_σ(x)/(z - x)] +
+N(z, x)S_{-σ}(x) + R̂(z, x)`. -/
+theorem hasSum_opp_pole (ha : (F.a : ℂ) ≠ 0) (hμ : F.μ ≠ 0) (hh : F.h ≠ 0) (σ : Bool) (n : ℤ)
+    {x : ℂ} (hx : ∀ l, (F.BL (!σ)).z k l ≠ x) (hxp : x ≠ -(F.BL σ).z k n)
+    (hxm : x ≠ (F.BL σ).z k n) :
+    HasSum (fun l ↦ F.PL k ((F.BL σ).z k n) * F.chiL σ (!σ) k n l *
+        (F.PL k x / ((F.BL (!σ)).z k l - x)))
+      (F.lamL * F.PL k x * (F.αPL k σ x / ((F.BL σ).z k n + x) +
+          F.αSL k σ x / ((F.BL σ).z k n - x)) +
+        ((F.N₀L k (F.rL (!σ)) x + (F.BL σ).z k n ^ 2 * F.N₂L k (F.rL (!σ)) x) *
+          (F.BL (!σ)).S k x + F.RhatL k σ ((F.BL σ).z k n) x)) := by
+  have h₁ := (F.hasSum_kernelL k hμ hh σ n hx hxp hxm).mul_left (F.lamL * F.PL k x)
+  have h₂ := (F.BL (!σ)).hasSum_cubic_mul k ha (F.cN0L k ((F.BL σ).z k n))
+    (F.cN1L k σ ((F.BL σ).z k n)) (F.cN2L k ((F.BL σ).z k n)) (F.cN3L σ) hx
+  simp only [PL_BL] at h₂
+  convert h₁.add h₂ using 1
+  · funext l
+    have hPl := F.PL_BL_ne k (!σ) l
+    have e₁ := sub_ne_zero.mpr (hx l)
+    have e₂ := F.zL_add_opp_ne k hμ σ n l
+    have e₃ := F.zL_sub_opp_ne k hh σ n l
+    rw [F.PL_mul_chiL_opp k hμ hh σ n l, F.NL_eq_cubic]
+    field_simp
+  · rw [F.NL_eq_cubic, RhatL]
+
+/-- The opposite-spin block on the pole at `v = z_σₘ` of the own lattice, times `P(v)`. -/
+theorem hasSum_opp_pole_sub (ha : (F.a : ℂ) ≠ 0) (hμ : F.μ ≠ 0) (hh : F.h ≠ 0) {σ : Bool}
+    (hc : F.cL σ ≠ 0) (n m : ℤ) :
+    HasSum (fun l ↦ F.PL k ((F.BL σ).z k n) * F.chiL σ (!σ) k n l *
+        (F.PL k ((F.BL σ).z k m) / ((F.BL (!σ)).z k l - (F.BL σ).z k m)))
+      (F.lamL * F.PL k ((F.BL σ).z k m) *
+          ((-(F.ρ * F.cS / F.mL σ) - F.cP) / ((F.BL σ).z k n + (F.BL σ).z k m) +
+            kron n m * (F.mL σ * ((F.cS / F.mL σ) ^ 2 - F.β ^ 2 / 4))) +
+        ((F.N₀L k (F.rL (!σ)) ((F.BL σ).z k m) +
+            (F.BL σ).z k n ^ 2 * F.N₂L k (F.rL (!σ)) ((F.BL σ).z k m)) * -(F.cS / F.mL σ) +
+          F.RhatL k σ ((F.BL σ).z k n) ((F.BL σ).z k m))) := by
+  have hx : ∀ l, (F.BL (!σ)).z k l ≠ (F.BL σ).z k m := fun l h0 ↦
+    F.zL_sub_opp_ne k hh σ m l (by rw [h0]; ring)
+  have h₁ := (F.hasSum_kernelL_sub k hμ hh hc n m).mul_left (F.lamL * F.PL k ((F.BL σ).z k m))
+  have h₂ := (F.BL (!σ)).hasSum_cubic_mul k ha (F.cN0L k ((F.BL σ).z k n))
+    (F.cN1L k σ ((F.BL σ).z k n)) (F.cN2L k ((F.BL σ).z k n)) (F.cN3L σ) hx
+  rw [F.S_opp_z k hh σ m] at h₂
+  simp only [PL_BL] at h₂
+  convert h₁.add h₂ using 1
+  · funext l
+    have hPl := F.PL_BL_ne k (!σ) l
+    have e₁ := sub_ne_zero.mpr (hx l)
+    have e₂ := F.zL_add_opp_ne k hμ σ n l
+    have e₃ := F.zL_sub_opp_ne k hh σ n l
+    rw [F.PL_mul_chiL_opp k hμ hh σ n l, F.NL_eq_cubic]
+    field_simp
+  · rw [F.NL_eq_cubic, RhatL]
+
+/-- The opposite-spin block on the reflected pole at `-v`, `v = z_σₘ`, times `P(v)`. -/
+theorem hasSum_opp_pole_add (ha : (F.a : ℂ) ≠ 0) (hμ : F.μ ≠ 0) (hh : F.h ≠ 0) {σ : Bool}
+    (hc : F.cL σ ≠ 0) (n m : ℤ) :
+    HasSum (fun l ↦ F.PL k ((F.BL σ).z k n) * F.chiL σ (!σ) k n l *
+        (F.PL k ((F.BL σ).z k m) / ((F.BL (!σ)).z k l + (F.BL σ).z k m)))
+      (F.lamL * F.PL k ((F.BL σ).z k m) *
+          (kron n m * (F.ρ * ((F.cP / F.ρ) ^ 2 - F.β ^ 2 / 4)) +
+            F.mL σ * (-(F.cS / F.mL σ) - F.cP / F.ρ) / ((F.BL σ).z k n + (F.BL σ).z k m)) +
+        ((F.N₀L k (F.rL (!σ)) (-(F.BL σ).z k m) +
+            (F.BL σ).z k n ^ 2 * F.N₂L k (F.rL (!σ)) (-(F.BL σ).z k m)) * (F.cP / F.ρ) +
+          F.RhatL k σ ((F.BL σ).z k n) (-(F.BL σ).z k m))) := by
+  have hx : ∀ l, (F.BL (!σ)).z k l ≠ -(F.BL σ).z k m := fun l h0 ↦
+    F.zL_add_opp_ne k hμ σ m l (by rw [h0]; ring)
+  have h₁ := (F.hasSum_kernelL_add k hμ hh hc n m).mul_left (F.lamL * F.PL k ((F.BL σ).z k m))
+  have h₂ := (F.BL (!σ)).hasSum_cubic_mul k ha (F.cN0L k ((F.BL σ).z k n))
+    (F.cN1L k σ ((F.BL σ).z k n)) (F.cN2L k ((F.BL σ).z k n)) (F.cN3L σ) hx
+  rw [F.S_opp_neg_z k hμ σ m] at h₂
+  have hPv : F.PL k (-(F.BL σ).z k m) = F.PL k ((F.BL σ).z k m) := by simp only [PL]; ring
+  simp only [PL_BL] at h₂
+  rw [hPv] at h₂
+  convert h₁.add h₂ using 1
+  · funext l
+    have hPl := F.PL_BL_ne k (!σ) l
+    have e₁ := sub_ne_zero.mpr (hx l)
+    have e₁' : (F.BL (!σ)).z k l + (F.BL σ).z k m ≠ 0 := by rwa [sub_neg_eq_add] at e₁
+    have e₂ := F.zL_add_opp_ne k hμ σ n l
+    have e₃ := F.zL_sub_opp_ne k hh σ n l
+    rw [F.PL_mul_chiL_opp k hμ hh σ n l, F.NL_eq_cubic]
+    field_simp
+    ring
+  · rw [F.NL_eq_cubic, RhatL]
+
 end FParams
 
 end HubbardAtom
