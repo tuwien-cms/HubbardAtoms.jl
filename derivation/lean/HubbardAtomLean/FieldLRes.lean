@@ -33,15 +33,15 @@ theorem res_self_pos {t : Bool} {u : ℂ} (hr : F.ModeRel k t u) (hE : F.E8L k u
     -F.β * F.HL k (F.rL t) u * F.PL k u * F.fMp k t t u +
         F.lamL * F.PL k u * (F.fMp k t (!t) u * F.αSL k t u +
           F.fMm k t (!t) u * F.αPL k t (-u)) = 0 := by
-  have rS := hr.rS
+  have rS : F.αSL k t u * F.αSL k (!t) u = F.β ^ 2 * (F.pL t * F.pL (!t)) := by
+    rw [hr.rS, ← F.pUp_mul_pDn t]; ring
   have rP := hr.rP
   rw [F.fMp_opp, F.fMm_opp,
     show ∀ X Y : ℂ, X * F.αSL k (!t) u * Y = X * (Y * F.αSL k (!t) u) from fun _ _ ↦ by ring,
     show ∀ X Y : ℂ, X * F.αPL k (!t) u * Y = X * (F.αPL k (!t) u * Y) from fun _ _ ↦ by ring,
     rS, rP]
   rw [F.E8L_eq k t] at hE
-  simp only [fMp, ↓reduceIte, QL, F.piS_eq t] at hE ⊢
-  rw [F.pUp_mul_pDn t]
+  simp only [fMp, ↓reduceIte, QL, F.piS_eq t, piP] at hE ⊢
   linear_combination (F.β ^ 2 * F.PL k u) * hE
 
 /-- **Residue at `z = -u`, row `t`**: zero, by the spin-flip and pair relations. -/
@@ -59,15 +59,12 @@ theorem res_self_neg {t : Bool} {u : ℂ} (h : F.ColNe k t) (hr : F.ModeRel k t 
   obtain ⟨w₁, w₂, w₃, w₄⟩ := F.weight_sums_ne t
   rw [e₁, e₂, F.fS_opp k hr h.m_ne, F.fS_opp_neg k hr h.ρ_ne]
   simp only [fMp, fMm, Bool.not_ne_self, ↓reduceIte, αSL, αPL, αL, Bool.not_not, F.mL_not t,
-    HL, QL, lamL, piP, F.piS_eq t, F.pUp_mul_pDn t, rL_not, q₀L, F.cS_eq t, cP, DL, cLw]
+    HL, lamL, piP, F.piS_eq t, F.pUp_mul_pDn t, rL_not, q₀L, F.cS_eq t, cP, DL, cLw]
   push_cast
-  obtain ⟨P, R, M, h₀, h₂, ht, hn, hR, hM, hP⟩ := F.col_params t
-  simp only [rL_cast, h₀, h₂, ht, hn, hR, hM]
-  rw [hR] at h
   have hm := h.m_ne
   have hρ := h.ρ_ne
-  rw [hM] at hm
-  rw [hR] at hρ
+  obtain ⟨P, R, M, h₀, h₂, ht, hn, hR, hM, hP⟩ := F.col_params t
+  simp only [rL_cast, h₀, h₂, ht, hn, hR, hM] at hm hρ ⊢
   field_simp
   ring
 
@@ -81,15 +78,15 @@ theorem res_opp_pos {t : Bool} {u : ℂ} (h : F.ColNe k t) (hr : F.ModeRel k t u
     simp only [αPL, Bool.not_not]; ring
   have hβ := β_ne_zeroT (F := F)
   rw [e₂, F.fS_self_neg k hr h.D_ne]
-  simp only [fMp, fMm, Bool.not_ne_self, ↓reduceIte, αSL, αPL, αL, Bool.not_not, F.mL_not t,
-    HL, QL, lamL, piP, F.piS_eq t, F.pUp_mul_pDn t, rL_not, q₀L, F.cS_eq t, cP, DL, cLw]
+  simp only [fMp, fMm, Bool.not_ne_self, ↓reduceIte, αSL, αL, Bool.not_not, F.mL_not t,
+    HL, QL, lamL, piP, F.piS_eq t, F.pUp_mul_pDn t, rL_not, q₀L, F.cS_eq t, cP, cLw]
+  push_cast
+  have hD := h.D_ne
+  field_simp
+  simp only [DL]
   push_cast
   obtain ⟨P, R, M, h₀, h₂, ht, hn, hR, hM, hP⟩ := F.col_params t
-  have hD := h.D_ne
-  simp only [DL] at hD
-  push_cast at hD
-  simp only [rL_cast, h₀, h₂, ht, hn, hR, hM] at hD ⊢
-  field_simp
+  simp only [rL_cast, h₀, h₂, ht, hn, hR, hM]
   ring
 
 /-- **Residue at `z = -u`, row `-t`**: zero, by the same-spin relation. -/
@@ -102,15 +99,15 @@ theorem res_opp_neg {t : Bool} {u : ℂ} (h : F.ColNe k t) (hr : F.ModeRel k t u
     simp only [αSL, Bool.not_not, F.mL_not t]; push_cast; ring
   have hβ := β_ne_zeroT (F := F)
   rw [e₂, F.fS_self_neg k hr h.D_ne]
-  simp only [fMp, fMm, Bool.not_ne_self, ↓reduceIte, αSL, αPL, αL, Bool.not_not, F.mL_not t,
-    HL, QL, lamL, piP, F.piS_eq t, F.pUp_mul_pDn t, rL_not, q₀L, F.cS_eq t, cP, DL, cLw]
+  simp only [fMp, fMm, Bool.not_ne_self, ↓reduceIte, αPL, αL, Bool.not_not,
+    HL, QL, lamL, piP, F.piS_eq t, F.pUp_mul_pDn t, rL_not, q₀L, F.cS_eq t, cP, cLw]
+  push_cast
+  have hD := h.D_ne
+  field_simp
+  simp only [DL]
   push_cast
   obtain ⟨P, R, M, h₀, h₂, ht, hn, hR, hM, hP⟩ := F.col_params t
-  have hD := h.D_ne
-  simp only [DL] at hD
-  push_cast at hD
-  simp only [rL_cast, h₀, h₂, ht, hn, hR, hM] at hD ⊢
-  field_simp
+  simp only [rL_cast, h₀, h₂, ht, hn, hR, hM]
   ring
 
 end FParams
