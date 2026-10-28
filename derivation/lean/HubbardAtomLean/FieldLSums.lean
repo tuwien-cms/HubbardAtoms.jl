@@ -819,6 +819,41 @@ theorem hasSum_opp_pole_add (ha : (F.a : ℂ) ≠ 0) (hμ : F.μ ≠ 0) (hh : F.
     ring
   · rw [F.NL_eq_cubic, RhatL]
 
+/-- **Product relation, same spin**: `α_σ(x)α_σ(-x) = β²p₀p₂p↑p↓` for `±x` off the lattice of spin
+`σ`, `μ_σ ≠ 0`: `α_σ = (D_σ/ρ_B)α` with `α` of the zero-field atom at `μ_σ` (Eq. (alpha)). -/
+theorem αL_mul_αL_neg {σ : Bool} (hc : F.cL σ ≠ 0) {x : ℂ} (hx : ∀ n, (F.BL σ).z k n ≠ x)
+    (hx' : ∀ n, (F.BL σ).z k n ≠ -x) :
+    F.αL k σ x * F.αL k σ (-x) = F.β ^ 2 * (F.p₀ * F.p₂) * (F.pUp * F.pDn) := by
+  have h := (F.BL σ).α_mul_α_neg k hx hx'
+  have hB := (F.BL σ).p₂_eq_p₀_mul
+  have hp := F.p₂_mul_pL σ
+  have hB0 : ((F.BL σ).p₀ : ℂ) ≠ 0 := ofReal_ne_zero.mpr (F.BL σ).p₀_pos.ne'
+  have hpσ : (F.pL σ : ℂ) ≠ 0 := ofReal_ne_zero.mpr (F.pL_pos σ).ne'
+  have hpp : (F.pUp : ℂ) * F.pDn = F.pL σ * F.pL (!σ) := by
+    cases σ
+    · simp only [pL_false, Bool.not_false, pL_true]
+      ring
+    · simp only [pL_true, Bool.not_true, pL_false]
+  have hE : Real.exp (2 * F.β * F.cL σ) ≠ 1 := by
+    rw [Ne, Real.exp_eq_one_iff]
+    exact mul_ne_zero (mul_ne_zero two_ne_zero F.β_pos.ne') hc
+  simp only [lat_β, lat_μ] at hB
+  rw [Params.α, Params.α, Params.ρ, Params.cbar, hB] at h
+  simp only [lat_β] at h
+  rw [αL, αL, cLw, DL, hpp]
+  generalize Real.exp (2 * F.β * F.cL σ) = E at hB hp hE h
+  have hX : (F.p₂ : ℂ) * F.pL σ = F.p₀ * F.pL (!σ) * E := by exact_mod_cast hp
+  push_cast at h ⊢
+  rw [show (F.β : ℂ) ^ 2 * (F.p₀ * F.p₂) * (F.pL σ * F.pL (!σ)) =
+    F.β ^ 2 * F.p₀ * F.pL (!σ) * (F.p₂ * F.pL σ) by ring, hX]
+  generalize (F.BL σ).S k x = S₁ at *
+  generalize (F.BL σ).S k (-x) = S₂ at *
+  have hS : (S₁ * (E - 1) - (1 + E) * F.β / 2) * (S₂ * (E - 1) - (1 + E) * F.β / 2) =
+      F.β ^ 2 * E := by
+    apply mul_left_cancel₀ (pow_ne_zero 2 hB0)
+    linear_combination h
+  linear_combination (F.p₀ * F.pL (!σ)) ^ 2 * hS
+
 end FParams
 
 end HubbardAtom
