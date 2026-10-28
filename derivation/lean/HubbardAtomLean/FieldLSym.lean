@@ -21,7 +21,7 @@ namespace HubbardAtom
 
 /-- **One root of the symmetry, opposite spins**: the term of the root `u` in
 `Γ_L(-t, z; t, v) - Γ_L(t, v; -t, z)` vanishes, given the three identities at the root. -/
-theorem sym_root {lam m ρ a q β z v u d p Pi Xi Kt Kp fp fm gp gm aT aN : ℂ} (hβ : β ≠ 0)
+private theorem sym_root {lam m ρ a q β z v u d p Pi Xi Kt Kp fp fm gp gm aT aN : ℂ} (hβ : β ≠ 0)
     (hd : d ≠ 0) (hKt : Kt ≠ 0) (hKp : Kp ≠ 0) (hzv : z - v ≠ 0) (hzv' : z + v ≠ 0)
     (hzu : z - u ≠ 0) (hzu' : z + u ≠ 0)
     (hvu : v - u ≠ 0) (hvu' : v + u ≠ 0)
@@ -58,8 +58,8 @@ theorem sym_root {lam m ρ a q β z v u d p Pi Xi Kt Kp fp fm gp gm aT aN : ℂ}
 
 /-- **One root of the symmetry, equal spins**: the term of the root `u` in
 `Γ_L(t, z; t, v) - Γ_L(t, v; t, z)` vanishes. -/
-theorem sym_root_self {lam D q β z v u d p K fp fm : ℂ} (hβ : β ≠ 0) (hd : d ≠ 0) (hK : K ≠ 0)
-    (hK' : fp + fm = K) (hzv : z + v ≠ 0) (hzu : z - u ≠ 0) (hzu' : z + u ≠ 0)
+private theorem sym_root_self {lam D q β z v u d p K fp fm : ℂ} (hβ : β ≠ 0) (hd : d ≠ 0)
+    (hK : K ≠ 0) (hK' : fp + fm = K) (hzv : z + v ≠ 0) (hzu : z - u ≠ 0) (hzu' : z + u ≠ 0)
     (hvu : v - u ≠ 0) (hvu' : v + u ≠ 0) :
     2 * lam ^ 2 * D * (p * (u ^ 2 + q) / d / (v ^ 2 - u ^ 2) -
         p * (u ^ 2 + q) / d / (z ^ 2 - u ^ 2)) /
@@ -348,6 +348,20 @@ theorem res_z (t : Bool) {u : ℂ} (hE : F.E8L k u = 0) :
     ((F.E8L_W k t u).symm.trans hE)
   rw [← KL, F.Kn_W, F.aAL_W, F.bW_W, F.KL_W]
   linear_combination c
+
+/-- Off the axes, `K_t = 0` at a root forces `K_{-t} = 0` (by the quotient identity, unless
+`u² = -q₀`, where the whole mode vanishes): so `K_t(u_j) ≠ 0` of `LGeneric` is the note's
+`(K↑, K↓) ≠ (0, 0)`, and Eq. (field-L-quotient) is only needed on the axes. -/
+theorem KL_opp_eq_zero (t : Bool) (ha : (F.a : ℂ) ≠ 0) (hc : F.cL t ≠ 0) {u : ℂ}
+    (hq : u ^ 2 + F.q₀L k ≠ 0) (hE : F.E8L k u = 0) (hK : F.KL k t t u = 0) :
+    F.KL k t (!t) u = 0 := by
+  have h := F.res_z k t hE
+  rw [hK, mul_zero] at h
+  have hA : F.aAL k t u ≠ 0 := by
+    unfold aAL lamL
+    exact mul_ne_zero (mul_ne_zero (mul_ne_zero two_ne_zero
+      (pow_ne_zero 2 (mul_ne_zero (by norm_num : (4 : ℂ) ≠ 0) (pow_ne_zero 2 ha)))) (F.DL_ne hc)) hq
+  exact (mul_eq_zero.1 h).resolve_left hA
 
 /-- The quotient identity of the spin `-t`, with the mode normalized with `-t`. -/
 theorem res_v {t : Bool} (h : F.ColNe k t) {u : ℂ} (hr : F.ModeRel k t u) (hE : F.E8L k u = 0) :

@@ -16,6 +16,7 @@ namespace HubbardAtom
 
 namespace LCert
 
+-- the certificates are large: elaborate them one at a time, to bound the memory
 set_option Elab.async false
 
 /-- Completion of `z^0` in row `t`: `β²N(u²)K_t = βa_tM` modulo `E(u)`. -/

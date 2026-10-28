@@ -81,13 +81,14 @@ column of spin `t`, in free variables: the root `u` (or `x = v²`), the thermal 
 `M = p_t - p_{-t}` (so `p₀ = (P - ρ)/2`, `p₂ = (P + ρ)/2`, `p_t = (1 - P + M)/2`,
 `p_{-t} = (1 - P - M)/2`). Suffix `W` is `k ≠ 0`; suffix `Z` is `k = 0` (`w = 0`, `δ_k0 = 1`).
 
-* `E8W`, `E8Z`, `E6Z`: `E₈(u)`, and `E₆ = E₈/(u² - a²)` at `k = 0`.
+* `E8W`, `E6Z`: `E₈(u)` (`k ≠ 0`), and `E₆ = E₈/(u² - a²)` at `k = 0`.
 * `NcW`/`NcZ` + row + `c`: the completed defect of the coefficient of `zᶜ` in the row `t` (row `0`)
   or `-t` (row `1`), times `βE₈(v)`, a polynomial of degree at most three in `x = v²`.
 * `McW`/`McZ` + row + `c`: the coefficient of `zᶜ` in the image of `P(u)Φ` under `P(z)χ_L`, with
   `Φ` the mode of the root `u` normalized with the column spin, affine in `s`.
 * `KtW`, `KtZ`: the thermal denominator `K_t` of the mode; `aAW`, `aAZ`: `a_t = 2λ²D_t(u² + q₀)`,
-  so that the coefficient of the mode in Eq. (field-L-mode) is `𝔠 ∝ a_t/K_t`.
+  so that the coefficient of the mode in Eq. (field-L-mode) is `𝔠 ∝ a_t/K_t`; `KnW`, `bWW`: `K_{-t}`
+  and `-λ(ρΞ + MΠ)` of Eq. (field-L-quotient), for `FieldLSymCert.lean`.
 -/
 
 namespace HubbardAtom
@@ -113,6 +114,7 @@ namespace HubbardAtom
 
 namespace LCert
 
+-- the certificates are large: elaborate them one at a time, to bound the memory
 set_option Elab.async false
 '''
 
@@ -142,7 +144,8 @@ def main(outdir):
         sfx = 'Z' if k0 else 'W'
         m = Model(k0)
         E8u = m.E8(u)
-        defpoly(f'E8{sfx}', E8u, f'`E₈(u)`, `k {"=" if k0 else "≠"} 0`.')
+        if not k0:
+            defpoly('E8W', E8u, '`E₈(u)`, `k ≠ 0`.')
         if k0:
             E6u = E8u / (u ** 2 - a ** 2)
             assert E6u * (u ** 2 - a ** 2) == E8u
@@ -156,7 +159,8 @@ def main(outdir):
         Kt, Kn = (ftp + ftm), (fnp + fnm)
         assert Kt.d.is_one() and Kn.d.is_one()
         defpoly(f'Kt{sfx}', Kt.n, '`K_t = f_{t+} + f_{t-}`.')
-        defpoly(f'Kn{sfx}', Kn.n, '`K_{-t} = f_{-t,+} + f_{-t,-}`.')
+        if not k0:
+            defpoly('KnW', Kn.n, '`K_{-t} = f_{-t,+} + f_{-t,-}`.')
         lam, q0 = m.lam, m.q0
         aA = 2 * lam ** 2 * m.Dt * (u ** 2 + q0)
         x2 = u ** 2
@@ -164,7 +168,8 @@ def main(outdir):
         Pi = (x2 + q0) ** 2 + 4 * a ** 2 * m.rt * m.rn * x2 + lam ** 2 * m.dpi
         bW = -lam * (rh * Xi + M * Pi)
         defpoly(f'aA{sfx}', aA, '`2λ²D_t(u² + q₀)`.')
-        defpoly(f'bW{sfx}', bW, '`-λ(ρΞ + MΠ)`.')
+        if not k0:
+            defpoly('bWW', bW, '`-λ(ρΞ + MΠ)`.')
         certs[(sfx, 'A')] = []
         for ri, row in enumerate(('t', 'n')):
             for c in range(3):
@@ -198,7 +203,11 @@ def main(outdir):
         what = 'k ≠ 0' if sfx == 'W' else 'k = 0'
         hdr = HEADER_CERT.replace('{what}', what).replace('{E}', E)
         if sfx == 'Z':
-            hdr = hdr.replace('import HubbardAtomLean.FieldLCertData', 'import HubbardAtomLean.FieldLCertW')
+            # not only `FieldLCertData`: the two certificate modules then compile one after the other
+            hdr = hdr.replace('import HubbardAtomLean.FieldLCertData',
+                              '-- `FieldLCertW`, not only `FieldLCertData`: the two certificate modules are heavy, and\n'
+                              '-- this makes them compile one after the other\n'
+                              'import HubbardAtomLean.FieldLCertW')
         out = [hdr]
         for name, Ename, q, stmt, doc in lst:
             st = stmt()

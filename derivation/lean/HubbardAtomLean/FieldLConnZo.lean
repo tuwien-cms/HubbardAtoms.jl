@@ -42,7 +42,7 @@ theorem Do0_Z (hk : k = 0) (t : Bool) (h : F.ColNe k t) {v : ℂ} (hE : F.E8L k 
     hSm', hq, hκ, hP, hq', hκ', hP', cN0L, cN1L, cN2L, cN3L, lat_a, lat_β, Bool.not_not]
   rw [eq_div_iff (mul_ne_zero hβ hE)]
   field_simp
-  try rw [F.E8L_W _ t]
+  rw [F.E8L_W _ t]
   obtain ⟨P, R, M, h₀, h₂, ht, hn, hR, hM, hP⟩ := F.col_params t
   simp only [N₀L, N₂L, HL, PL, QL, lamL, piP, F.piS_eq t, rL_not, q₀L, F.cS_eq t, cP, DL, cLw, ζL,
       ζLs, hw, F.pUp_mul_pDn t, Bool.not_not, kron_self, one_mul]
@@ -72,7 +72,7 @@ theorem Do1_Z (hk : k = 0) (t : Bool) (h : F.ColNe k t) {v : ℂ} (hE : F.E8L k 
   simp only [Do1, BhL, ChL]
   rw [eq_div_iff (mul_ne_zero hβ hE)]
   field_simp
-  try rw [F.E8L_W _ t]
+  rw [F.E8L_W _ t]
   obtain ⟨P, R, M, h₀, h₂, ht, hn, hR, hM, hP⟩ := F.col_params t
   simp only [HL, PL, lamL, piP, F.piS_eq t, rL_not, q₀L, hw]
   push_cast
@@ -103,7 +103,7 @@ theorem Do2_Z (hk : k = 0) (t : Bool) (h : F.ColNe k t) {v : ℂ} (hE : F.E8L k 
     hSm', hq, hκ, hP, hq', hκ', hP', lat_a, lat_β, Bool.not_not]
   rw [eq_div_iff (mul_ne_zero hβ hE)]
   field_simp
-  try rw [F.E8L_W _ t]
+  rw [F.E8L_W _ t]
   obtain ⟨P, R, M, h₀, h₂, ht, hn, hR, hM, hP⟩ := F.col_params t
   simp only [N₂L, HL, PL, QL, lamL, piP, F.piS_eq t, rL_not, q₀L, F.cS_eq t, cP, DL, cLw, ζL, ζLs,
       hw, F.pUp_mul_pDn t, Bool.not_not, kron_self, one_mul]

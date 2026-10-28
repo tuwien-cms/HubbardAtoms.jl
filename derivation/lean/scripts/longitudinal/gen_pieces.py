@@ -1,4 +1,7 @@
-"""Generate FieldLModeData.lean: the pieces of the image of the mode, block by block."""
+"""Generate FieldLModeData.lean: the pieces of the image of the mode, block by block.
+
+Run: python gen_pieces.py OUTDIR
+"""
 import os, re, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from gen import lean_poly, wrap, used_vars, ORDER
@@ -15,7 +18,8 @@ HDR = '''import Mathlib.Analysis.Complex.Basic
 The coefficients of `zᶜ` of the image of the mode of a root `u` under `P(z)χ_L`, split into the
 contributions of the four blocks (`A`: the poles of the same-spin block, `B`: its rank-one part at
 `k = 0`, `C`, `D`: the opposite-spin block on the poles at `u` and `-u`), at `k = 0`, in the free
-variables of `FieldLCertData.lean`; `McZ` there are their sums. Each piece is a polynomial.
+variables of `FieldLCertData.lean`; `McZ` there are their sums. Each piece is a polynomial. Piece `B`
+of `z⁰` is `-a²` times that of `z²` and is not listed.
 -/
 
 namespace HubbardAtom
@@ -35,6 +39,10 @@ def main(outdir):
                 letters = 'ABCD' if c == 0 else 'BCD'
                 for L, piece in zip(letters, P[row][c]):
                     assert piece.d.is_one()
+                    if c == 0 and L == 'B':
+                        # `-a²` times piece `B` of `z²`
+                        assert piece.n == (-a ** 2 * P[row][2][0]).n
+                        continue
                     name = f'Mp{sfx}{ri}{c}{L}'
                     sig = [x for x in ORDER if x in used_vars(piece.n)]
                     SIG[name] = sig

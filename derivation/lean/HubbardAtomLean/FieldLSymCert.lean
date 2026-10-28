@@ -14,6 +14,7 @@ namespace HubbardAtom
 
 namespace LCert
 
+-- the certificates are large: elaborate them one at a time, to bound the memory
 set_option Elab.async false
 
 /-- `f_{-t,+}` of the mode normalized with `t`. -/

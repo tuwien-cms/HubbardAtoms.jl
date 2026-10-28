@@ -503,7 +503,7 @@ theorem BL_S₀_a (σ : Bool) :
 /-! ### The product relations -/
 
 /-- `e^{2y} + 1 = 2e^y cosh y`. -/
-theorem exp_two_mul_add_one (y : ℂ) : exp (2 * y) + 1 = 2 * exp y * cosh y := by
+private theorem exp_two_mul_add_one (y : ℂ) : exp (2 * y) + 1 = 2 * exp y * cosh y := by
   have := exp_ne_zero y
   rw [Complex.cosh, exp_neg, show 2 * y = y + y by ring, exp_add]
   field_simp
@@ -571,12 +571,12 @@ theorem exp_dn : exp ((F.β * (F.μ - (F.μ - F.h)) : ℝ) : ℂ) = exp (F.β * 
   ring_nf
 
 /-- `(AB⁻¹ - 1)/(AB⁻¹ + 1) = (A - B)/(A + B)`, also with the fraction inverted. -/
-theorem frac_mul_inv {A B : ℂ} (hB : B ≠ 0) :
+private theorem frac_mul_inv {A B : ℂ} (hB : B ≠ 0) :
     (A * B⁻¹ - 1) / (A * B⁻¹ + 1) = (A - B) / (A + B) ∧
       (A * B⁻¹ + 1) / (A * B⁻¹ - 1) = (A + B) / (A - B) := by
   constructor <;> rw [div_eq_div_iff_comm] <;> field_simp
 
-theorem add_ne_of_mul_inv {A B : ℂ} (hB : B ≠ 0) (h : A * B⁻¹ + 1 ≠ 0) : A + B ≠ 0 :=
+private theorem add_ne_of_mul_inv {A B : ℂ} (hB : B ≠ 0) (h : A * B⁻¹ + 1 ≠ 0) : A + B ≠ 0 :=
   fun h0 ↦ h (by rw [show A = -B by linear_combination h0]; field_simp; ring)
 
 theorem sub_ne_of_mul_inv {A B : ℂ} (hB : B ≠ 0) (h : A * B⁻¹ - 1 ≠ 0) : A - B ≠ 0 :=

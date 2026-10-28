@@ -58,7 +58,8 @@ theorem bL_eq (σ : Bool) (n : ℤ) :
 /-! ### The vertex -/
 
 /-- **The longitudinal vertex**, Eq. (field-L): `z = zₙ` on the lattice of `σ`, `v = zₘ` on the
-lattice of `t`, `𝔠ⱼ = P(u_j) cMode_j`, `U = 2a`. -/
+lattice of `t`, `𝔠ⱼ = P(u_j) cMode_j`, `U = 2a`. The column `t` uses the mode normalized with `t`
+(`fMp k t`, `fMm k t`); the note normalizes with `↑`, and rescaling a mode does not change `Γ_L`. -/
 noncomputable def gammaL (u : Fin 4 → ℂ) (σ : Bool) (n : ℤ) (t : Bool) (m : ℤ) : ℂ :=
   (if σ = t then
       F.β * F.PL k ((F.BL t).z k n) *

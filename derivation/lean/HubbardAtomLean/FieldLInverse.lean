@@ -20,7 +20,7 @@ open Complex
 
 namespace HubbardAtom
 
-theorem sum_bool_eq {M : Type*} [AddCommMonoid M] (f : Bool → M) (t : Bool) :
+private theorem sum_bool_eq {M : Type*} [AddCommMonoid M] (f : Bool → M) (t : Bool) :
     ∑ τ, f τ = f t + f (!t) := by
   cases t <;> simp [add_comm]
 
@@ -58,11 +58,27 @@ structure LGeneric (t : Bool) (u : Fin 4 → ℂ) : Prop where
   c_ne : F.cL t ≠ 0
   root : ∀ j, F.E8L k (u j) = 0
   sep : ∀ i j, i ≠ j → u i ^ 2 - u j ^ 2 ≠ 0
-  lat_ne : ∀ m j, (F.BL t).z k m ^ 2 - u j ^ 2 ≠ 0
   off : ∀ j, ¬F.Atomic k (u j) → ∀ σ l, (F.BL σ).z k l ≠ u j ∧ (F.BL σ).z k l ≠ -u j
   K_ne : ∀ j, ¬F.Atomic k (u j) → F.KL k t t (u j) ≠ 0
 
 variable {F k}
+
+/-- The roots are off the lattice of `t`, also squared: the non-atomic ones by `off`, the atomic one
+`u² = a²` (`k = 0`) since `Im zₘ = νₘ ≠ 0`. -/
+theorem LGeneric.lat_ne {t : Bool} {u : Fin 4 → ℂ} (hg : F.LGeneric k t u) (m : ℤ) (j : Fin 4) :
+    (F.BL t).z k m ^ 2 - u j ^ 2 ≠ 0 := by
+  rw [sq_sub_sq]
+  by_cases hj : F.Atomic k (u j)
+  · obtain ⟨rfl, hu⟩ := hj
+    have hν := (F.BL t).ν_ne_zero m
+    have hz : ((F.BL t).z 0 m).im = (F.BL t).ν m := by
+      simp [Params.z, Params.x, Params.w, Params.ω]
+    have hu' : (u j).im = 0 := by
+      rcases sq_eq_sq_iff_eq_or_eq_neg.1 hu with h | h <;> simp [h]
+    refine mul_ne_zero ?_ ?_ <;> intro h <;> apply hν <;>
+      simpa [hz, hu'] using congrArg Complex.im h
+  · obtain ⟨h₁, h₂⟩ := hg.off j hj t m
+    exact mul_ne_zero (fun h ↦ h₂ (eq_neg_of_add_eq_zero_left h)) (sub_ne_zero.2 h₁)
 
 theorem LGeneric.colNe {t : Bool} {u : Fin 4 → ℂ} (hg : F.LGeneric k t u) : F.ColNe k t :=
   ⟨hg.a_ne, F.rho_ne_zeroT hg.μ_ne, F.mL_ne_zero hg.h_ne t, F.DL_ne hg.c_ne, F.q₀L_ne k hg.a_ne⟩

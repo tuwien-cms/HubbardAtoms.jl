@@ -17,9 +17,6 @@ namespace FParams
 
 variable (F : FParams) (k : ℤ)
 
--- the identifications below are large `field_simp`/`ring` computations: one at a time
-set_option Elab.async false
-
 /-! ### The image of the mode -/
 
 /-- `(u² - a²)S_σ(±u) + R̂_S(±u)`: the rank-one part (`k = 0`) of the same-spin block. -/

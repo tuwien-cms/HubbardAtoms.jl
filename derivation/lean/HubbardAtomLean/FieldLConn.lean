@@ -7,7 +7,9 @@ import HubbardAtomLean.FieldLCertZ
 The polynomial parts of the images under `P(z)χ_L` of the column `(t, v)` of the inverse and of the
 mode of a root `u`, as coefficients of `zᶜ`, and their identification with the generated
 polynomials of `FieldLCertData.lean`: the completed defect is `N_c(v²)/(βE₈(v))`
-(`DsL_eq`, `DoL_eq`), the image of the mode is `M_c(u, S_t(u))` (`MsL_eq`, `MoL_eq`).
+(`Ds0_W`, …, `Do2_W` below for `k ≠ 0`; `Ds0_Z`, …, `Do2_Z` in `FieldLConnZs.lean`,
+`FieldLConnZo.lean` for `k = 0`), the image of the mode is `M_c(u, S_t(u))` (`Ms0_W`, …, `Mo2_Z` in
+`FieldLModeWs.lean`, `FieldLModeWo.lean`, `FieldLModeZs.lean`, `FieldLModeZo.lean`).
 
 Rows: `s` is the row of the column spin `t`, `o` the row of `-t`.
 -/
@@ -161,7 +163,7 @@ theorem Ds0_W (hk : k ≠ 0) (t : Bool) (h : F.ColNe k t) {v : ℂ} (hE : F.E8L 
     hSm', hq, hκ, hP, hq', hκ', hP', cN0L, cN1L, cN2L, cN3L, lat_a, lat_β]
   rw [eq_div_iff (mul_ne_zero hβ hE)]
   field_simp
-  try rw [F.E8L_W _ t]
+  rw [F.E8L_W _ t]
   obtain ⟨P, R, M, h₀, h₂, ht, hn, hR, hM, hP⟩ := F.col_params t
   simp only [N₀L, N₂L, HL, PL, lamL, piP, F.piS_eq t, rL_not, q₀L, F.cS_eq t, cP, DL, ζL,
       kron_of_ne hk, zero_mul, sub_zero, add_zero]
@@ -189,7 +191,6 @@ theorem Ds1_W (_hk : k ≠ 0) (t : Bool) (h : F.ColNe k t) {v : ℂ} (hE : F.E8L
   simp only [Ds1, AhL]
   rw [eq_div_iff (mul_ne_zero hβ hE)]
   field_simp
-  try rw [F.E8L_W _ t]
   obtain ⟨P, R, M, h₀, h₂, ht, hn, hR, hM, hP⟩ := F.col_params t
   simp only [PL, lamL, q₀L, DL]
   push_cast
@@ -219,7 +220,6 @@ theorem Ds2_W (hk : k ≠ 0) (t : Bool) (h : F.ColNe k t) {v : ℂ} (hE : F.E8L 
     hSm', hq, hκ, hP, hq', hκ', hP', lat_a, lat_β]
   rw [eq_div_iff (mul_ne_zero hβ hE)]
   field_simp
-  try rw [F.E8L_W _ t]
   obtain ⟨P, R, M, h₀, h₂, ht, hn, hR, hM, hP⟩ := F.col_params t
   simp only [N₂L, HL, PL, lamL, piP, F.piS_eq t, rL_not, q₀L, F.cS_eq t, cP, ζL, kron_of_ne hk,
       zero_mul, add_zero]
@@ -250,7 +250,7 @@ theorem Do0_W (hk : k ≠ 0) (t : Bool) (h : F.ColNe k t) {v : ℂ} (hE : F.E8L 
     hSm', hq, hκ, hP, hq', hκ', hP', cN0L, cN1L, cN2L, cN3L, lat_a, lat_β, Bool.not_not]
   rw [eq_div_iff (mul_ne_zero hβ hE)]
   field_simp
-  try rw [F.E8L_W _ t]
+  rw [F.E8L_W _ t]
   obtain ⟨P, R, M, h₀, h₂, ht, hn, hR, hM, hP⟩ := F.col_params t
   simp only [N₀L, N₂L, HL, PL, QL, lamL, piP, F.piS_eq t, rL_not, q₀L, DL, cLw, ζL, kron_of_ne hk,
       zero_mul, sub_zero, add_zero]
@@ -278,7 +278,7 @@ theorem Do1_W (_hk : k ≠ 0) (t : Bool) (h : F.ColNe k t) {v : ℂ} (hE : F.E8L
   simp only [Do1, BhL, ChL]
   rw [eq_div_iff (mul_ne_zero hβ hE)]
   field_simp
-  try rw [F.E8L_W _ t]
+  rw [F.E8L_W _ t]
   obtain ⟨P, R, M, h₀, h₂, ht, hn, hR, hM, hP⟩ := F.col_params t
   simp only [HL, PL, lamL, piP, F.piS_eq t, rL_not, q₀L]
   push_cast
@@ -308,7 +308,7 @@ theorem Do2_W (hk : k ≠ 0) (t : Bool) (h : F.ColNe k t) {v : ℂ} (hE : F.E8L 
     hSm', hq, hκ, hP, hq', hκ', hP', lat_a, lat_β, Bool.not_not]
   rw [eq_div_iff (mul_ne_zero hβ hE)]
   field_simp
-  try rw [F.E8L_W _ t]
+  rw [F.E8L_W _ t]
   obtain ⟨P, R, M, h₀, h₂, ht, hn, hR, hM, hP⟩ := F.col_params t
   simp only [N₂L, HL, PL, QL, lamL, piP, F.piS_eq t, rL_not, q₀L, DL, cLw, ζL, kron_of_ne hk,
       zero_mul, add_zero]

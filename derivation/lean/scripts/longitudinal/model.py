@@ -83,9 +83,6 @@ class F:
             r = r * self
         return r
 
-    def sub(self, var, x):
-        return F(subs(self.n, var, F.of(x).n if isinstance(x, F) else x), subs(self.d, var, x))
-
     def is_zero(self):
         return self.n.is_zero()
 

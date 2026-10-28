@@ -24,7 +24,7 @@ if [ "${SERIAL:-0}" = 1 ]; then
 fi
 lake build HubbardAtomLean 2>&1 | tee -a .lake/build.log
 for m in $modules; do
-  grep -q "Built HubbardAtomLean.$m" .lake/build.log \
+  grep -qw "Built HubbardAtomLean.$m" .lake/build.log \
     || { echo "gate is vacuous: HubbardAtomLean.$m was not compiled" >&2; exit 1; }
 done
 if grep -n "warning" .lake/build.log; then

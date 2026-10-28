@@ -1,5 +1,7 @@
+"""The image of the mode of a root under `P(z)χ_L`, block by block (for gen_pieces.py)."""
+import os
 import sys
-sys.path.insert(0, '.')
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from analysis import *
 
 def mode_pieces(m):

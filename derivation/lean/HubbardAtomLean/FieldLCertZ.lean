@@ -1,3 +1,5 @@
+-- `FieldLCertW`, not only `FieldLCertData`: the two certificate modules are heavy, and
+-- this makes them compile one after the other
 import HubbardAtomLean.FieldLCertW
 import Mathlib.Tactic.LinearCombination
 
@@ -16,6 +18,7 @@ namespace HubbardAtom
 
 namespace LCert
 
+-- the certificates are large: elaborate them one at a time, to bound the memory
 set_option Elab.async false
 
 /-- Completion of `z^0` in row `t`: `β²N(u²)K_t = βa_tM` modulo `E(u)`. -/

@@ -9,8 +9,8 @@ The completed defect is `N(v²)/(βE₈(v))` with `N` of degree at most three in
 
 * `interp4`: Lagrange interpolation of a cubic at four distinct nodes.
 * `quartic_eq_prod`: a monic quartic with four distinct roots is `∏ⱼ(x - s_j)`.
-* `FParams.E8L_eq_quartic`, `E8L_eq_prod`: `E₈(v)` as a monic quartic in `v²`, hence
-  `∏ⱼ(v² - s_j)`.
+* `FParams.E8L_eq_quartic`: `E₈(v)` as a monic quartic in `v²` (hence `∏ⱼ(v² - s_j)`,
+  `E8L_eq_prod` in `FieldLCompl.lean`).
 * `pf4`: the partial fractions of `N(x)/∏ⱼ(x - s_j)`.
 -/
 
