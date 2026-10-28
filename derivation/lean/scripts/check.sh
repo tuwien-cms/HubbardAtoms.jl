@@ -10,7 +10,7 @@ modules="Basic Triplet StableForms Thermal Matsubara SingletInput Singlet PHInpu
   FieldLInput FieldTZero DividedDifferences StaticResponse WardIdentities FieldLSums FieldLAlg
   FieldLCertData FieldLCertW FieldLCertZ FieldLConn FieldLConnZs FieldLConnZo FieldLMode
   FieldLModeWs FieldLModeWo FieldLModeData FieldLModeZs FieldLModeZo FieldLRes FieldLPF FieldLCompl
-  FieldLImage FieldLInverse FieldLVertex"
+  FieldLImage FieldLInverse FieldLVertex FieldLSymCert FieldLSym"
 
 # 1. Rebuild the library from a cold cache, so that every module is compiled and linted, and fail
 #    on any warning (a `sorry` is only a warning). With SERIAL=1 the modules are compiled one at a

@@ -53,7 +53,8 @@ run_cmd Elab.Command.liftCoreM do
       ``HubbardAtom.FParams.hasDerivAt_Gs_up_h, ``HubbardAtom.FParams.hasSum_chiL_updn,
       ``HubbardAtom.FParams.chiL_isRightInverse,
       ``HubbardAtom.FParams.chiL_isLeftInverse_transpose,
-      ``HubbardAtom.FParams.LGeneric.gammaL_eq, ``HubbardAtom.LCert.cert_Z12] do
+      ``HubbardAtom.FParams.LGeneric.gammaL_eq, ``HubbardAtom.LCert.cert_Z12,
+      ``HubbardAtom.FParams.chiL_isLeftInverse, ``HubbardAtom.FParams.invL_symm] do
     unless audited.contains anchor do
       throwError "{anchor} was not audited; the check is vacuous"
   if checked < 100 then

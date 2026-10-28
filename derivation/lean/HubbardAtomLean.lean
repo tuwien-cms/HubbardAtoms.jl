@@ -54,3 +54,5 @@ import HubbardAtomLean.FieldLCompl
 import HubbardAtomLean.FieldLImage
 import HubbardAtomLean.FieldLInverse
 import HubbardAtomLean.FieldLVertex
+import HubbardAtomLean.FieldLSymCert
+import HubbardAtomLean.FieldLSym
