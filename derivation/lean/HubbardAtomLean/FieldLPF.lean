@@ -19,7 +19,8 @@ open Complex
 namespace HubbardAtom
 
 /-- **Lagrange interpolation** of a cubic at four distinct nodes. -/
-theorem interp4 {N : ℂ → ℂ} {c₀ c₁ c₂ c₃ : ℂ} (hN : ∀ y, N y = c₀ + c₁ * y + c₂ * y ^ 2 + c₃ * y ^ 3)
+theorem interp4 {N : ℂ → ℂ} {c₀ c₁ c₂ c₃ : ℂ}
+    (hN : ∀ y, N y = c₀ + c₁ * y + c₂ * y ^ 2 + c₃ * y ^ 3)
     {s₁ s₂ s₃ s₄ : ℂ} (h₁₂ : s₁ - s₂ ≠ 0) (h₁₃ : s₁ - s₃ ≠ 0) (h₁₄ : s₁ - s₄ ≠ 0)
     (h₂₃ : s₂ - s₃ ≠ 0) (h₂₄ : s₂ - s₄ ≠ 0) (h₃₄ : s₃ - s₄ ≠ 0) (x : ℂ) :
     N x = N s₁ * ((x - s₂) * (x - s₃) * (x - s₄)) / ((s₁ - s₂) * (s₁ - s₃) * (s₁ - s₄)) +

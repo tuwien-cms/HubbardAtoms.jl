@@ -13,7 +13,8 @@ system that fixes the dense part of the inverse.
   `𝓑_t(v)(d, â, b̂, ĉ) = P(v)e₁`: the delta term of the row `t` is `P(v)`, and the poles at
   `z = -v` (row `t`) and `z = ±v` (row `-t`) cancel.
 * `FParams.fMp`, `fMm`, `KL`: the pole-pair mode of a root `u` of `E₈`, normalized with the column
-  spin `t` (Eq. (field-L-mode) has `t = ↑`), and its thermal denominators `K_{t'} = f_{t'+} + f_{t'-}`.
+  spin `t` (Eq. (field-L-mode) has `t = ↑`), and its thermal denominators
+  `K_{t'} = f_{t'+} + f_{t'-}`.
 -/
 
 open Complex

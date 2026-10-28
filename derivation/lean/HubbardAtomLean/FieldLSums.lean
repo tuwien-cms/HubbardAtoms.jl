@@ -104,7 +104,8 @@ noncomputable def cS : ℝ := F.β * (F.pUp + F.pDn) / 2
 @[simp] theorem pL_false : F.pL false = F.pDn := rfl
 
 theorem cL_add (σ : Bool) : F.cL σ + F.cL (!σ) = 2 * F.μ := by
-  cases σ <;> simp only [cL, Bool.not_false, Bool.not_true, Bool.cond_true, Bool.cond_false] <;> ring
+  cases σ <;>
+    simp only [cL, Bool.not_false, Bool.not_true, Bool.cond_true, Bool.cond_false] <;> ring
 
 theorem pL_add (σ : Bool) : (F.pL σ : ℂ) + F.pL (!σ) = F.pUp + F.pDn := by
   cases σ <;> simp only [pL_true, pL_false, Bool.not_false, Bool.not_true, add_comm]

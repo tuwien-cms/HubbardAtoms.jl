@@ -37,17 +37,15 @@ theorem MsA0_Z (hk : k = 0) (t : Bool) (h : F.ColNe k t) {u : ℂ} (hr : F.ModeR
   have hm := h.m_ne
   have hD := h.D_ne
   have hq0 := h.q_ne
-  simp only [MsA0, F.fS_opp 0 hr h.m_ne, F.fS_opp_neg 0 hr h.ρ_ne, F.fS_self_neg 0 hr h.D_ne]
-  simp only [dζ, kron_self, one_mul, mul_one, fMp, fMm, Bool.not_ne_self, ↓reduceIte, WmL, RhatSL, RhatL0,
-    RhatL2, Params.RhatC, Params.ℓ₀, Params.ℓ₁, Params.ℓ₂, Params.ℓ₃, Params.Tp, Params.Tm, hSp,
-    hSm, hSp', hSm', hq, hκ, hP, hq', hκ', hP', cN0L, cN1L, cN2L, cN3L, lat_a, lat_β,
-    Bool.not_not, αSL, αPL, αL, F.mL_not t, F.pUp_mul_pDn t, piP, F.piS_eq t]
-  push_cast
+  simp only [MsA0]
+  simp only [fMp, fMm, ↓reduceIte,
+
+    αL]
   generalize (F.BL t).S 0 u = s
   field_simp
   obtain ⟨P, R, M, h₀, h₂, ht, hn, hR, hM, hP⟩ := F.col_params t
-  simp only [N₀L, N₂L, HL, PL, QL, lamL, piP, F.piS_eq t, rL_not, q₀L, F.cS_eq t, cP, DL, cLw,
-    ζL, F.pUp_mul_pDn t, Bool.not_not, mL_not, kron_self, one_mul, mul_one, ζLs, hw]
+  simp only [HL, PL, QL, lamL, piP, F.piS_eq t, rL_not, q₀L, DL, cLw,
+    hw]
   push_cast
   simp only [rL_cast, h₀, h₂, ht, hn, hR, hM, LCert.MpZ00A]
   ring
@@ -70,17 +68,16 @@ theorem MsB_Z (hk : k = 0) (t : Bool) (h : F.ColNe k t) {u : ℂ} (hr : F.ModeRe
   have hm := h.m_ne
   have hD := h.D_ne
   have hq0 := h.q_ne
-  simp only [MsB, F.fS_opp 0 hr h.m_ne, F.fS_opp_neg 0 hr h.ρ_ne, F.fS_self_neg 0 hr h.D_ne]
-  simp only [dζ, kron_self, one_mul, mul_one, fMp, fMm, Bool.not_ne_self, ↓reduceIte, WmL, RhatSL, RhatL0,
-    RhatL2, Params.RhatC, Params.ℓ₀, Params.ℓ₁, Params.ℓ₂, Params.ℓ₃, Params.Tp, Params.Tm, hSp,
-    hSm, hSp', hSm', hq, hκ, hP, hq', hκ', hP', cN0L, cN1L, cN2L, cN3L, lat_a, lat_β,
-    Bool.not_not, αSL, αPL, αL, F.mL_not t, F.pUp_mul_pDn t, piP, F.piS_eq t]
-  push_cast
+  simp only [MsB, F.fS_self_neg 0 hr h.D_ne]
+  simp only [dζ, kron_self, one_mul, fMp, fMm, ↓reduceIte, WmL, RhatSL,
+    Params.RhatC, Params.ℓ₀, Params.ℓ₁, Params.ℓ₂, Params.ℓ₃, Params.Tp, Params.Tm, hSp,
+    hSm, hq, hκ, hP, lat_a, lat_β,
+    αL, F.pUp_mul_pDn t]
   generalize (F.BL t).S 0 u = s
   field_simp
   obtain ⟨P, R, M, h₀, h₂, ht, hn, hR, hM, hP⟩ := F.col_params t
-  simp only [N₀L, N₂L, HL, PL, QL, lamL, piP, F.piS_eq t, rL_not, q₀L, F.cS_eq t, cP, DL, cLw,
-    ζL, F.pUp_mul_pDn t, Bool.not_not, mL_not, kron_self, one_mul, mul_one, ζLs, hw]
+  simp only [HL, PL, QL, lamL, piP, F.piS_eq t, rL_not, q₀L, DL, cLw,
+    ζLs, hw]
   push_cast
   simp only [rL_cast, h₀, h₂, ht, hn, hR, hM, LCert.MpZ02B]
   ring
@@ -103,17 +100,17 @@ theorem MsC0_Z (hk : k = 0) (t : Bool) (h : F.ColNe k t) {u : ℂ} (hr : F.ModeR
   have hm := h.m_ne
   have hD := h.D_ne
   have hq0 := h.q_ne
-  simp only [MsC0, F.fS_opp 0 hr h.m_ne, F.fS_opp_neg 0 hr h.ρ_ne, F.fS_self_neg 0 hr h.D_ne]
-  simp only [dζ, kron_self, one_mul, mul_one, fMp, fMm, Bool.not_ne_self, ↓reduceIte, WmL, RhatSL, RhatL0,
-    RhatL2, Params.RhatC, Params.ℓ₀, Params.ℓ₁, Params.ℓ₂, Params.ℓ₃, Params.Tp, Params.Tm, hSp,
-    hSm, hSp', hSm', hq, hκ, hP, hq', hκ', hP', cN0L, cN1L, cN2L, cN3L, lat_a, lat_β,
-    Bool.not_not, αSL, αPL, αL, F.mL_not t, F.pUp_mul_pDn t, piP, F.piS_eq t]
+  simp only [MsC0, F.fS_opp 0 hr h.m_ne]
+  simp only [kron_self, one_mul, mul_one, fMp, Bool.not_ne_self, ↓reduceIte, RhatL0,
+    Params.RhatC, Params.ℓ₀, Params.ℓ₁, Params.ℓ₂, Params.ℓ₃, Params.Tp, Params.Tm,
+    hSp', hSm', hq', hκ', hP', cN0L, cN1L, cN2L, cN3L, lat_a, lat_β,
+    Bool.not_not, αSL, F.mL_not t, F.pUp_mul_pDn t, piP, F.piS_eq t]
   push_cast
   generalize (F.BL t).S 0 u = s
   field_simp
   obtain ⟨P, R, M, h₀, h₂, ht, hn, hR, hM, hP⟩ := F.col_params t
-  simp only [N₀L, N₂L, HL, PL, QL, lamL, piP, F.piS_eq t, rL_not, q₀L, F.cS_eq t, cP, DL, cLw,
-    ζL, F.pUp_mul_pDn t, Bool.not_not, mL_not, kron_self, one_mul, mul_one, ζLs, hw]
+  simp only [N₀L, N₂L, HL, PL, lamL, rL_not, q₀L, F.cS_eq t,
+    ζL, F.pUp_mul_pDn t, kron_self, one_mul, hw]
   push_cast
   simp only [rL_cast, h₀, h₂, ht, hn, hR, hM, LCert.MpZ00C]
   ring
@@ -136,17 +133,16 @@ theorem MsD0_Z (hk : k = 0) (t : Bool) (h : F.ColNe k t) {u : ℂ} (hr : F.ModeR
   have hm := h.m_ne
   have hD := h.D_ne
   have hq0 := h.q_ne
-  simp only [MsD0, F.fS_opp 0 hr h.m_ne, F.fS_opp_neg 0 hr h.ρ_ne, F.fS_self_neg 0 hr h.D_ne]
-  simp only [dζ, kron_self, one_mul, mul_one, fMp, fMm, Bool.not_ne_self, ↓reduceIte, WmL, RhatSL, RhatL0,
-    RhatL2, Params.RhatC, Params.ℓ₀, Params.ℓ₁, Params.ℓ₂, Params.ℓ₃, Params.Tp, Params.Tm, hSp,
-    hSm, hSp', hSm', hq, hκ, hP, hq', hκ', hP', cN0L, cN1L, cN2L, cN3L, lat_a, lat_β,
-    Bool.not_not, αSL, αPL, αL, F.mL_not t, F.pUp_mul_pDn t, piP, F.piS_eq t]
-  push_cast
+  simp only [MsD0, F.fS_opp_neg 0 hr h.ρ_ne]
+  simp only [kron_self, one_mul, mul_one, fMm, Bool.not_ne_self, ↓reduceIte, RhatL0,
+    Params.RhatC, Params.ℓ₀, Params.ℓ₁, Params.ℓ₂, Params.ℓ₃, Params.Tp, Params.Tm,
+    hSp', hSm', hq', hκ', hP', cN0L, cN1L, cN2L, cN3L, lat_a, lat_β,
+    Bool.not_not, αPL, piP, F.piS_eq t]
   generalize (F.BL t).S 0 u = s
   field_simp
   obtain ⟨P, R, M, h₀, h₂, ht, hn, hR, hM, hP⟩ := F.col_params t
-  simp only [N₀L, N₂L, HL, PL, QL, lamL, piP, F.piS_eq t, rL_not, q₀L, F.cS_eq t, cP, DL, cLw,
-    ζL, F.pUp_mul_pDn t, Bool.not_not, mL_not, kron_self, one_mul, mul_one, ζLs, hw]
+  simp only [N₀L, N₂L, HL, PL, lamL, rL_not, q₀L, cP,
+    ζL, F.pUp_mul_pDn t, kron_self, one_mul, hw]
   push_cast
   simp only [rL_cast, h₀, h₂, ht, hn, hR, hM, LCert.MpZ00D]
   ring
@@ -169,17 +165,17 @@ theorem MsC2_Z (hk : k = 0) (t : Bool) (h : F.ColNe k t) {u : ℂ} (hr : F.ModeR
   have hm := h.m_ne
   have hD := h.D_ne
   have hq0 := h.q_ne
-  simp only [MsC2, F.fS_opp 0 hr h.m_ne, F.fS_opp_neg 0 hr h.ρ_ne, F.fS_self_neg 0 hr h.D_ne]
-  simp only [dζ, kron_self, one_mul, mul_one, fMp, fMm, Bool.not_ne_self, ↓reduceIte, WmL, RhatSL, RhatL0,
-    RhatL2, Params.RhatC, Params.ℓ₀, Params.ℓ₁, Params.ℓ₂, Params.ℓ₃, Params.Tp, Params.Tm, hSp,
-    hSm, hSp', hSm', hq, hκ, hP, hq', hκ', hP', cN0L, cN1L, cN2L, cN3L, lat_a, lat_β,
-    Bool.not_not, αSL, αPL, αL, F.mL_not t, F.pUp_mul_pDn t, piP, F.piS_eq t]
+  simp only [MsC2, F.fS_opp 0 hr h.m_ne]
+  simp only [kron_self, one_mul, mul_one, fMp, Bool.not_ne_self, ↓reduceIte,
+    RhatL2, Params.RhatC, Params.ℓ₀, Params.ℓ₁, Params.ℓ₂, Params.ℓ₃, Params.Tp, Params.Tm,
+    hSp', hSm', hq', hκ', hP', lat_a, lat_β,
+    Bool.not_not, αSL, F.mL_not t, F.pUp_mul_pDn t, piP, F.piS_eq t]
   push_cast
   generalize (F.BL t).S 0 u = s
   field_simp
   obtain ⟨P, R, M, h₀, h₂, ht, hn, hR, hM, hP⟩ := F.col_params t
-  simp only [N₀L, N₂L, HL, PL, QL, lamL, piP, F.piS_eq t, rL_not, q₀L, F.cS_eq t, cP, DL, cLw,
-    ζL, F.pUp_mul_pDn t, Bool.not_not, mL_not, kron_self, one_mul, mul_one, ζLs, hw]
+  simp only [N₂L, HL, PL, lamL, rL_not, q₀L, F.cS_eq t,
+    ζL, F.pUp_mul_pDn t, kron_self, one_mul, hw]
   push_cast
   simp only [rL_cast, h₀, h₂, ht, hn, hR, hM, LCert.MpZ02C]
   ring
@@ -202,17 +198,16 @@ theorem MsD2_Z (hk : k = 0) (t : Bool) (h : F.ColNe k t) {u : ℂ} (hr : F.ModeR
   have hm := h.m_ne
   have hD := h.D_ne
   have hq0 := h.q_ne
-  simp only [MsD2, F.fS_opp 0 hr h.m_ne, F.fS_opp_neg 0 hr h.ρ_ne, F.fS_self_neg 0 hr h.D_ne]
-  simp only [dζ, kron_self, one_mul, mul_one, fMp, fMm, Bool.not_ne_self, ↓reduceIte, WmL, RhatSL, RhatL0,
-    RhatL2, Params.RhatC, Params.ℓ₀, Params.ℓ₁, Params.ℓ₂, Params.ℓ₃, Params.Tp, Params.Tm, hSp,
-    hSm, hSp', hSm', hq, hκ, hP, hq', hκ', hP', cN0L, cN1L, cN2L, cN3L, lat_a, lat_β,
-    Bool.not_not, αSL, αPL, αL, F.mL_not t, F.pUp_mul_pDn t, piP, F.piS_eq t]
-  push_cast
+  simp only [MsD2, F.fS_opp_neg 0 hr h.ρ_ne]
+  simp only [kron_self, one_mul, mul_one, fMm, Bool.not_ne_self, ↓reduceIte,
+    RhatL2, Params.RhatC, Params.ℓ₀, Params.ℓ₁, Params.ℓ₂, Params.ℓ₃, Params.Tp, Params.Tm,
+    hSp', hSm', hq', hκ', hP', lat_a, lat_β,
+    Bool.not_not, αPL, piP, F.piS_eq t]
   generalize (F.BL t).S 0 u = s
   field_simp
   obtain ⟨P, R, M, h₀, h₂, ht, hn, hR, hM, hP⟩ := F.col_params t
-  simp only [N₀L, N₂L, HL, PL, QL, lamL, piP, F.piS_eq t, rL_not, q₀L, F.cS_eq t, cP, DL, cLw,
-    ζL, F.pUp_mul_pDn t, Bool.not_not, mL_not, kron_self, one_mul, mul_one, ζLs, hw]
+  simp only [N₂L, HL, PL, lamL, rL_not, q₀L, cP,
+    ζL, F.pUp_mul_pDn t, kron_self, one_mul, hw]
   push_cast
   simp only [rL_cast, h₀, h₂, ht, hn, hR, hM, LCert.MpZ02D]
   ring
@@ -235,17 +230,15 @@ theorem Ms1_Z (hk : k = 0) (t : Bool) (h : F.ColNe k t) {u : ℂ} (hr : F.ModeRe
   have hm := h.m_ne
   have hD := h.D_ne
   have hq0 := h.q_ne
-  simp only [Ms1, F.fS_opp 0 hr h.m_ne, F.fS_opp_neg 0 hr h.ρ_ne, F.fS_self_neg 0 hr h.D_ne]
-  simp only [dζ, kron_self, one_mul, mul_one, fMp, fMm, Bool.not_ne_self, ↓reduceIte, WmL, RhatSL, RhatL0,
-    RhatL2, Params.RhatC, Params.ℓ₀, Params.ℓ₁, Params.ℓ₂, Params.ℓ₃, Params.Tp, Params.Tm, hSp,
-    hSm, hSp', hSm', hq, hκ, hP, hq', hκ', hP', cN0L, cN1L, cN2L, cN3L, lat_a, lat_β,
-    Bool.not_not, αSL, αPL, αL, F.mL_not t, F.pUp_mul_pDn t, piP, F.piS_eq t]
-  push_cast
+  simp only [Ms1]
+  simp only [fMp, fMm, ↓reduceIte,
+
+    αL]
   generalize (F.BL t).S 0 u = s
   field_simp
   obtain ⟨P, R, M, h₀, h₂, ht, hn, hR, hM, hP⟩ := F.col_params t
-  simp only [N₀L, N₂L, HL, PL, QL, lamL, piP, F.piS_eq t, rL_not, q₀L, F.cS_eq t, cP, DL, cLw,
-    ζL, F.pUp_mul_pDn t, Bool.not_not, mL_not, kron_self, one_mul, mul_one, ζLs, hw]
+  simp only [HL, PL, QL, lamL, piP, F.piS_eq t, rL_not, q₀L, DL, cLw,
+    hw]
   push_cast
   simp only [rL_cast, h₀, h₂, ht, hn, hR, hM, LCert.McZ01]
   ring

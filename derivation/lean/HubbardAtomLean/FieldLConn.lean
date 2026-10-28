@@ -155,23 +155,25 @@ theorem Ds0_W (hk : k ≠ 0) (t : Bool) (h : F.ColNe k t) {v : ℂ} (hE : F.E8L 
   have hm := h.m_ne
   have hD := h.D_ne
   have hq0 := h.q_ne
-  simp only [Ds0, dζ, kron_of_ne hk, zero_mul, mul_zero, zero_div, sub_zero, zero_add, add_zero, dhL, AhL, BhL, ChL, WsL, WoBL, WoCL, sReflL, RhatSL, RhatL0, RhatL2,
+  simp only [Ds0, dζ, kron_of_ne hk, zero_mul, mul_zero, zero_div, sub_zero, zero_add, add_zero,
+      dhL, AhL, BhL, ChL, WsL, sReflL, RhatSL, RhatL0,
     Params.RhatC, Params.ℓ₀, Params.ℓ₁, Params.ℓ₂, Params.ℓ₃, Params.Tp, Params.Tm, hSp, hSm, hSp',
-    hSm', hq, hκ, hP, hq', hκ', hP', cN0L, cN1L, cN2L, cN3L, lat_a, lat_β, Bool.not_not]
+    hSm', hq, hκ, hP, hq', hκ', hP', cN0L, cN1L, cN2L, cN3L, lat_a, lat_β]
   rw [eq_div_iff (mul_ne_zero hβ hE)]
   field_simp
   try rw [F.E8L_W _ t]
   obtain ⟨P, R, M, h₀, h₂, ht, hn, hR, hM, hP⟩ := F.col_params t
-  simp only [N₀L, N₂L, HL, PL, QL, lamL, piP, F.piS_eq t, rL_not, q₀L, F.cS_eq t, cP, DL, cLw, ζL, Bool.not_not, mL_not, kron_of_ne hk, zero_mul, mul_zero, zero_div, sub_zero, add_zero, zero_add]
+  simp only [N₀L, N₂L, HL, PL, lamL, piP, F.piS_eq t, rL_not, q₀L, F.cS_eq t, cP, DL, ζL,
+      kron_of_ne hk, zero_mul, sub_zero, add_zero]
   push_cast
-  simp only [rL_cast, h₀, h₂, ht, hn, hR, hM, LCert.NcW00, LCert.E8W]
+  simp only [rL_cast, h₀, h₂, ht, hn, hR, hM, LCert.NcW00]
   ring
 
 set_option maxHeartbeats 8000000 in
 -- `field_simp` and `ring` on the rational functions of the completed defect
 set_option maxRecDepth 100000 in
 /-- `Ds1` is `NcW01(v²)/(βE₈(v))`, `k ≠ 0`. -/
-theorem Ds1_W (hk : k ≠ 0) (t : Bool) (h : F.ColNe k t) {v : ℂ} (hE : F.E8L k v ≠ 0) :
+theorem Ds1_W (_hk : k ≠ 0) (t : Bool) (h : F.ColNe k t) {v : ℂ} (hE : F.E8L k v ≠ 0) :
     F.Ds1 k t v = LCert.NcW01 (v ^ 2) F.a (F.wL k) (F.p₀ + F.p₂) F.ρ (F.mL t) /
       (F.β * F.E8L k v) := by
   have hβ := β_ne_zeroT (F := F)
@@ -184,16 +186,14 @@ theorem Ds1_W (hk : k ≠ 0) (t : Bool) (h : F.ColNe k t) {v : ℂ} (hE : F.E8L 
   have hm := h.m_ne
   have hD := h.D_ne
   have hq0 := h.q_ne
-  simp only [Ds1, dζ, kron_of_ne hk, zero_mul, mul_zero, zero_div, sub_zero, zero_add, add_zero, dhL, AhL, BhL, ChL, WsL, WoBL, WoCL, sReflL, RhatSL, RhatL0, RhatL2,
-    Params.RhatC, Params.ℓ₀, Params.ℓ₁, Params.ℓ₂, Params.ℓ₃, Params.Tp, Params.Tm, hSp, hSm, hSp',
-    hSm', hq, hκ, hP, hq', hκ', hP', cN0L, cN1L, cN2L, cN3L, lat_a, lat_β, Bool.not_not]
+  simp only [Ds1, AhL]
   rw [eq_div_iff (mul_ne_zero hβ hE)]
   field_simp
   try rw [F.E8L_W _ t]
   obtain ⟨P, R, M, h₀, h₂, ht, hn, hR, hM, hP⟩ := F.col_params t
-  simp only [N₀L, N₂L, HL, PL, QL, lamL, piP, F.piS_eq t, rL_not, q₀L, F.cS_eq t, cP, DL, cLw, ζL, Bool.not_not, mL_not, kron_of_ne hk, zero_mul, mul_zero, zero_div, sub_zero, add_zero, zero_add]
+  simp only [PL, lamL, q₀L, DL]
   push_cast
-  simp only [rL_cast, h₀, h₂, ht, hn, hR, hM, LCert.NcW01, LCert.E8W]
+  simp only [h₀, h₂, ht, hn, hR, hM, LCert.NcW01]
   ring
 
 set_option maxHeartbeats 8000000 in
@@ -213,16 +213,18 @@ theorem Ds2_W (hk : k ≠ 0) (t : Bool) (h : F.ColNe k t) {v : ℂ} (hE : F.E8L 
   have hm := h.m_ne
   have hD := h.D_ne
   have hq0 := h.q_ne
-  simp only [Ds2, dζ, kron_of_ne hk, zero_mul, mul_zero, zero_div, sub_zero, zero_add, add_zero, dhL, AhL, BhL, ChL, WsL, WoBL, WoCL, sReflL, RhatSL, RhatL0, RhatL2,
+  simp only [Ds2, dζ, kron_of_ne hk, zero_mul, mul_zero, zero_div, sub_zero, zero_add, add_zero,
+      dhL, AhL, BhL, ChL, WsL, sReflL, RhatSL, RhatL2,
     Params.RhatC, Params.ℓ₀, Params.ℓ₁, Params.ℓ₂, Params.ℓ₃, Params.Tp, Params.Tm, hSp, hSm, hSp',
-    hSm', hq, hκ, hP, hq', hκ', hP', cN0L, cN1L, cN2L, cN3L, lat_a, lat_β, Bool.not_not]
+    hSm', hq, hκ, hP, hq', hκ', hP', lat_a, lat_β]
   rw [eq_div_iff (mul_ne_zero hβ hE)]
   field_simp
   try rw [F.E8L_W _ t]
   obtain ⟨P, R, M, h₀, h₂, ht, hn, hR, hM, hP⟩ := F.col_params t
-  simp only [N₀L, N₂L, HL, PL, QL, lamL, piP, F.piS_eq t, rL_not, q₀L, F.cS_eq t, cP, DL, cLw, ζL, Bool.not_not, mL_not, kron_of_ne hk, zero_mul, mul_zero, zero_div, sub_zero, add_zero, zero_add]
+  simp only [N₂L, HL, PL, lamL, piP, F.piS_eq t, rL_not, q₀L, F.cS_eq t, cP, ζL, kron_of_ne hk,
+      zero_mul, add_zero]
   push_cast
-  simp only [rL_cast, h₀, h₂, ht, hn, hR, hM, LCert.NcW02, LCert.E8W]
+  simp only [rL_cast, h₀, h₂, ht, hn, hR, hM, LCert.NcW02]
   ring
 
 set_option maxHeartbeats 8000000 in
@@ -242,14 +244,16 @@ theorem Do0_W (hk : k ≠ 0) (t : Bool) (h : F.ColNe k t) {v : ℂ} (hE : F.E8L 
   have hm := h.m_ne
   have hD := h.D_ne
   have hq0 := h.q_ne
-  simp only [Do0, dζ, kron_of_ne hk, zero_mul, mul_zero, zero_div, sub_zero, zero_add, add_zero, dhL, AhL, BhL, ChL, WsL, WoBL, WoCL, sReflL, RhatSL, RhatL0, RhatL2,
+  simp only [Do0, dζ, kron_of_ne hk, zero_mul, mul_zero, zero_div, sub_zero, zero_add, add_zero,
+      dhL, AhL, BhL, ChL, WoBL, WoCL, sReflL, RhatSL, RhatL0,
     Params.RhatC, Params.ℓ₀, Params.ℓ₁, Params.ℓ₂, Params.ℓ₃, Params.Tp, Params.Tm, hSp, hSm, hSp',
     hSm', hq, hκ, hP, hq', hκ', hP', cN0L, cN1L, cN2L, cN3L, lat_a, lat_β, Bool.not_not]
   rw [eq_div_iff (mul_ne_zero hβ hE)]
   field_simp
   try rw [F.E8L_W _ t]
   obtain ⟨P, R, M, h₀, h₂, ht, hn, hR, hM, hP⟩ := F.col_params t
-  simp only [N₀L, N₂L, HL, PL, QL, lamL, piP, F.piS_eq t, rL_not, q₀L, F.cS_eq t, cP, DL, cLw, ζL, Bool.not_not, mL_not, kron_of_ne hk, zero_mul, mul_zero, zero_div, sub_zero, add_zero, zero_add]
+  simp only [N₀L, N₂L, HL, PL, QL, lamL, piP, F.piS_eq t, rL_not, q₀L, DL, cLw, ζL, kron_of_ne hk,
+      zero_mul, sub_zero, add_zero]
   push_cast
   simp only [rL_cast, h₀, h₂, ht, hn, hR, hM, LCert.NcW10, LCert.E8W]
   ring
@@ -258,7 +262,7 @@ set_option maxHeartbeats 8000000 in
 -- `field_simp` and `ring` on the rational functions of the completed defect
 set_option maxRecDepth 100000 in
 /-- `Do1` is `NcW11(v²)/(βE₈(v))`, `k ≠ 0`. -/
-theorem Do1_W (hk : k ≠ 0) (t : Bool) (h : F.ColNe k t) {v : ℂ} (hE : F.E8L k v ≠ 0) :
+theorem Do1_W (_hk : k ≠ 0) (t : Bool) (h : F.ColNe k t) {v : ℂ} (hE : F.E8L k v ≠ 0) :
     F.Do1 k t v = LCert.NcW11 (v ^ 2) F.a (F.wL k) (F.p₀ + F.p₂) F.ρ (F.mL t) /
       (F.β * F.E8L k v) := by
   have hβ := β_ne_zeroT (F := F)
@@ -271,14 +275,12 @@ theorem Do1_W (hk : k ≠ 0) (t : Bool) (h : F.ColNe k t) {v : ℂ} (hE : F.E8L 
   have hm := h.m_ne
   have hD := h.D_ne
   have hq0 := h.q_ne
-  simp only [Do1, dζ, kron_of_ne hk, zero_mul, mul_zero, zero_div, sub_zero, zero_add, add_zero, dhL, AhL, BhL, ChL, WsL, WoBL, WoCL, sReflL, RhatSL, RhatL0, RhatL2,
-    Params.RhatC, Params.ℓ₀, Params.ℓ₁, Params.ℓ₂, Params.ℓ₃, Params.Tp, Params.Tm, hSp, hSm, hSp',
-    hSm', hq, hκ, hP, hq', hκ', hP', cN0L, cN1L, cN2L, cN3L, lat_a, lat_β, Bool.not_not]
+  simp only [Do1, BhL, ChL]
   rw [eq_div_iff (mul_ne_zero hβ hE)]
   field_simp
   try rw [F.E8L_W _ t]
   obtain ⟨P, R, M, h₀, h₂, ht, hn, hR, hM, hP⟩ := F.col_params t
-  simp only [N₀L, N₂L, HL, PL, QL, lamL, piP, F.piS_eq t, rL_not, q₀L, F.cS_eq t, cP, DL, cLw, ζL, Bool.not_not, mL_not, kron_of_ne hk, zero_mul, mul_zero, zero_div, sub_zero, add_zero, zero_add]
+  simp only [HL, PL, lamL, piP, F.piS_eq t, rL_not, q₀L]
   push_cast
   simp only [rL_cast, h₀, h₂, ht, hn, hR, hM, LCert.NcW11, LCert.E8W]
   ring
@@ -300,14 +302,16 @@ theorem Do2_W (hk : k ≠ 0) (t : Bool) (h : F.ColNe k t) {v : ℂ} (hE : F.E8L 
   have hm := h.m_ne
   have hD := h.D_ne
   have hq0 := h.q_ne
-  simp only [Do2, dζ, kron_of_ne hk, zero_mul, mul_zero, zero_div, sub_zero, zero_add, add_zero, dhL, AhL, BhL, ChL, WsL, WoBL, WoCL, sReflL, RhatSL, RhatL0, RhatL2,
+  simp only [Do2, dζ, kron_of_ne hk, zero_mul, mul_zero, zero_div, sub_zero, zero_add, add_zero,
+      dhL, AhL, BhL, ChL, WoBL, WoCL, sReflL, RhatSL, RhatL2,
     Params.RhatC, Params.ℓ₀, Params.ℓ₁, Params.ℓ₂, Params.ℓ₃, Params.Tp, Params.Tm, hSp, hSm, hSp',
-    hSm', hq, hκ, hP, hq', hκ', hP', cN0L, cN1L, cN2L, cN3L, lat_a, lat_β, Bool.not_not]
+    hSm', hq, hκ, hP, hq', hκ', hP', lat_a, lat_β, Bool.not_not]
   rw [eq_div_iff (mul_ne_zero hβ hE)]
   field_simp
   try rw [F.E8L_W _ t]
   obtain ⟨P, R, M, h₀, h₂, ht, hn, hR, hM, hP⟩ := F.col_params t
-  simp only [N₀L, N₂L, HL, PL, QL, lamL, piP, F.piS_eq t, rL_not, q₀L, F.cS_eq t, cP, DL, cLw, ζL, Bool.not_not, mL_not, kron_of_ne hk, zero_mul, mul_zero, zero_div, sub_zero, add_zero, zero_add]
+  simp only [N₂L, HL, PL, QL, lamL, piP, F.piS_eq t, rL_not, q₀L, DL, cLw, ζL, kron_of_ne hk,
+      zero_mul, add_zero]
   push_cast
   simp only [rL_cast, h₀, h₂, ht, hn, hR, hM, LCert.NcW12, LCert.E8W]
   ring

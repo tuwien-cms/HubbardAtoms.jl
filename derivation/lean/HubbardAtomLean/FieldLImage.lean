@@ -194,7 +194,8 @@ theorem hasSum_dense_o (ha : (F.a : ℂ) ≠ 0) (hμ : F.μ ≠ 0) (hh : F.h ≠
   have hzp : (F.BL (!t)).z k n + (F.BL t).z k m ≠ 0 := by
     simpa using F.zL_add_opp_ne k hμ (!t) n m
   have b1 := (F.hasSum_self_pole k ha (!t) n (x := (F.BL t).z k m)
-    (fun l h0 ↦ F.zL_sub_opp_ne k hh t m l (by rw [h0]; ring))).mul_left (F.BhL k t ((F.BL t).z k m))
+    (fun l h0 ↦ F.zL_sub_opp_ne k hh t m l (by rw [h0]; ring))).mul_left
+      (F.BhL k t ((F.BL t).z k m))
   have b2 := (F.hasSum_self_pole k ha (!t) n (x := -(F.BL t).z k m)
     (fun l h0 ↦ F.zL_add_opp_ne k hμ t m l (by rw [h0]; ring))).mul_left
       (F.ChL k t ((F.BL t).z k m))
