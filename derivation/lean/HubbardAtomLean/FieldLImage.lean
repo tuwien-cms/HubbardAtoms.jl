@@ -179,7 +179,7 @@ set_option maxHeartbeats 1000000 in
 -- `field_simp` and `ring` on the value
 /-- **The dense part, row `-t`**: `D₀(v) + zD₁(v) + z²D₂(v)`. -/
 theorem hasSum_dense_o (ha : (F.a : ℂ) ≠ 0) (hμ : F.μ ≠ 0) (hh : F.h ≠ 0) {t : Bool}
-    (hc : F.cL t ≠ 0) (h : F.ColNe k t) {n m : ℤ}  :
+    (hc : F.cL t ≠ 0) (h : F.ColNe k t) {n m : ℤ} :
     HasSum (fun l ↦ F.PL k ((F.BL (!t)).z k n) * F.chiL (!t) (!t) k n l * F.denseL k t (!t) m l +
         F.PL k ((F.BL (!t)).z k n) * F.chiL (!t) t k n l * F.denseL k t t m l)
       (F.Do0 k t ((F.BL t).z k m) + (F.BL (!t)).z k n * F.Do1 k t ((F.BL t).z k m) +
