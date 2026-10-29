@@ -6,7 +6,8 @@ import HubbardAtomLean.DensityMagnetic
 For the density and magnetic channels, the even and odd parts in `u` (`u² = s`) of the thermal
 denominator `K(u) = βH(-u) + λα_k(u)` and of `A(u) = βH(-u) - λα_k(u)`, with
 `D_k = cosh βu + (-1)^k cosh βμ`, `R_k = (cosh βμ cosh βu + (-1)^k)/D_k` and
-`Φ_k = D_k + εa sinh(βu)/u`: Eqs. (div-alpha), (div-Phi) and the selection of the branch
+`Φ_k = D_k + εa sinh(βu)/u`, with `sinh(βu)/u` the entire `shc β u` (so `Φ_k(0) = D_k(0) + εaβ`,
+`Phik_zero`): Eqs. (div-alpha), (div-Phi) and the selection of the branch
 `K_e = 0` behind Eq. (div-ph) of the note, which treats `k = 0`, here for every `k`.
 
 * `Params.αe_eq`, `αo_eq`: `α_k(±u) = -hR_k ∓ ρβ sinh(βu)/(2D_k)`, `h = β√(p₀p₂)`;
@@ -16,8 +17,9 @@ denominator `K(u) = βH(-u) + λα_k(u)` and of `A(u) = βH(-u) - λα_k(u)`, wi
 * `Params.Rk_sq_of_Phi`, `Ke_mul_Ae_of_Phi`: where `Φ_k = 0`, `R_k² = 1 + s sinh²(βμ)/a²` and
   `K_eA_e = β²e(u)`;
 * `Params.Zph_eq_Ae`, `Zph_neg`, `lam_rho_Zph_eq`: at a root `u` of `e`, `K_eA_e = K_oA_o`, so
-  `Z = uP(u)A_e/K_o`, even in `u`, and `γ = λρZ/(s - s') = -εUP(u)D_kA_e/(β(s - s')Φ_k)`;
-  `Ke_eq_zero_of_Phi`: where `Φ_k = 0` and `A_e ≠ 0`, `K_e = 0`.
+  `Z = uP(u)A_e/K_o`, even in `u`, and `γ = λρZ/(s - s') = -εUP(u)D_kA_e/(β(s - s')Φ_k)` where
+  `Φ_k ≠ 0`; `Ke_eq_zero_of_Phi`: where `Φ_k = 0` and `A_e ≠ 0`, `K_e = 0`. The divergence itself
+  (`K = 0` at a root) is not formalized here.
 -/
 
 open Complex
@@ -29,6 +31,33 @@ noncomputable def τk (k : ℤ) : ℂ := if Even k then 1 else -1
 
 theorem τk_sq (k : ℤ) : τk k ^ 2 = 1 := by rw [τk]; split_ifs <;> norm_num
 
+/-- `sinh(βu)/u`, with its limit `β` at `u = 0`: an entire function of `u`. -/
+noncomputable def shc (β u : ℂ) : ℂ := dslope (fun x ↦ sinh (β * x)) 0 u
+
+/-- `u shc(β, u) = sinh(βu)`, for all `u`. -/
+theorem mul_shc (β u : ℂ) : u * shc β u = sinh (β * u) := by
+  have h := sub_smul_dslope (fun x ↦ sinh (β * x)) 0 u
+  simpa [shc] using h
+
+theorem shc_of_ne {β u : ℂ} (hu : u ≠ 0) : shc β u = sinh (β * u) / u := by
+  rw [eq_div_iff hu, mul_comm, mul_shc]
+
+/-- `shc(β, 0) = β`. -/
+theorem shc_zero (β : ℂ) : shc β 0 = β := by
+  rw [shc, dslope_same, deriv_csinh (by fun_prop), deriv_const_mul _ (by fun_prop), deriv_id'']
+  simp
+
+theorem differentiable_shc (β : ℂ) : Differentiable ℂ (shc β) := by
+  change Differentiable ℂ (dslope (fun x ↦ sinh (β * x)) 0)
+  rw [← differentiableOn_univ, Complex.differentiableOn_dslope Filter.univ_mem]
+  fun_prop
+
+/-- `shc` is even in `u`. -/
+theorem shc_neg (β u : ℂ) : shc β (-u) = shc β u := by
+  by_cases hu : u = 0
+  · rw [hu, neg_zero]
+  · rw [shc_of_ne hu, shc_of_ne (neg_ne_zero.mpr hu), mul_neg, Complex.sinh_neg, neg_div_neg_eq]
+
 namespace Params
 
 variable (A : Params) (k : ℤ) (ε : ℂ)
@@ -39,8 +68,17 @@ noncomputable def Dk (u : ℂ) : ℂ := cosh (A.β * u) + τk k * cosh (A.β * A
 /-- `R_k = (cosh βμ cosh βu + (-1)^k)/D_k`. -/
 noncomputable def Rk (u : ℂ) : ℂ := (cosh (A.β * A.μ) * cosh (A.β * u) + τk k) / A.Dk k u
 
-/-- `Φ_k = D_k + εa sinh(βu)/u`. -/
-noncomputable def Phik (u : ℂ) : ℂ := A.Dk k u + ε * A.a * sinh (A.β * u) / u
+/-- `Φ_k = D_k + εa sinh(βu)/u`, with `sinh(βu)/u` as the entire `shc` (`Phik_zero`). -/
+noncomputable def Phik (u : ℂ) : ℂ := A.Dk k u + ε * A.a * shc A.β u
+
+/-- `Φ_k(0) = D_k(0) + εaβ`. -/
+theorem Phik_zero : A.Phik k ε 0 = A.Dk k 0 + ε * A.a * A.β := by rw [Phik, shc_zero]
+
+/-- `Φ_k` is entire. -/
+theorem differentiable_Phik : Differentiable ℂ (A.Phik k ε) := by
+  unfold Phik Dk
+  have := differentiable_shc A.β
+  fun_prop
 
 /-- `h sinh(βμ) = βρ/2` (Eq. weight-hyp). -/
 theorem hth_mul_sinh : (A.hth : ℂ) * sinh (A.β * A.μ) = A.β * A.ρ / 2 := by
@@ -181,10 +219,7 @@ theorem Ko_eq {u : ℂ} (hD : A.Dk k u ≠ 0) :
     A.Ko k ε u = -2 * A.a * A.β * A.ρ * u * A.Phik k ε u / A.Dk k u := by
   have hα : A.α k u = A.α k (-u) - A.ρ * A.β * sinh (A.β * u) / A.Dk k u := by
     linear_combination 2 * A.αo_eq k hD
-  rw [Ko, Kph, Kph, Hph, Hph, neg_neg, Phik, lam, hα]
-  by_cases hu : u = 0
-  · subst hu
-    simp
+  rw [Ko, Kph, Kph, Hph, Hph, neg_neg, Phik, lam, hα, ← mul_shc A.β u]
   field_simp
   ring
 /-- `A_o = -2aβρu(2 - Φ_k/D_k)`. -/
@@ -192,10 +227,7 @@ theorem Ao_eq {u : ℂ} (hD : A.Dk k u ≠ 0) :
     A.Ao k ε u = -2 * A.a * A.β * A.ρ * u * (2 - A.Phik k ε u / A.Dk k u) := by
   have hα : A.α k u = A.α k (-u) - A.ρ * A.β * sinh (A.β * u) / A.Dk k u := by
     linear_combination 2 * A.αo_eq k hD
-  rw [Ao, Aph, Aph, Hph, Hph, neg_neg, Phik, lam, hα]
-  by_cases hu : u = 0
-  · subst hu
-    simp
+  rw [Ao, Aph, Aph, Hph, Hph, neg_neg, Phik, lam, hα, ← mul_shc A.β u]
   field_simp
   ring
 
@@ -213,12 +245,12 @@ theorem Rk_sq_of_Phi (hε : ε = 1 ∨ ε = -1) {u : ℂ} (hD : A.Dk k u ≠ 0)
     A.Rk k u ^ 2 = 1 + u ^ 2 * sinh (A.β * A.μ) ^ 2 / A.a ^ 2 := by
   have ha : (A.a : ℂ) ≠ 0 := fun h0 ↦ hD (by rw [Phik, h0] at hΦ; simpa using hΦ)
   have hR := A.Rk_sq_sub k hD
-  have hDs : A.Dk k u = -(ε * A.a * sinh (A.β * u) / u) := by
+  have hDs : A.Dk k u = -(ε * A.a * shc A.β u) := by
     rw [Phik] at hΦ
     linear_combination hΦ
   have hε2 : ε ^ 2 = 1 := by rcases hε with rfl | rfl <;> norm_num
-  have hsh : sinh (A.β * u) ≠ 0 := fun h0 ↦ hD (by rw [hDs, h0]; simp)
-  rw [hDs] at hR
+  have hsh : shc A.β u ≠ 0 := fun h0 ↦ hD (by rw [hDs, h0]; simp)
+  rw [hDs, ← mul_shc A.β u] at hR
   field_simp at hR
   rw [hε2, div_one] at hR
   field_simp
@@ -279,9 +311,8 @@ private theorem lam_rho_Zph_eq_ne {u : ℂ} (ha : (A.a : ℂ) ≠ 0) (hρ : (A.�
   field_simp
   ring
 
-/-- **The weight of the separable term**, `λρZ(u) = -εUP(u)D_k(u)A_e(u)/(βΦ_k(u))`,
-so `γ = λρZ/(s - s')` diverges exactly where `Φ_k = 0` with `A_e ≠ 0`. If `aρu = 0`, then
-`K_o = 0`, so `A_e = 0` and both sides vanish. -/
+/-- **The weight of the separable term**, `λρZ(u) = -εUP(u)D_k(u)A_e(u)/(βΦ_k(u))` for
+`Φ_k(u) ≠ 0` and `K(u) ≠ 0`. If `aρu = 0`, then `K_o = 0`, so `A_e = 0` and both sides vanish. -/
 theorem lam_rho_Zph_eq {u : ℂ} (hD : A.Dk k u ≠ 0) (he : A.eph k ε u = 0) (hK : A.Kph k ε u ≠ 0)
     (hΦ : A.Phik k ε u ≠ 0) :
     A.lam ε * A.ρ * A.Zph k ε u =
