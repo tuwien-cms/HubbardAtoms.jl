@@ -119,7 +119,7 @@ theorem onePlusK0_single (hμ : A.μ ≠ 0) (m : ℤ) :
   · simp [kron_of_ne hnm]
 
 /-- The inverse of a unit applied to `T c`. -/
-private theorem inverse_apply_of_eq {T : ℓ²(ℤ, ℂ) →L[ℂ] ℓ²(ℤ, ℂ)} (hT : IsUnit T)
+theorem inverse_apply_of_eq {T : ℓ²(ℤ, ℂ) →L[ℂ] ℓ²(ℤ, ℂ)} (hT : IsUnit T)
     {c e : ℓ²(ℤ, ℂ)} (hc : T c = e) : Ring.inverse T e = c := by
   rw [← hc]
   change (Ring.inverse T * T) c = c

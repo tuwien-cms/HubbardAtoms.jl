@@ -40,3 +40,4 @@ import HubbardAtomLean.HilbertSchmidt
 import HubbardAtomLean.ChiCompact
 import HubbardAtomLean.GammaOperator
 import HubbardAtomLean.GammaClosedForm
+import HubbardAtomLean.GammaBoxes

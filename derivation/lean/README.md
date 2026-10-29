@@ -56,6 +56,7 @@ the longitudinal vertex itself is not formalized.
 | `ChiCompact.lean` | density and magnetic, `μ ≠ 0`: `χ_r = 𝒟^(1/2)(1 + 𝒦)𝒟^(1/2)` with `𝒟 = diag(-β/zₙ²)` and `𝒦` Hilbert–Schmidt, hence compact; the bubble `B = 𝒟^(1/2)(1 + 𝒦₀)𝒟^(1/2)` with `1 + 𝒦₀` diagonal and invertible on `ℓ²(ℤ)` | proof of Proposition "finite boxes" |
 | `GammaOperator.lean` | density and magnetic, `μ ≠ 0`: `Γ_r = β²𝒟^(-1/2)[(1 + 𝒦)⁻¹ - (1 + 𝒦₀)⁻¹]𝒟^(-1/2)` defined entrywise; `1 + 𝒦` is invertible iff `ker(1 + 𝒦) = 0` (Fredholm alternative) iff `χ_r` has no nonzero null vector `v` with `∑ₙ \|vₙ/zₙ\|² < ∞`; such null vectors are bounded | not in the note |
 | `GammaClosedForm.lean` | on the domain of Theorem "density and magnetic" (generic case): `1 + 𝒦` is invertible and the operator `Γ_r` of `GammaOperator.lean` is the closed form of Eq. (Gamma-ph); the columns of `χ_r⁻¹` tend to `2εa/β²` | Theorem "density and magnetic" |
+| `GammaBoxes.lean` | density and magnetic, `μ ≠ 0`: the compressions of `1 + 𝒦` to the boxes `\|2n + 1 + k\| ≤ 2M + 1` converge in norm; wherever `1 + 𝒦` is invertible, the box matrices `χ_r\|_M` are invertible for large `M` and the box vertices `β²[(χ_r\|_M)⁻¹ - B⁻¹]` converge entrywise to `Γ_r`, on the domain of Theorem "density and magnetic" (generic case) to its closed form | Proposition "finite boxes" |
 
 `scripts/check.sh` rebuilds the library from a cold cache (failing on any warning), checks every
 declaration, private and auxiliary ones included, with the kernel for `sorry` and for axioms beyond
