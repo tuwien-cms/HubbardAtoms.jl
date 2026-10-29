@@ -71,6 +71,9 @@ longitudinal vertex with a two-sided inverse.
 | `GammaContinuity.lean` | density and magnetic: `Γ_r` is continuous in `(U, β, μ)` wherever `μ ≠ 0` and `1 + 𝒦` is invertible, in particular on the domain of Theorem "density and magnetic" (generic case); `𝒦` is continuous in the Hilbert–Schmidt norm, by a uniform bound `\|𝒦_nm\|² ≤ C\|zₙ\|⁻²(\|zₘ\|⁻² + δₙₘ)` and dominated convergence | not in the note |
 | `SpectralLink.lean` | density and magnetic: `1 - (εU/β)𝒯(s) = Φ_k(s)/D_k(s)` for `D_k(u) ≠ 0`, including `u = 0`; for `U ≠ 0`, `P(s) ≠ 0`, the eigenvalue `ℓ(s) = -K_e(s)/P(s) + βf_e(u)[1 - (εU/β)𝒯(s)]` with `f_e(u) = (f_r(u) + f_r(-u))/2`; so for `μ ≠ 0` every `g_s` with `Φ_k(s) = 0` (`s = 0` included) and `P(s) ≠ 0` is an eigenvector of `χ_r` with eigenvalue `-K_e(s)/P(s)` | not in the note |
 | `ConverseTransform.lean` | density and magnetic, `U ≠ 0`, `μ ≠ 0`: for a bounded `v` with `χ_r v = ℓv`, the Cauchy transforms `v̂(s) = ∑ₙ vₙg_s(n)`, `ψ̂(s) = ∑ₙ f_r(zₙ)vₙg_s(n)` satisfy `[ℓ - ℓ(s)]v̂(s) = -β(Φ_k/D_k)(s)ψ̂(s)` off the lattice; so `v̂(s) = 0` at the roots of `Φ_k` with `ℓ(s) ≠ ℓ` | not in the note |
+| `ChiOperator.lean` | items 6(b)–(d) for a general matrix `X` and bubble `b` on a general lattice (`OpLattice`: `β > 0` and `zₙ ≠ 0` with `∑ₙ \|zₙ\|⁻² < ∞`, such as the lattice of `Params` for `μ ≠ 0`, `Params.opLattice`), under the bounds of 6(a) (`ChiDecay`: `\|X_nm\| ≤ c\|zₙ\|⁻²\|zₘ\|⁻²` for `n ≠ m` and `\|X_nn + β/zₙ²\| ≤ c\|zₙ\|⁻³`; `BubbleDecay`: `bₙ ≠ 0` and `zₙ(tₙ - 1)` bounded, `tₙ = -zₙ²bₙ/β`): `X = 𝒟^(1/2)(1 + 𝒦)𝒟^(1/2)` with `𝒦` Hilbert–Schmidt; the operator `Γ = β²𝒟^(-1/2)[(1 + 𝒦)⁻¹ - (1 + 𝒦₀)⁻¹]𝒟^(-1/2)` exists iff `X` has no nonzero null vector `v` with `∑ₙ \|vₙ/zₙ\|² < ∞`, and such null vectors are bounded; `Γ = β²(X⁻¹ - b⁻¹)` with `X⁻¹ = 𝒟^(-1/2)(1 + 𝒦)⁻¹𝒟^(-1/2)`, which, where `1 + 𝒦` is invertible, is a right inverse of `X`, its only one with columns in the class, and for symmetric `X` two-sided; for symmetric `X` with a right inverse `Y` with bounded columns, `1 + 𝒦` is invertible and `Γ = β²(Y - b⁻¹)`; wherever `1 + 𝒦` is invertible, the vertices of finite boxes exhausting `ℤ` converge to `Γ`. The density and magnetic `χ_r` satisfies the bounds (`chiDecay_chiR`) | the proofs of `ChiCompact.lean` … `GammaBoxes.lean` for a general `χ`; not in the note |
+| `FieldTBounds.lean` | transverse, `μ ≠ 0`, `W ≠ 0`: the entries of `χ_T↑` decay as those of `diag(-β/zₙ²)`, `\|χ_T↑,nm\| ≤ c\|zₙ\|⁻²\|zₘ\|⁻²` for `n ≠ m` and `χ_T↑,nn = -βzₙ⁻²[1 + O(\|zₙ\|⁻¹)]`, by the transverse input; the bubble `b_T↑` decays as `-β/zₙ²` | as `ChiBounds.lean`, for Eq. (field-T) |
+| `FieldTOperator.lean` | transverse, `μ ≠ 0`, `W ≠ 0`: `Γ_T↑ = β²𝒟^(-1/2)[(1 + 𝒦)⁻¹ - (1 + 𝒦₀)⁻¹]𝒟^(-1/2)` (`gammaOpT`) exists iff `χ_T↑` has no nonzero null vector `v` with `∑ₙ \|vₙ/zₙ\|² < ∞`, and such null vectors are bounded; `Γ_T↑ = β²(χ_T↑⁻¹ - b_T↑⁻¹)` with `χ_T↑⁻¹ = 𝒟^(-1/2)(1 + 𝒦)⁻¹𝒟^(-1/2)`, which, where `1 + 𝒦` is invertible, is a two-sided inverse of `χ_T↑` and its only right inverse with columns in the class; on the domain of Eq. (field-T) (`TGeneric`), `1 + 𝒦` is invertible, the columns of `invTUp` tend to `-2a/β²`, `invTUp = χ_T↑⁻¹` and `gammaOpT = gammaTUp`; wherever `1 + 𝒦` is invertible, the box matrices `χ_T↑\|_M` are invertible for large `M` and the box vertices `β²[(χ_T↑\|_M)⁻¹ - b_T↑⁻¹]` converge to `Γ_T↑`, on `TGeneric` to `gammaTUp` | Eq. (field-T); the operator statements and finite boxes with field are not in the note |
 
 `scripts/check.sh` rebuilds the library from a cold cache (failing on any warning), checks every
 declaration, private and auxiliary ones included, with the kernel for `sorry` and for axioms beyond
@@ -168,6 +171,11 @@ Lean checks how they conjugate `c↑`, `c↓` and `H`.
   (confluent roots, lattice roots),
   the axis reductions of Eqs. (field-h0), (field-mu0) as identities between closed forms,
   and the divergences of Section G.5.
+  The operator form of the transverse vertex (`FieldTOperator.lean`) needs `μ ≠ 0` and `W ≠ 0`,
+  like `TGeneric`, so the half-filling axis `μ = 0` (`THFHyp`) has none; at `W = 0`,
+  `χ_T↑ = χ_m` (`chiTUp_eq_chiR`), whose operator form is that of `GammaOperator.lean`. Its
+  continuity in the parameters is not proved, and the longitudinal sector has no operator form
+  yet.
 
 ## Build
 
