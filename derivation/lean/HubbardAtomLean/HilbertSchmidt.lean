@@ -9,7 +9,8 @@ A matrix `K : ℤ → ℤ → ℂ` with square-summable entries acts on `ℓ²(�
 * `hsOp K hK`: `(Kv)ₙ = ∑ₘ Kₙₘvₘ` (`hsOp_apply`), with `‖Kv‖² ≤ ∑ₙ‖Kₙ·‖²‖v‖²`;
 * `isCompactOperator_hsOp`: `hsOp K hK` is compact, as the norm limit of its restrictions to
   finitely many rows, which have finite rank;
-* `hsOp_diag_apply`: a diagonal matrix `diagK c` acts by multiplication.
+* `hsOp_diag_apply`: a diagonal matrix `diagK c` acts by multiplication;
+* `tsum_mul_one_add_hsOp_comm`: for a symmetric `K`, `∑ₙ xₙ((1 + K)c)ₙ = ∑ₙ cₙ((1 + K)x)ₙ`.
 
 Row `n` acts as the inner product with `m ↦ conj Kₙₘ`, so linearity and the Cauchy–Schwarz bound
 come from `ℓ²(ℤ)`.
@@ -91,6 +92,35 @@ theorem hasSum_hsOp (v : ℓ²(ℤ, ℂ)) (n : ℤ) : HasSum (fun m ↦ K n m * 
 /-- `(Kv)ₙ = ∑ₘ Kₙₘvₘ`. -/
 theorem hsOp_apply (v : ℓ²(ℤ, ℂ)) (n : ℤ) : hsOp K hK v n = ∑' m, K n m * v m :=
   (hasSum_hsOp K hK v n).tsum_eq.symm
+
+/-- `∑ₙ xₙyₙ` converges for `x, y ∈ ℓ²`. -/
+theorem summable_mul_lp (x y : ℓ²(ℤ, ℂ)) : Summable fun n ↦ x n * y n :=
+  (lp.summable_inner (star x) y).congr fun n ↦ by simp [lp.star_apply, mul_comm]
+
+/-- **The bilinear pairing is symmetric for a symmetric `K`**: `∑ₙ xₙ(Kc)ₙ = ∑ₙ cₙ(Kx)ₙ`. The
+double sum `∑ₙₗ xₙKₙₗcₗ` converges absolutely, as `|xₙKₙₗcₗ| ≤ (|xₙ|²|cₗ|² + |Kₙₗ|²)/2`. -/
+theorem tsum_mul_hsOp_comm (hsym : ∀ n m, K n m = K m n) (x c : ℓ²(ℤ, ℂ)) :
+    ∑' n, x n * hsOp K hK c n = ∑' n, c n * hsOp K hK x n := by
+  have hx := memℓp_two_iff.mp (lp.memℓp x)
+  have hc := memℓp_two_iff.mp (lp.memℓp c)
+  have hf : Summable (Function.uncurry fun n m ↦ x n * (K n m * c m)) := by
+    refine Summable.of_norm_bounded
+      (((hx.mul_of_nonneg hc (fun _ ↦ by positivity) fun _ ↦ by positivity).add hK).div_const 2)
+      fun p ↦ ?_
+    simp only [Function.uncurry, norm_mul]
+    nlinarith [sq_nonneg (‖x p.1‖ * ‖c p.2‖ - ‖K p.1 p.2‖), norm_nonneg (x p.1),
+      norm_nonneg (c p.2), norm_nonneg (K p.1 p.2)]
+  simp only [hsOp_apply, ← tsum_mul_left]
+  rw [← hf.tsum_comm]
+  exact tsum_congr fun m ↦ tsum_congr fun n ↦ by rw [hsym n m]; ring
+
+/-- `∑ₙ xₙ((1 + K)c)ₙ = ∑ₙ cₙ((1 + K)x)ₙ` for a symmetric `K`. -/
+theorem tsum_mul_one_add_hsOp_comm (hsym : ∀ n m, K n m = K m n) (x c : ℓ²(ℤ, ℂ)) :
+    ∑' n, x n * (1 + hsOp K hK) c n = ∑' n, c n * (1 + hsOp K hK) x n := by
+  simp only [_root_.add_apply, one_apply_eq_self, lp.coeFn_add, Pi.add_apply, mul_add]
+  rw [(summable_mul_lp x c).tsum_add (summable_mul_lp x _),
+    (summable_mul_lp c x).tsum_add (summable_mul_lp c _), tsum_mul_hsOp_comm K hK hsym]
+  simp only [mul_comm (x _)]
 
 /-- The coordinates in `s`, as a map to `s → ℂ`. -/
 noncomputable def finEval (s : Finset ℤ) : ℓ²(ℤ, ℂ) →L[ℂ] (s → ℂ) :=
