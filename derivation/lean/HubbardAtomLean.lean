@@ -68,3 +68,10 @@ import HubbardAtomLean.DivergenceAlgebra
 import HubbardAtomLean.SpectralLink
 import HubbardAtomLean.ConverseTransform
 import HubbardAtomLean.ComplexZeros
+import HubbardAtomLean.ChiOperator
+import HubbardAtomLean.FieldTBounds
+import HubbardAtomLean.FieldTOperator
+import HubbardAtomLean.FieldLBounds
+import HubbardAtomLean.FieldLOperator
+import HubbardAtomLean.ChiContinuity
+import HubbardAtomLean.FieldTContinuity
