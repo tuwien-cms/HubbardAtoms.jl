@@ -67,10 +67,7 @@ theorem chiBox_mul (hμ : A.μ ≠ 0) {s : Finset ℤ} (hu : IsUnit (A.onePlusK_
   set T := A.onePlusK_box k ε hμ s
   set y : ℤ → ℓ²(ℤ, ℂ) := fun m ↦ Ring.inverse T (lp.single 2 m 1)
   have hy : ∀ m n, n ∈ s → y m n + ∑ l ∈ s, A.Kr k ε n l * y m l = kron n m := fun m n hn ↦ by
-    have hT : T (y m) = lp.single 2 m 1 := by
-      change (T * Ring.inverse T) _ = _
-      rw [Ring.mul_inverse_cancel _ hu]
-      rfl
+    have hT : T (y m) = lp.single 2 m 1 := apply_inverse_of_isUnit hu _
     have h := congrArg (fun w : ℓ²(ℤ, ℂ) ↦ w n) hT
     simp only [T, onePlusK_box, _root_.add_apply, one_apply_eq_self, lp.coeFn_add,
       Pi.add_apply] at h
