@@ -157,13 +157,14 @@ theorem X_eq_Dhalf (n m : ℤ) :
   rw [KX, add_sub_cancel, show ∀ x y c : ℂ, x * c * y = x * y * c from fun _ _ _ ↦ by ring, hd]
   field_simp
 
-/-- `|𝒦_nm|² ≤ C|zₙ|⁻²(|zₘ|⁻² + δ_nm)`, by the bounds on `X`. -/
-theorem norm_KX_sq_le (hX : L.ChiDecay X) : ∃ C, ∀ n m, ‖L.KX X n m‖ ^ 2 ≤
-    C * (‖L.z n‖⁻¹ ^ 2 * (‖L.z m‖⁻¹ ^ 2 + if n = m then 1 else 0)) := by
-  obtain ⟨c₁, hc₁⟩ := hX.off
-  obtain ⟨c₂, hc₂⟩ := hX.diag
+/-- `|𝒦_nm|² ≤ ((c₁/β)² + (c₂/β)²)|zₙ|⁻²(|zₘ|⁻² + δ_nm)`, from the bounds of item 6(a) with the
+constants `c₁`, `c₂`. -/
+theorem norm_KX_sq_le_of {c₁ c₂ : ℝ}
+    (hc₁ : ∀ n m, n ≠ m → ‖X n m‖ ≤ c₁ / (‖L.z n‖ ^ 2 * ‖L.z m‖ ^ 2))
+    (hc₂ : ∀ n, ‖X n n + L.β / L.z n ^ 2‖ ≤ c₂ / ‖L.z n‖ ^ 3) (n m : ℤ) :
+    ‖L.KX X n m‖ ^ 2 ≤ ((c₁ / L.β) ^ 2 + (c₂ / L.β) ^ 2) *
+      (‖L.z n‖⁻¹ ^ 2 * (‖L.z m‖⁻¹ ^ 2 + if n = m then 1 else 0)) := by
   have hβ := L.β_pos
-  refine ⟨(c₁ / L.β) ^ 2 + (c₂ / L.β) ^ 2, fun n m ↦ ?_⟩
   have hz := norm_pos_iff.mpr (L.z_ne_zero n)
   have hv := norm_pos_iff.mpr (L.z_ne_zero m)
   by_cases hnm : n = m
@@ -203,6 +204,13 @@ theorem norm_KX_sq_le (hX : L.ChiDecay X) : ∃ C, ∀ n m, ‖L.KX X n m‖ ^ 2
         simp only [hnm, ite_false, add_zero]
         nlinarith [mul_nonneg (sq_nonneg (c₂ / L.β))
           (mul_nonneg (sq_nonneg ‖L.z n‖⁻¹) (sq_nonneg ‖L.z m‖⁻¹))]
+
+/-- `|𝒦_nm|² ≤ C|zₙ|⁻²(|zₘ|⁻² + δ_nm)`, by the bounds on `X`. -/
+theorem norm_KX_sq_le (hX : L.ChiDecay X) : ∃ C, ∀ n m, ‖L.KX X n m‖ ^ 2 ≤
+    C * (‖L.z n‖⁻¹ ^ 2 * (‖L.z m‖⁻¹ ^ 2 + if n = m then 1 else 0)) := by
+  obtain ⟨c₁, hc₁⟩ := hX.off
+  obtain ⟨c₂, hc₂⟩ := hX.diag
+  exact ⟨_, L.norm_KX_sq_le_of X hc₁ hc₂⟩
 
 /-- **`𝒦` is Hilbert–Schmidt**, by `norm_KX_sq_le`. -/
 theorem summable_KX_sq (hX : L.ChiDecay X) :

@@ -76,6 +76,8 @@ longitudinal vertex with a two-sided inverse.
 | `FieldTOperator.lean` | transverse, `μ ≠ 0`, `W ≠ 0`: `Γ_T↑ = β²𝒟^(-1/2)[(1 + 𝒦)⁻¹ - (1 + 𝒦₀)⁻¹]𝒟^(-1/2)` (`gammaOpT`) exists iff `χ_T↑` has no nonzero null vector `v` with `∑ₙ \|vₙ/zₙ\|² < ∞`, and such null vectors are bounded; `Γ_T↑ = β²(χ_T↑⁻¹ - b_T↑⁻¹)` with `χ_T↑⁻¹ = 𝒟^(-1/2)(1 + 𝒦)⁻¹𝒟^(-1/2)`, which, where `1 + 𝒦` is invertible, is a two-sided inverse of `χ_T↑` and its only right inverse with columns in the class; on the domain of Eq. (field-T) (`TGeneric`), `1 + 𝒦` is invertible, the columns of `invTUp` tend to `-2a/β²`, `invTUp = χ_T↑⁻¹` and `gammaOpT = gammaTUp`; wherever `1 + 𝒦` is invertible, the box matrices `χ_T↑\|_M` are invertible for large `M` and the box vertices `β²[(χ_T↑\|_M)⁻¹ - b_T↑⁻¹]` converge to `Γ_T↑`, on `TGeneric` to `gammaTUp` | Eq. (field-T); the operator statements and finite boxes with field are not in the note |
 | `FieldLBounds.lean` | longitudinal, off the axes (`μ ≠ 0`, `h ≠ 0`, `μ ≠ ±h`): on the lattices `z_σn = μ_σ + i(νₙ + ω_k/2)` of the two spins, `\|χ_στ(n, m)\| ≤ c\|z_σn\|⁻²\|z_τm\|⁻²` for `(σ, n) ≠ (τ, m)` and `χ_σσ(n, n) = -βz_σn⁻²[1 + O(\|z_σn\|⁻¹)]`, by the longitudinal input (the poles `1/(z_σn ± z_{-σ}m)` of the opposite-spin entries are bounded by `1/(2\|μ\|)`, `1/(2\|h\|)`); the bubble `b_σ` decays as `-β/z_σn²` | as `ChiBounds.lean`, for Eq. (field-L) |
 | `FieldLOperator.lean` | longitudinal, off the axes, with the two spin lattices enumerated as one (`encL : Bool × ℤ ≃ ℤ`): `Γ_L = β²𝒟^(-1/2)[(1 + 𝒦)⁻¹ - (1 + 𝒦₀)⁻¹]𝒟^(-1/2)` (`gammaOpL`) exists iff `χ_L` has no nonzero null vector `v` on `Bool × ℤ` with `∑_{σn} \|v_σn/z_σn\|² < ∞`, and such null vectors are bounded; `Γ_L = β²(χ_L⁻¹ - b⁻¹)` with `χ_L⁻¹ = 𝒟^(-1/2)(1 + 𝒦)⁻¹𝒟^(-1/2)`, a two-sided inverse where `1 + 𝒦` is invertible; on the domain of Eq. (field-L) (`LGeneric` for both column spins), `1 + 𝒦` is invertible, the columns of `invL` tend to `0` (same spin) and `2a/β²` (other spin), `invL = χ_L⁻¹` and `gammaOpL = gammaL`; wherever `1 + 𝒦` is invertible, the box matrices on `\|2n + 1 + k\| ≤ 2M + 1` (both spins) are invertible for large `M` and the box vertices converge to `Γ_L`, on `LGeneric` to `gammaL` | Eq. (field-L); the operator statements and finite boxes with field are not in the note |
+| `ChiContinuity.lean` | the second half of item 6(d) for a general `χ`: along a family of lattices, matrices and bubbles over a topological space, `Γ` is continuous at `x₀` wherever `1 + 𝒦` is invertible there, if near `x₀` the bounds of 6(a) hold, `β`, `zₙ`, `bₙ` and the entries of `𝒦` are continuous, and `\|𝒦_nm\|² ≤ C\|zₙ(x₀)\|⁻²(\|zₘ(x₀)\|⁻² + δₙₘ)` uniformly (`ContHyp`, the argument of `GammaContinuity.lean`); the domination follows from bounds of 6(a) with constants uniform near `x₀` (`dom_of_uniform`), and such constants from functions of `t = 1/zₙ` jointly continuous in `(x, t)` at `(x₀, 0)` (`eventually_bdd_of_inv_z`) | not in the note |
+| `FieldTContinuity.lean` | transverse: along a family `x ↦ (U, β, μ, h)(x)` (`famF`) continuous at `x₀` with `μ ≠ 0` and `W ≠ 0` there, `Γ_T↑` (`gammaOpTFam`) is continuous at `x₀` wherever `1 + 𝒦` is invertible (`continuousAt_gammaOpTFam`), in particular on the domain of Eq. (field-T) (`continuousAt_gammaOpTFam_of_TGeneric`); the bounds of `FieldTBounds.lean` hold with constants uniform near `x₀` (`contHyp_T`) | not in the note |
 
 `scripts/check.sh` rebuilds the library from a cold cache (failing on any warning), checks every
 declaration, private and auxiliary ones included, with the kernel for `sorry` and for axioms beyond
@@ -175,10 +177,10 @@ Lean checks how they conjugate `c↑`, `c↓` and `H`.
   and the divergences of Section G.5.
   The operator form of the transverse vertex (`FieldTOperator.lean`) needs `μ ≠ 0` and `W ≠ 0`,
   like `TGeneric`, so the half-filling axis `μ = 0` (`THFHyp`) has none; at `W = 0`,
-  `χ_T↑ = χ_m` (`chiTUp_eq_chiR`), whose operator form is that of `GammaOperator.lean`. Its
-  continuity in the parameters is not proved. The operator form of the longitudinal vertex
-  (`FieldLOperator.lean`) is off the axes; its continuity, and through it the axes, are not
-  proved.
+  `χ_T↑ = χ_m` (`chiTUp_eq_chiR`), whose operator form is that of `GammaOperator.lean`.
+  Its continuity in the parameters (`FieldTContinuity.lean`) also needs `μ ≠ 0` and `W ≠ 0`.
+  The operator form of the longitudinal vertex (`FieldLOperator.lean`) is off the axes; its
+  continuity in the parameters, and through it the axes, are not proved.
 
 ## Build
 
