@@ -7,13 +7,14 @@ import HubbardAtomLean.DivergenceAlgebra
 The coefficients of the spectral identity (`SpectralIdentity.lean`) in the notation of
 `DivergenceAlgebra.lean`:
 
-* `Params.one_sub_Tg`: `1 - (εU/β)𝒯(s) = Φ_k(s)/D_k(s)` for `u ≠ 0`, `D_k(u) ≠ 0`, from
-  `S_k(u) - S_k(-u) = -β sinh(βu)/D_k(u)` (`S_sub_S_neg`);
+* `Params.one_sub_Tg`: `1 - (εU/β)𝒯(s) = Φ_k(s)/D_k(s)` for `D_k(u) ≠ 0`, including `u = 0`, from
+  `S_k(u) - S_k(-u) = -β sinh(βu)/D_k(u)` (`S_sub_S_neg`) and `𝒯(0) = -β²/(2D_k(0))` (`Tg_zero`);
 * `Params.ell_eq`: for `U ≠ 0` and `P(s) ≠ 0`, the eigenvalue
   `ℓ(s) = -K_e(s)/P(s) + βf_e(u)[1 - (εU/β)𝒯(s)]`, `f_e(u) = (f_r(u) + f_r(-u))/2`, by partial
   fractions; so `ℓ(s) = -K_e(s)/P(s)` where `Φ_k(s) = 0` (`ell_eq_of_Phi`);
 * `Params.hasSum_chiR_mul_g_of_Phi`: every `g_s` with `Φ_k(s) = 0` and `P(s) ≠ 0` is an
-  eigenvector of `χ_r` with eigenvalue `-K_e(s)/P(s)`.
+  eigenvector of `χ_r` with eigenvalue `-K_e(s)/P(s)`. This includes `s = 0` where
+  `Φ_k(0) = D_k(0) + εaβ = 0`, e.g. the static magnetic root at `βU = 2(1 + cosh βμ)`.
 -/
 
 open Complex
@@ -58,12 +59,46 @@ theorem S_sub_S_neg {u : ℂ} (hD : A.Dk k u ≠ 0) :
     field_simp
     ring
 
-/-- `1 - (εU/β)𝒯(s) = Φ_k(s)/D_k(s)`, for `u ≠ 0` and `D_k(u) ≠ 0`. -/
-theorem one_sub_Tg {u : ℂ} (hu : u ≠ 0) (hD : A.Dk k u ≠ 0) :
+/-- `𝒯(0) = S_k(0)² - β²/4 = -β²/(2D_k(0))`, the limit of `-β sinh(βu)/(2uD_k(u))`. -/
+theorem Tg_zero (hD : A.Dk k 0 ≠ 0) : A.Tg k 0 = -(A.β ^ 2 / (2 * A.Dk k 0)) := by
+  have h₁ : (A.β : ℂ) * (0 - A.μ) / 2 = -(A.β * A.μ / 2) := by ring
+  have h₂ : (A.β : ℂ) * A.μ = 2 * (A.β * A.μ / 2) := by ring
+  have hp := cosh_sq_sub_sinh_sq ((A.β : ℂ) * A.μ / 2)
+  rw [Dk, τk, mul_zero, Complex.cosh_zero, h₂, Complex.cosh_two_mul] at hD ⊢
+  rw [Tg, ite_eq_left rfl, S, h₁, Complex.tanh_eq_sinh_div_cosh, coth, Complex.cosh_neg,
+    Complex.sinh_neg]
+  generalize cosh ((A.β : ℂ) * A.μ / 2) = c at *
+  generalize sinh ((A.β : ℂ) * A.μ / 2) = s at *
+  by_cases hk : Even k
+  · simp only [hk, ↓reduceIte] at hD ⊢
+    have hc : c ≠ 0 := fun h0 ↦ hD (by rw [h0] at hp ⊢; linear_combination -hp)
+    rw [show (1 : ℂ) + 1 * (c ^ 2 + s ^ 2) = 2 * c ^ 2 by linear_combination -hp]
+    linear_combination (norm := skip) (-(A.β ^ 2 / (4 * c ^ 2))) * hp
+    field_simp
+    ring
+  · simp only [hk, ↓reduceIte] at hD ⊢
+    have hs : s ≠ 0 := fun h0 ↦ hD (by rw [h0] at hp ⊢; linear_combination -hp)
+    rw [show (1 : ℂ) + -1 * (c ^ 2 + s ^ 2) = -2 * s ^ 2 by linear_combination -hp]
+    linear_combination (norm := skip) (A.β ^ 2 / (4 * s ^ 2)) * hp
+    field_simp
+    ring
+
+/-- `𝒯(s) = -β shc(βu)/(2D_k(u))`, `shc(βu) = sinh(βu)/u`, for `D_k(u) ≠ 0`. -/
+theorem Tg_eq {u : ℂ} (hD : A.Dk k u ≠ 0) :
+    A.Tg k u = -(A.β * shc A.β u / (2 * A.Dk k u)) := by
+  by_cases hu : u = 0
+  · subst hu
+    rw [A.Tg_zero k hD, shc_zero]
+    ring
+  rw [Tg, ite_eq_right hu, A.S_sub_S_neg k hD, shc_of_ne hu]
+  field_simp
+
+/-- `1 - (εU/β)𝒯(s) = Φ_k(s)/D_k(s)`, for `D_k(u) ≠ 0`. -/
+theorem one_sub_Tg {u : ℂ} (hD : A.Dk k u ≠ 0) :
     1 - ε * A.U / A.β * A.Tg k u = A.Phik k ε u / A.Dk k u := by
   have hβ : (A.β : ℂ) ≠ 0 := ofReal_ne_zero.mpr A.β_pos.ne'
   have hU : (A.U : ℂ) = 2 * A.a := by rw [a]; push_cast; ring
-  rw [Tg, ite_eq_right hu, A.S_sub_S_neg k hD, Phik, hU]
+  rw [A.Tg_eq k hD, Phik, hU]
   field_simp
   ring
 
@@ -198,15 +233,11 @@ theorem Dk_ne_zero_of_off {u : ℂ} (hu : ∀ m, A.z k m ≠ u) (hu' : ∀ m, A.
     convert mul_ne_zero (mul_ne_zero two_ne_zero hs) (neg_ne_zero.mpr hs') using 1
     ring
 
-/-- At a root of `Φ_k` with `±u` off the lattice, `1 - (εU/β)𝒯(s) = 0` (`u = 0` is no root,
-since `D_k(0) ≠ 0`). -/
+/-- At a root of `Φ_k` with `±u` off the lattice, `1 - (εU/β)𝒯(s) = 0`; `u = 0` included, where
+`Φ_k(0) = D_k(0) + εaβ`. -/
 theorem one_sub_Tg_of_Phi {u : ℂ} (hΦ : A.Phik k ε u = 0) (hu : ∀ m, A.z k m ≠ u)
     (hu' : ∀ m, A.z k m ≠ -u) : 1 - ε * A.U / A.β * A.Tg k u = 0 := by
-  have hD := A.Dk_ne_zero_of_off k hu hu'
-  have hu0 : u ≠ 0 := by
-    rintro rfl
-    simp [Phik, hD] at hΦ
-  rw [A.one_sub_Tg k ε hu0 hD, hΦ, zero_div]
+  rw [A.one_sub_Tg k ε (A.Dk_ne_zero_of_off k hu hu'), hΦ, zero_div]
 
 /-- At a root of `Φ_k`, `ℓ(s) = -K_e(s)/P(s)`. -/
 theorem ell_eq_of_Phi (hε : ε = 1 ∨ ε = -1) (ha : (A.a : ℂ) ≠ 0) {u : ℂ}

@@ -143,15 +143,15 @@ theorem eigen_transform (hε : ε = 1 ∨ ε = -1) (ha : (A.a : ℂ) ≠ 0) (hμ
   rw [e1, e2, hL.tsum_eq, hR.tsum_eq] at h
   linear_combination h
 
-/-- The transform identity in the form of the issue: `[ℓ - ℓ(s)]v̂(s) = -β(Φ_k/D_k)(s)ψ̂(s)`, for
-`u ≠ 0` (`one_sub_Tg`; `D_k(u) ≠ 0` off the lattice). -/
+/-- The transform identity in the form of the issue: `[ℓ - ℓ(s)]v̂(s) = -β(Φ_k/D_k)(s)ψ̂(s)`
+(`one_sub_Tg`; `D_k(u) ≠ 0` off the lattice). -/
 theorem eigen_transform_Phi (hε : ε = 1 ∨ ε = -1) (ha : (A.a : ℂ) ≠ 0) (hμ : A.μ ≠ 0)
     {v : ℤ → ℂ} {M : ℝ} (hv : ∀ n, ‖v n‖ ≤ M) {ℓ : ℂ}
     (hχ : ∀ n, HasSum (fun m ↦ A.chiR k ε n m * v m) (ℓ * v n)) {u : ℂ}
-    (hu : ∀ m, A.z k m ≠ u) (hu' : ∀ m, A.z k m ≠ -u) (hu0 : u ≠ 0) :
+    (hu : ∀ m, A.z k m ≠ u) (hu' : ∀ m, A.z k m ≠ -u) :
     (ℓ + ε * A.U * ∑' m, A.fR k ε (A.z k m) * A.gs k u m) * A.vhat k v u =
       -(A.β * (A.Phik k ε u / A.Dk k u)) * A.psihat k ε v u := by
-  rw [← A.one_sub_Tg k ε hu0 (A.Dk_ne_zero_of_off k hu hu')]
+  rw [← A.one_sub_Tg k ε (A.Dk_ne_zero_of_off k hu hu')]
   exact A.eigen_transform k ε hε ha hμ hv hχ hu hu'
 
 /-- **`v̂` vanishes at the other roots of `Φ_k`**: at `Φ_k(s) = 0` with `ℓ(s) ≠ ℓ`, `v̂(s) = 0`. -/
