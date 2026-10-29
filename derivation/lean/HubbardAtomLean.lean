@@ -56,3 +56,11 @@ import HubbardAtomLean.FieldLInverse
 import HubbardAtomLean.FieldLVertex
 import HubbardAtomLean.FieldLSymCert
 import HubbardAtomLean.FieldLSym
+import HubbardAtomLean.SpectralIdentity
+import HubbardAtomLean.ChiBounds
+import HubbardAtomLean.HilbertSchmidt
+import HubbardAtomLean.ChiCompact
+import HubbardAtomLean.GammaOperator
+import HubbardAtomLean.GammaClosedForm
+import HubbardAtomLean.GammaBoxes
+import HubbardAtomLean.GammaContinuity
