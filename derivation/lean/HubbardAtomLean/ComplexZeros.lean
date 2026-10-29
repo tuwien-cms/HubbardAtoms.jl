@@ -86,7 +86,7 @@ theorem im_mul_im_Ke_pos (hε : ε = 1 ∨ ε = -1) (ha : 0 ≤ A.a) {u : ℂ} (
   set Sh := sinh ((A.β : ℂ) * u) with hSh
   -- `Φ_k = 0`: `(C + τc)u = -εa sinh(βu)`
   have E : (C + t * c) * u = -(e * A.a * Sh) := by
-    rw [Phik, Dk, ht, hc] at hΦ
+    rw [A.Phik_of_ne k _ hu, Dk, ht, hc] at hΦ
     field_simp at hΦ
     linear_combination hΦ
   have hPQ := sinh_mul_conj_cosh A.β u
