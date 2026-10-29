@@ -58,7 +58,8 @@ run_cmd Elab.Command.liftCoreM do
       ``HubbardAtom.Params.isUnit_onePlusK_iff,
       ``HubbardAtom.Params.exists_bound_of_null,
       ``HubbardAtom.Params.DMGeneric.gammaOp_eq,
-      ``HubbardAtom.Params.DMGeneric.tendsto_gammaBox] do
+      ``HubbardAtom.Params.DMGeneric.tendsto_gammaBox,
+      ``HubbardAtom.Params.continuousAt_gammaOp] do
     unless audited.contains anchor do
       throwError "{anchor} was not audited; the check is vacuous"
   if checked < 100 then
