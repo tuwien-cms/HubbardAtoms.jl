@@ -31,6 +31,9 @@ theorem zT_ne_zero (hμ : F.μ ≠ 0) (n : ℤ) : F.zT k n ≠ 0 := (F.lat F.μ)
 /-- The transverse lattice is the lattice of `F.lat F.μ`. -/
 theorem lat_z_eq_zT (n : ℤ) : (F.lat F.μ).z k n = F.zT k n := rfl
 
+/-- The transverse lattice `zₙ = μ + i(νₙ + ω_k/2)` as an `OpLattice`, for `μ ≠ 0`. -/
+noncomputable def opLatT (hμ : F.μ ≠ 0) : OpLattice := (F.lat F.μ).opLattice k hμ
+
 /-- `P(v) = v⁴ + (2q₀ - 4a²)v² + q₀²`. -/
 theorem PT_eq (v : ℂ) :
     F.PT k v = v ^ 4 + (2 * F.q₀T k - 4 * F.a ^ 2) * v ^ 2 + F.q₀T k ^ 2 := by
@@ -164,12 +167,12 @@ theorem norm_chiTUp_diag_le (hμ : F.μ ≠ 0) (hW : F.WT k ≠ 0) :
 
 /-- **The bounds of item 6(a)** for `χ_T↑`, as used by `ChiOperator.lean`. -/
 theorem chiDecay_chiTUp (hμ : F.μ ≠ 0) (hW : F.WT k ≠ 0) :
-    (F.lat F.μ).ChiDecay k (F.chiTUp k) :=
+    (F.opLatT k hμ).ChiDecay (F.chiTUp k) :=
   ⟨F.norm_chiTUp_le k hμ hW, F.norm_chiTUp_diag_le k hμ hW⟩
 
 /-- **The bubble** `b_T↑ = -βG₂(zₙ)/P(zₙ)` decays as `-β/zₙ²`: `tₙ = -zₙ²bₙ/β = zₙ²G₂(zₙ)/P(zₙ)` and
 `zₙ(tₙ - 1)` is a function of `1/zₙ` continuous at `0`. -/
-theorem bubbleDecay_bTUp (hμ : F.μ ≠ 0) : (F.lat F.μ).BubbleDecay k (F.bTUp k) := by
+theorem bubbleDecay_bTUp (hμ : F.μ ≠ 0) : (F.opLatT k hμ).BubbleDecay (F.bTUp k) := by
   have hβ : (F.β : ℂ) ≠ 0 := ofReal_ne_zero.mpr F.β_pos.ne'
   refine ⟨fun n ↦ ?_, ?_⟩
   · rw [F.bTUp_eq]

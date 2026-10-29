@@ -37,31 +37,31 @@ variable (F : FParams) (k : ℤ)
 
 /-- `1 + 𝒦` for `χ_T↑` on `ℓ²(ℤ)`. -/
 noncomputable def onePlusKT (hμ : F.μ ≠ 0) (hW : F.WT k ≠ 0) : ℓ²(ℤ, ℂ) →L[ℂ] ℓ²(ℤ, ℂ) :=
-  (F.lat F.μ).onePlusKX k (F.chiTUp k) hμ (F.chiDecay_chiTUp k hμ hW)
+  (F.opLatT k hμ).onePlusKX (F.chiTUp k) (F.chiDecay_chiTUp k hμ hW)
 
 /-- **The transverse vertex as an operator**: `Γ_T↑,nm = β²/(dₙdₘ) [(1 + 𝒦)⁻¹ - (1 + 𝒦₀)⁻¹]ₙₘ`,
 with `Ring.inverse` (zero where `1 + 𝒦` is not invertible). -/
 noncomputable def gammaOpT (hμ : F.μ ≠ 0) (hW : F.WT k ≠ 0) (n m : ℤ) : ℂ :=
-  (F.lat F.μ).gammaOpX k (F.chiTUp k) (F.bTUp k) hμ (F.chiDecay_chiTUp k hμ hW)
+  (F.opLatT k hμ).gammaOpX (F.chiTUp k) (F.bTUp k) (F.chiDecay_chiTUp k hμ hW)
     (F.bubbleDecay_bTUp k hμ) n m
 
 /-- `χ_T↑⁻¹ = 𝒟^(-1/2)(1 + 𝒦)⁻¹𝒟^(-1/2)`, entrywise, with `Ring.inverse` as in `gammaOpT`. -/
 noncomputable def chiInvT (hμ : F.μ ≠ 0) (hW : F.WT k ≠ 0) (n m : ℤ) : ℂ :=
-  (F.lat F.μ).chiInvX k (F.chiTUp k) hμ (F.chiDecay_chiTUp k hμ hW) n m
+  (F.opLatT k hμ).chiInvX (F.chiTUp k) (F.chiDecay_chiTUp k hμ hW) n m
 
 /-- **`Γ_T↑` exists iff `χ_T↑` has no null vector**: `1 + 𝒦` is invertible iff `χ_T↑` has no
 nonzero null vector `v` with `∑ₙ |vₙ/zₙ|² < ∞`. -/
 theorem isUnit_onePlusKT_iff (hμ : F.μ ≠ 0) (hW : F.WT k ≠ 0) :
     IsUnit (F.onePlusKT k hμ hW) ↔ ∀ v : ℤ → ℂ, Summable (fun n ↦ ‖v n / F.zT k n‖ ^ 2) →
       (∀ n, HasSum (fun m ↦ F.chiTUp k n m * v m) 0) → v = 0 :=
-  (F.lat F.μ).isUnit_onePlusKX_iff k _ hμ _
+  (F.opLatT k hμ).isUnit_onePlusKX_iff _ _
 
 /-- **Null vectors are bounded**: a null vector `v` of `χ_T↑` with `∑ₙ |vₙ/zₙ|² < ∞` has
 `|vₙ| ≤ C`. -/
 theorem exists_bound_of_nullT (hμ : F.μ ≠ 0) (hW : F.WT k ≠ 0) {v : ℤ → ℂ}
     (hv : Summable fun n ↦ ‖v n / F.zT k n‖ ^ 2)
     (hχ : ∀ n, HasSum (fun m ↦ F.chiTUp k n m * v m) 0) : ∃ C, ∀ n, ‖v n‖ ≤ C :=
-  (F.lat F.μ).exists_bound_of_nullX k _ hμ (F.chiDecay_chiTUp k hμ hW) hv hχ
+  (F.opLatT k hμ).exists_bound_of_nullX _ (F.chiDecay_chiTUp k hμ hW) hv hχ
 
 /-! ### `Γ_T↑ = β²(χ_T↑⁻¹ - b_T↑⁻¹)` -/
 
@@ -69,18 +69,18 @@ theorem exists_bound_of_nullT (hμ : F.μ ≠ 0) (hW : F.WT k ≠ 0) {v : ℤ �
 not invertible, `χ_T↑⁻¹ = 0`, so `Γ_T↑ = -β²δₙₘ/b_T↑(νₙ)` there. -/
 theorem gammaOpT_eq_chiInvT (hμ : F.μ ≠ 0) (hW : F.WT k ≠ 0) (n m : ℤ) :
     F.gammaOpT k hμ hW n m = F.β ^ 2 * (F.chiInvT k hμ hW n m - kron n m / F.bTUp k n) :=
-  (F.lat F.μ).gammaOpX_eq_chiInvX k _ _ hμ _ _ n m
+  (F.opLatT k hμ).gammaOpX_eq_chiInvX _ _ _ _ n m
 
 /-- **`χ_T↑⁻¹` is a right inverse** where `1 + 𝒦` is invertible. -/
 theorem chiInvT_isRightInverse (hμ : F.μ ≠ 0) (hW : F.WT k ≠ 0)
     (hK : IsUnit (F.onePlusKT k hμ hW)) : IsRightInverse (F.chiTUp k) (F.chiInvT k hμ hW) :=
-  (F.lat F.μ).chiInvX_isRightInverse k _ hμ _ hK
+  (F.opLatT k hμ).chiInvX_isRightInverse _ _ hK
 
 /-- **`χ_T↑⁻¹` is a left inverse** where `1 + 𝒦` is invertible, as `χ_T↑` is symmetric
 (`chiTUp_symm`). -/
 theorem chiInvT_isLeftInverse (hμ : F.μ ≠ 0) (hW : F.WT k ≠ 0)
     (hK : IsUnit (F.onePlusKT k hμ hW)) : IsLeftInverse (F.chiTUp k) (F.chiInvT k hμ hW) :=
-  (F.lat F.μ).chiInvX_isLeftInverse k _ hμ _ (F.chiTUp_symm k hμ hW) hK
+  (F.opLatT k hμ).chiInvX_isLeftInverse _ _ (F.chiTUp_symm k hμ hW) hK
 
 /-- **`χ_T↑⁻¹` is the only right inverse in the class**: where `1 + 𝒦` is invertible, a `v` with
 `∑ₙ |vₙ/zₙ|² < ∞` and `∑ₗ χ_T↑,nl vₗ = δₙₘ` is column `m` of `χ_T↑⁻¹`. -/
@@ -89,7 +89,7 @@ theorem eq_chiInvT_of_hasSum (hμ : F.μ ≠ 0) (hW : F.WT k ≠ 0)
     (hv : Summable fun n ↦ ‖v n / F.zT k n‖ ^ 2)
     (hχ : ∀ n, HasSum (fun l ↦ F.chiTUp k n l * v l) (kron n m)) (n : ℤ) :
     v n = F.chiInvT k hμ hW n m :=
-  (F.lat F.μ).eq_chiInvX_of_hasSum k _ hμ _ hK hv hχ n
+  (F.opLatT k hμ).eq_chiInvX_of_hasSum _ _ hK hv hχ n
 
 /-! ### The closed form on the domain of Eq. (field-T) -/
 
@@ -124,13 +124,13 @@ variable {F k}
 right inverse `invTUp` with bounded columns. -/
 theorem TGeneric.isUnit_onePlusKT {u₁ u₂ : ℂ} (h : F.TGeneric k u₁ u₂) :
     IsUnit (F.onePlusKT k h.μ_ne h.W_ne) :=
-  (F.lat F.μ).isUnit_onePlusKX_of_isRightInverse k _ h.μ_ne _ (F.chiTUp_symm k h.μ_ne h.W_ne)
+  (F.opLatT k h.μ_ne).isUnit_onePlusKX_of_isRightInverse _ _ (F.chiTUp_symm k h.μ_ne h.W_ne)
     h.chiTUp_isRightInverse (F.bdd_invTUp u₁ u₂)
 
 /-- **`χ_T↑⁻¹` is `invTUp`** on the domain of Eq. (field-T). -/
 theorem TGeneric.invTUp_eq_chiInvT {u₁ u₂ : ℂ} (h : F.TGeneric k u₁ u₂) (n m : ℤ) :
     F.invTUp k u₁ u₂ n m = F.chiInvT k h.μ_ne h.W_ne n m :=
-  (F.lat F.μ).eq_chiInvX_of_isRightInverse k _ h.μ_ne _ (F.chiTUp_symm k h.μ_ne h.W_ne)
+  (F.opLatT k h.μ_ne).eq_chiInvX_of_isRightInverse _ _ (F.chiTUp_symm k h.μ_ne h.W_ne)
     h.chiTUp_isRightInverse (F.bdd_invTUp u₁ u₂) n m
 
 /-- **The operator vertex is the closed form**: on the domain of Eq. (field-T),
@@ -138,7 +138,7 @@ theorem TGeneric.invTUp_eq_chiInvT {u₁ u₂ : ℂ} (h : F.TGeneric k u₁ u₂
 theorem TGeneric.gammaOpT_eq {u₁ u₂ : ℂ} (h : F.TGeneric k u₁ u₂) (n m : ℤ) :
     F.gammaOpT k h.μ_ne h.W_ne n m = F.gammaTUp k u₁ u₂ n m := by
   rw [← h.gammaTUp_eq n m]
-  exact (F.lat F.μ).gammaOpX_eq_of_isRightInverse k _ _ h.μ_ne _ _
+  exact (F.opLatT k h.μ_ne).gammaOpX_eq_of_isRightInverse _ _ _ _
     (F.chiTUp_symm k h.μ_ne h.W_ne) h.chiTUp_isRightInverse (F.bdd_invTUp u₁ u₂) n m
 
 /-! ### Finite boxes -/
@@ -146,29 +146,29 @@ theorem TGeneric.gammaOpT_eq {u₁ u₂ : ℂ} (h : F.TGeneric k u₁ u₂) (n m
 variable (F k)
 
 /-- The box vertex `β²[(χ_T↑|_s)⁻¹ - b_T↑⁻¹]ₙₘ` for `n, m ∈ s`, zero outside the box. -/
-noncomputable def gammaBoxT (s : Finset ℤ) (n m : ℤ) : ℂ :=
-  (F.lat F.μ).gammaBoxX (F.chiTUp k) (F.bTUp k) s n m
+noncomputable def gammaBoxT (hμ : F.μ ≠ 0) (s : Finset ℤ) (n m : ℤ) : ℂ :=
+  (F.opLatT k hμ).gammaBoxX (F.chiTUp k) (F.bTUp k) s n m
 
 /-- **Finite boxes**: wherever `1 + 𝒦` is invertible, the box matrices `χ_T↑|_M` on
 `|2n + 1 + k| ≤ 2M + 1` are invertible for all sufficiently large `M`. -/
 theorem eventually_isUnit_chiBoxT_det (hμ : F.μ ≠ 0) (hW : F.WT k ≠ 0)
     (hu : IsUnit (F.onePlusKT k hμ hW)) :
-    ∀ᶠ M in atTop, IsUnit (Params.chiBoxX (F.chiTUp k) (Params.box k M)).det :=
-  (F.lat F.μ).eventually_isUnit_chiBoxX_det k _ hμ _ hu
+    ∀ᶠ M in atTop, IsUnit (OpLattice.chiBoxX (F.chiTUp k) (Params.box k M)).det :=
+  (F.opLatT k hμ).eventually_isUnit_chiBoxX_det _ _ (Params.tendsto_box k) hu
 
 /-- **The box vertices converge to `Γ_T↑`** wherever `1 + 𝒦` is invertible. -/
 theorem tendsto_gammaBoxT (hμ : F.μ ≠ 0) (hW : F.WT k ≠ 0) (hu : IsUnit (F.onePlusKT k hμ hW))
     (n m : ℤ) :
-    Tendsto (fun M ↦ F.gammaBoxT k (Params.box k M) n m) atTop
+    Tendsto (fun M ↦ F.gammaBoxT k hμ (Params.box k M) n m) atTop
       (𝓝 (F.gammaOpT k hμ hW n m)) :=
-  (F.lat F.μ).tendsto_gammaBoxX k _ _ hμ _ _ hu n m
+  (F.opLatT k hμ).tendsto_gammaBoxX _ _ _ _ (Params.tendsto_box k) hu n m
 
 variable {F k}
 
 /-- **Boxes on the domain of Eq. (field-T)**: the box vertices converge to the closed form
 `gammaTUp`. -/
 theorem TGeneric.tendsto_gammaBoxT {u₁ u₂ : ℂ} (h : F.TGeneric k u₁ u₂) (n m : ℤ) :
-    Tendsto (fun M ↦ F.gammaBoxT k (Params.box k M) n m) atTop
+    Tendsto (fun M ↦ F.gammaBoxT k h.μ_ne (Params.box k M) n m) atTop
       (𝓝 (F.gammaTUp k u₁ u₂ n m)) := by
   rw [← h.gammaOpT_eq]
   exact F.tendsto_gammaBoxT k h.μ_ne h.W_ne h.isUnit_onePlusKT n m
