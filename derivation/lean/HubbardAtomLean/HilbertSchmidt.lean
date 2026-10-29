@@ -83,10 +83,14 @@ noncomputable def hsOp : ℓ²(ℤ, ℂ) →L[ℂ] ℓ²(ℤ, ℂ) :=
 theorem hsOp_apply_eq_inner (v : ℓ²(ℤ, ℂ)) (n : ℤ) : hsOp K hK v n = inner ℂ (hsRow K hK n) v :=
   rfl
 
+/-- `(Kv)ₙ = ∑ₘ Kₙₘvₘ`, absolutely convergent. -/
+theorem hasSum_hsOp (v : ℓ²(ℤ, ℂ)) (n : ℤ) : HasSum (fun m ↦ K n m * v m) (hsOp K hK v n) := by
+  rw [hsOp_apply_eq_inner]
+  simpa [hsRow, RCLike.inner_apply, mul_comm] using lp.hasSum_inner (𝕜 := ℂ) (hsRow K hK n) v
+
 /-- `(Kv)ₙ = ∑ₘ Kₙₘvₘ`. -/
-theorem hsOp_apply (v : ℓ²(ℤ, ℂ)) (n : ℤ) : hsOp K hK v n = ∑' m, K n m * v m := by
-  rw [hsOp_apply_eq_inner, lp.inner_eq_tsum]
-  simp [hsRow, RCLike.inner_apply, mul_comm]
+theorem hsOp_apply (v : ℓ²(ℤ, ℂ)) (n : ℤ) : hsOp K hK v n = ∑' m, K n m * v m :=
+  (hasSum_hsOp K hK v n).tsum_eq.symm
 
 /-- The coordinates in `s`, as a map to `s → ℂ`. -/
 noncomputable def finEval (s : Finset ℤ) : ℓ²(ℤ, ℂ) →L[ℂ] (s → ℂ) :=
