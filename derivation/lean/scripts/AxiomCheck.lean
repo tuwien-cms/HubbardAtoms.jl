@@ -65,7 +65,8 @@ run_cmd Elab.Command.liftCoreM do
       ``HubbardAtom.Params.DMGeneric.tendsto_gammaBox,
       ``HubbardAtom.Params.gammaOp_eq_chiInv,
       ``HubbardAtom.Params.eq_chiInv_of_hasSum,
-      ``HubbardAtom.Params.hasSum_chiInv_mul_chiR,
+      ``HubbardAtom.Params.chiInv_isLeftInverse,
+      ``HubbardAtom.Params.DMGeneric.invR_eq_chiInv,
       ``HubbardAtom.Params.continuousAt_gammaOp] do
     unless audited.contains anchor do
       throwError "{anchor} was not audited; the check is vacuous"
