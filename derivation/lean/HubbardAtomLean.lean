@@ -65,4 +65,6 @@ import HubbardAtomLean.GammaClosedForm
 import HubbardAtomLean.GammaBoxes
 import HubbardAtomLean.GammaContinuity
 import HubbardAtomLean.DivergenceAlgebra
+import HubbardAtomLean.SpectralLink
+import HubbardAtomLean.ConverseTransform
 import HubbardAtomLean.ComplexZeros
