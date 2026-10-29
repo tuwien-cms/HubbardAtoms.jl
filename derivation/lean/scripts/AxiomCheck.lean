@@ -74,7 +74,8 @@ run_cmd Elab.Command.liftCoreM do
       ``HubbardAtom.Params.eigen_transform,
       ``HubbardAtom.Params.im_mul_im_Ke_pos,
       ``HubbardAtom.Params.differentiable_Ehat,
-      ``HubbardAtom.Params.norm_Ehat_le_circ] do
+      ``HubbardAtom.Params.norm_Ehat_le_circ,
+      ``HubbardAtom.Params.eq_sum_gs_of_eigen] do
     unless audited.contains anchor do
       throwError "{anchor} was not audited; the check is vacuous"
   if checked < 100 then
