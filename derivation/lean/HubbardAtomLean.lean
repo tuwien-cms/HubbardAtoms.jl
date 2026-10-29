@@ -35,3 +35,4 @@ import HubbardAtomLean.DividedDifferences
 import HubbardAtomLean.StaticResponse
 import HubbardAtomLean.WardIdentities
 import HubbardAtomLean.SpectralIdentity
+import HubbardAtomLean.ChiBounds
