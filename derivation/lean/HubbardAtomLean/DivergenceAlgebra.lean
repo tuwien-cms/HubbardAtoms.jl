@@ -9,6 +9,8 @@ denominator `K(u) = βH(-u) + λα_k(u)` and of `A(u) = βH(-u) - λα_k(u)`, wi
 `Φ_k = D_k + εa sinh(βu)/u`: Eqs. (div-alpha), (div-Phi) and the selection of the branch
 `K_e = 0` behind Eq. (div-ph) of the note, which treats `k = 0`, here for every `k`.
 
+* `shc`, `Params.Phik_zero`: `sinh(βu)/u` is the entire function equal to `β` at `u = 0`, so
+  `Φ_k(0) = D_k(0) + εaβ` and `s = 0` is a root where that vanishes;
 * `Params.αe_eq`, `αo_eq`: `α_k(±u) = -hR_k ∓ ρβ sinh(βu)/(2D_k)`, `h = β√(p₀p₂)`;
 * `Params.Ke_eq`, `Ae_eq`, `Ko_eq`, `Ao_eq`: `K_e = β(s + q₁) - λhR_k`, `A_e = β(s + q₁) + λhR_k`,
   `K_o = -2aβρuΦ_k/D_k`, `A_o = -2aβρu(2 - Φ_k/D_k)`;
@@ -29,6 +31,25 @@ noncomputable def τk (k : ℤ) : ℂ := if Even k then 1 else -1
 
 theorem τk_sq (k : ℤ) : τk k ^ 2 = 1 := by rw [τk]; split_ifs <;> norm_num
 
+/-- `sinh(βu)/u`, with its limit `β` at `u = 0`. -/
+noncomputable def shc (β u : ℂ) : ℂ := dslope (fun x ↦ sinh (β * x)) 0 u
+
+theorem mul_shc (β u : ℂ) : u * shc β u = sinh (β * u) := by
+  simpa [shc] using sub_smul_dslope (fun x ↦ sinh (β * x)) 0 u
+
+theorem shc_of_ne {β u : ℂ} (hu : u ≠ 0) : shc β u = sinh (β * u) / u := by
+  rw [eq_div_iff hu, mul_comm, mul_shc]
+
+theorem shc_zero (β : ℂ) : shc β 0 = β := by
+  rw [shc, dslope_same]
+  simpa using (((hasDerivAt_id (0 : ℂ)).const_mul β).csinh).deriv
+
+/-- `shc β` is entire. -/
+theorem differentiable_shc (β : ℂ) : Differentiable ℂ (shc β) := by
+  change Differentiable ℂ (dslope (fun x ↦ sinh (β * x)) 0)
+  rw [← differentiableOn_univ, Complex.differentiableOn_dslope Filter.univ_mem]
+  exact ((differentiable_id.const_mul β).csinh).differentiableOn
+
 namespace Params
 
 variable (A : Params) (k : ℤ) (ε : ℂ)
@@ -39,8 +60,22 @@ noncomputable def Dk (u : ℂ) : ℂ := cosh (A.β * u) + τk k * cosh (A.β * A
 /-- `R_k = (cosh βμ cosh βu + (-1)^k)/D_k`. -/
 noncomputable def Rk (u : ℂ) : ℂ := (cosh (A.β * A.μ) * cosh (A.β * u) + τk k) / A.Dk k u
 
-/-- `Φ_k = D_k + εa sinh(βu)/u`. -/
-noncomputable def Phik (u : ℂ) : ℂ := A.Dk k u + ε * A.a * sinh (A.β * u) / u
+/-- `Φ_k = D_k + εa sinh(βu)/u`, with `sinh(βu)/u = β` at `u = 0` (`shc`). -/
+noncomputable def Phik (u : ℂ) : ℂ := A.Dk k u + ε * A.a * shc A.β u
+
+/-- `uΦ_k(u) = uD_k(u) + εa sinh(βu)`. -/
+theorem mul_Phik (u : ℂ) : u * A.Phik k ε u = u * A.Dk k u + ε * A.a * sinh (A.β * u) := by
+  rw [Phik, ← mul_shc]
+  ring
+
+/-- `Φ_k = D_k + εa sinh(βu)/u` for `u ≠ 0`. -/
+theorem Phik_of_ne {u : ℂ} (hu : u ≠ 0) :
+    A.Phik k ε u = A.Dk k u + ε * A.a * sinh (A.β * u) / u := by
+  rw [Phik, shc_of_ne hu, mul_div_assoc]
+
+/-- `Φ_k(0) = D_k(0) + εaβ`: the value of the formula at `u = 0`, so `s = 0` can be a root. -/
+theorem Phik_zero : A.Phik k ε 0 = A.Dk k 0 + ε * A.a * A.β := by
+  rw [Phik, shc_zero]
 
 /-- `h sinh(βμ) = βρ/2` (Eq. weight-hyp). -/
 theorem hth_mul_sinh : (A.hth : ℂ) * sinh (A.β * A.μ) = A.β * A.ρ / 2 := by
@@ -181,21 +216,16 @@ theorem Ko_eq {u : ℂ} (hD : A.Dk k u ≠ 0) :
     A.Ko k ε u = -2 * A.a * A.β * A.ρ * u * A.Phik k ε u / A.Dk k u := by
   have hα : A.α k u = A.α k (-u) - A.ρ * A.β * sinh (A.β * u) / A.Dk k u := by
     linear_combination 2 * A.αo_eq k hD
-  rw [Ko, Kph, Kph, Hph, Hph, neg_neg, Phik, lam, hα]
-  by_cases hu : u = 0
-  · subst hu
-    simp
+  rw [Ko, Kph, Kph, Hph, Hph, neg_neg, Phik, lam, hα, ← mul_shc (A.β : ℂ) u]
   field_simp
   ring
+
 /-- `A_o = -2aβρu(2 - Φ_k/D_k)`. -/
 theorem Ao_eq {u : ℂ} (hD : A.Dk k u ≠ 0) :
     A.Ao k ε u = -2 * A.a * A.β * A.ρ * u * (2 - A.Phik k ε u / A.Dk k u) := by
   have hα : A.α k u = A.α k (-u) - A.ρ * A.β * sinh (A.β * u) / A.Dk k u := by
     linear_combination 2 * A.αo_eq k hD
-  rw [Ao, Aph, Aph, Hph, Hph, neg_neg, Phik, lam, hα]
-  by_cases hu : u = 0
-  · subst hu
-    simp
+  rw [Ao, Aph, Aph, Hph, Hph, neg_neg, Phik, lam, hα, ← mul_shc (A.β : ℂ) u]
   field_simp
   ring
 
@@ -213,15 +243,14 @@ theorem Rk_sq_of_Phi (hε : ε = 1 ∨ ε = -1) {u : ℂ} (hD : A.Dk k u ≠ 0)
     A.Rk k u ^ 2 = 1 + u ^ 2 * sinh (A.β * A.μ) ^ 2 / A.a ^ 2 := by
   have ha : (A.a : ℂ) ≠ 0 := fun h0 ↦ hD (by rw [Phik, h0] at hΦ; simpa using hΦ)
   have hR := A.Rk_sq_sub k hD
-  have hDs : A.Dk k u = -(ε * A.a * sinh (A.β * u) / u) := by
+  have hDs : A.Dk k u = -(ε * A.a * shc A.β u) := by
     rw [Phik] at hΦ
     linear_combination hΦ
   have hε2 : ε ^ 2 = 1 := by rcases hε with rfl | rfl <;> norm_num
-  have hsh : sinh (A.β * u) ≠ 0 := fun h0 ↦ hD (by rw [hDs, h0]; simp)
-  rw [hDs] at hR
-  field_simp at hR
-  rw [hε2, div_one] at hR
-  field_simp
+  have hq : sinh (A.β * u) ^ 2 / A.Dk k u ^ 2 = u ^ 2 / A.a ^ 2 := by
+    rw [div_eq_div_iff (pow_ne_zero 2 hD) (pow_ne_zero 2 ha), hDs, ← mul_shc (A.β : ℂ) u]
+    linear_combination (-(u ^ 2 * A.a ^ 2 * shc A.β u ^ 2)) * hε2
+  rw [mul_div_assoc, hq] at hR
   linear_combination hR
 
 /-- Where `Φ_k(u) = 0`, `K_o = 0` and `K_eA_e = β²e(u)`. -/
