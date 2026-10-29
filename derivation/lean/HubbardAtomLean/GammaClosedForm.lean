@@ -13,6 +13,13 @@ closed form `gammaR` of Eq. (Gamma-ph):
 * `DMGeneric.isUnit_onePlusK`: `1 + 𝒦` is invertible, as `xₘ = ∑ₙ xₙ((1 + 𝒦)cₘ)ₙ =
   ∑ₙ cₘ,ₙ((1 + 𝒦)x)ₙ` for the symmetric `𝒦` (`tsum_mul_one_add_hsOp_comm`);
 * `DMGeneric.gammaOp_eq`: `gammaOp = gammaR`.
+
+For every `μ ≠ 0`, with `χ_r⁻¹ = 𝒟^(-1/2)(1 + 𝒦)⁻¹𝒟^(-1/2)` (`chiInv`):
+
+* `Params.gammaOp_eq_chiInv`: `Γ_r = β²(χ_r⁻¹ - B⁻¹)`;
+* where `1 + 𝒦` is invertible, `χ_r⁻¹` is a right inverse of `χ_r` (`hasSum_chiR_mul_chiInv`),
+  the only one with columns in the class `∑ₙ |vₙ/zₙ|² < ∞` (`eq_chiInv_of_hasSum`), symmetric
+  (`chiInv_symm`), hence also a left inverse (`hasSum_chiInv_mul_chiR`).
 -/
 
 open Complex Filter Topology
@@ -126,6 +133,13 @@ theorem inverse_apply_of_eq {T : ℓ²(ℤ, ℂ) →L[ℂ] ℓ²(ℤ, ℂ)} (hT 
   rw [Ring.inverse_mul_cancel _ hT]
   rfl
 
+/-- A unit applied to its inverse. -/
+theorem apply_inverse_of_isUnit {T : ℓ²(ℤ, ℂ) →L[ℂ] ℓ²(ℤ, ℂ)} (hT : IsUnit T) (e : ℓ²(ℤ, ℂ)) :
+    T (Ring.inverse T e) = e := by
+  change (T * Ring.inverse T) e = e
+  rw [Ring.mul_inverse_cancel _ hT]
+  rfl
+
 /-- **The operator vertex is the closed form**: on the domain of Theorem "density and magnetic"
 (generic case), `Γ_r = β²𝒟^(-1/2)[(1 + 𝒦)⁻¹ - (1 + 𝒦₀)⁻¹]𝒟^(-1/2)` is `gammaR` of
 Eq. (Gamma-ph). -/
@@ -148,6 +162,105 @@ theorem DMGeneric.gammaOp_eq (h : A.DMGeneric k ε u₁ u₂) (n m : ℤ) :
   · rw [kron_of_ne hnm]
     field_simp
     ring
+
+variable (A k ε) in
+/-- `cₘ = (1 + 𝒦)⁻¹eₘ/dₘ ∈ ℓ²`, so `𝒟^(-1/2)cₘ` is column `m` of `χ_r⁻¹` (`chiInv_eq`). -/
+noncomputable def invColK (hμ : A.μ ≠ 0) (m : ℤ) : ℓ²(ℤ, ℂ) :=
+  (A.Dhalf k m)⁻¹ • Ring.inverse (A.onePlusK k ε hμ) (lp.single 2 m 1)
+
+variable (A k ε) in
+/-- `χ_r⁻¹ = 𝒟^(-1/2)(1 + 𝒦)⁻¹𝒟^(-1/2)`, entrywise, with `Ring.inverse` as in `gammaOp`. -/
+noncomputable def chiInv (hμ : A.μ ≠ 0) (n m : ℤ) : ℂ :=
+  Ring.inverse (A.onePlusK k ε hμ) (lp.single 2 m 1) n / (A.Dhalf k n * A.Dhalf k m)
+
+/-- `χ_r⁻¹,nm = cₘ,ₙ/dₙ`. -/
+theorem chiInv_eq (hμ : A.μ ≠ 0) (n m : ℤ) :
+    A.chiInv k ε hμ n m = A.invColK k ε hμ m n / A.Dhalf k n := by
+  rw [chiInv, invColK, lp.coeFn_smul, Pi.smul_apply, smul_eq_mul]
+  field_simp
+
+/-- **`Γ_r = β²(χ_r⁻¹ - B⁻¹)`**, entrywise, for every `μ ≠ 0`. Where `1 + 𝒦` is not invertible,
+`χ_r⁻¹ = 0` (`Ring.inverse`), so `Γ_r = -β²δₙₘ/Bₙ` there. -/
+theorem gammaOp_eq_chiInv (hμ : A.μ ≠ 0) (n m : ℤ) :
+    A.gammaOp k ε hμ n m = A.β ^ 2 * (A.chiInv k ε hμ n m - kron n m / A.Bph k n) := by
+  rw [gammaOp, chiInv, _root_.sub_apply,
+    inverse_apply_of_eq (show IsUnit (A.onePlusK0 k hμ) from A.isUnit_one_add_K0 k hμ)
+      (onePlusK0_single hμ m), lp.coeFn_sub, Pi.sub_apply, lp.coeFn_smul, Pi.smul_apply,
+    smul_eq_mul, single_apply_eq_kron, A.Bph_eq_Dhalf k hμ]
+  have hdn := A.Dhalf_ne_zero k hμ n
+  have hdm := A.Dhalf_ne_zero k hμ m
+  have htn := A.tB_ne_zero k hμ n
+  by_cases hnm : n = m
+  · subst hnm
+    rw [kron_self]
+    field_simp
+  · rw [kron_of_ne hnm]
+    field_simp
+    ring
+
+/-- The columns of `χ_r⁻¹` are in the class `∑ₙ |vₙ/zₙ|² < ∞`. -/
+theorem summable_chiInv (hμ : A.μ ≠ 0) (m : ℤ) :
+    Summable fun n ↦ ‖A.chiInv k ε hμ n m / A.z k n‖ ^ 2 := by
+  simpa only [chiInv_eq hμ] using A.summable_div_Dhalf k hμ (A.invColK k ε hμ m)
+
+/-- **`χ_r⁻¹` is a right inverse** where `1 + 𝒦` is invertible: `∑ₗ χ_r,nl χ_r⁻¹,lm = δₙₘ`. -/
+theorem hasSum_chiR_mul_chiInv (hμ : A.μ ≠ 0) (hK : IsUnit (A.onePlusK k ε hμ)) (n m : ℤ) :
+    HasSum (fun l ↦ A.chiR k ε n l * A.chiInv k ε hμ l m) (kron n m) := by
+  have h := A.hasSum_chiR_mul k ε hμ (A.summable_div_Dhalf k hμ (A.invColK k ε hμ m)) n
+  have hT : A.onePlusK k ε hμ (A.invColK k ε hμ m) = (A.Dhalf k m)⁻¹ • lp.single 2 m 1 := by
+    rw [invColK, map_smul, apply_inverse_of_isUnit hK]
+  rw [A.DhalfVec_div k hμ, hT, lp.coeFn_smul, Pi.smul_apply, smul_eq_mul,
+    single_apply_eq_kron] at h
+  convert h using 1
+  · funext l
+    rw [chiInv_eq hμ]
+  by_cases hnm : n = m
+  · subst hnm
+    field_simp [A.Dhalf_ne_zero k hμ n]
+  · simp [kron_of_ne hnm]
+
+/-- **`χ_r⁻¹` is the only right inverse in the class**: where `1 + 𝒦` is invertible, a `v` with
+`∑ₙ |vₙ/zₙ|² < ∞` and `∑ₗ χ_r,nl vₗ = δₙₘ` is column `m` of `χ_r⁻¹`. -/
+theorem eq_chiInv_of_hasSum (hμ : A.μ ≠ 0) (hK : IsUnit (A.onePlusK k ε hμ)) {m : ℤ}
+    {v : ℤ → ℂ} (hv : Summable fun n ↦ ‖v n / A.z k n‖ ^ 2)
+    (hχ : ∀ n, HasSum (fun l ↦ A.chiR k ε n l * v l) (kron n m)) (n : ℤ) :
+    v n = A.chiInv k ε hμ n m := by
+  have hT : A.onePlusK k ε hμ (A.DhalfVec k hv) = (A.Dhalf k m)⁻¹ • lp.single 2 m 1 := by
+    ext l
+    have h := (A.hasSum_chiR_mul k ε hμ hv l).unique (hχ l)
+    have hd := A.Dhalf_ne_zero k hμ l
+    rw [lp.coeFn_smul, Pi.smul_apply, smul_eq_mul, single_apply_eq_kron]
+    by_cases hlm : l = m
+    · subst hlm
+      rw [kron_self] at h ⊢
+      field_simp
+      linear_combination h
+    · rw [kron_of_ne hlm] at h ⊢
+      simpa [hd] using h
+  have hc := inverse_apply_of_eq hK hT
+  rw [map_smul] at hc
+  rw [chiInv_eq hμ, invColK, hc]
+  simp [DhalfVec, A.Dhalf_ne_zero k hμ n]
+
+/-- **`χ_r⁻¹` is symmetric** where `1 + 𝒦` is invertible, as `𝒦` is: with `R = (1 + 𝒦)⁻¹`,
+`(Reₘ)ₙ = ∑ₗ (Reₘ)ₗ((1 + 𝒦)Reₙ)ₗ = ∑ₗ (Reₙ)ₗ((1 + 𝒦)Reₘ)ₗ = (Reₙ)ₘ`. -/
+theorem chiInv_symm (hμ : A.μ ≠ 0) (hK : IsUnit (A.onePlusK k ε hμ)) (n m : ℤ) :
+    A.chiInv k ε hμ n m = A.chiInv k ε hμ m n := by
+  have hpair := tsum_mul_one_add_hsOp_comm (A.Kr k ε) (A.summable_Kr_sq k ε hμ) (Kr_symm hμ)
+    (Ring.inverse (A.onePlusK k ε hμ) (lp.single 2 m 1))
+    (Ring.inverse (A.onePlusK k ε hμ) (lp.single 2 n 1))
+  rw [show (1 + hsOp (A.Kr k ε) (A.summable_Kr_sq k ε hμ)) = A.onePlusK k ε hμ from rfl,
+    apply_inverse_of_isUnit hK, apply_inverse_of_isUnit hK] at hpair
+  simp only [single_apply_eq_kron, kron, mul_ite, mul_one, mul_zero, tsum_ite_eq] at hpair
+  rw [chiInv, chiInv, hpair, mul_comm (A.Dhalf k n)]
+
+/-- **`χ_r⁻¹` is a left inverse** where `1 + 𝒦` is invertible: `∑ₗ χ_r⁻¹,nl χ_r,lm = δₙₘ`. -/
+theorem hasSum_chiInv_mul_chiR (hμ : A.μ ≠ 0) (hK : IsUnit (A.onePlusK k ε hμ)) (n m : ℤ) :
+    HasSum (fun l ↦ A.chiInv k ε hμ n l * A.chiR k ε l m) (kron n m) := by
+  convert A.hasSum_chiR_mul_chiInv hμ hK m n using 1
+  · funext l
+    rw [chiInv_symm hμ hK n l, A.chiR_symm k ε hμ l m, mul_comm]
+  · exact kron_comm n m
 
 end Params
 
