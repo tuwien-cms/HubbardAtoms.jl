@@ -71,7 +71,7 @@ theorem fR_eq_G (hk : k ≠ 0) (n : ℤ) :
 theorem fR_neg (hμ : A.μ = 0) (z : ℂ) : A.fR k ε (-z) = A.fR k ε z := by
   rw [fR, fR, Qp, Qm, Qp, Qm, qp, qm, p₂_eq_p₀_of_mu hμ, neg_sq,
     show (-z + A.a) ^ 2 = (z - A.a) ^ 2 by ring, show (-z - A.a) ^ 2 = (z + A.a) ^ 2 by ring]
-  ring
+  ring_nf
 
 set_option maxRecDepth 10000 in
 -- `field_simp` on the polynomials of Eq. (N)
