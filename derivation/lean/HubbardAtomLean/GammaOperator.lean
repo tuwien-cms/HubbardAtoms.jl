@@ -65,6 +65,22 @@ noncomputable def DhalfVec {v : ℤ → ℂ} (hv : Summable fun n ↦ ‖v n / A
       norm_mul, norm_mul, norm_I, norm_real, Real.norm_of_nonneg (Real.sqrt_nonneg _), one_mul,
       mul_pow, Real.sq_sqrt A.β_pos.le])⟩
 
+/-- For `w ∈ ℓ²`, `vₙ = wₙ/dₙ` has `∑ₙ |vₙ/zₙ|² < ∞`. -/
+theorem summable_div_Dhalf (hμ : A.μ ≠ 0) (w : ℓ²(ℤ, ℂ)) :
+    Summable fun n ↦ ‖w n / A.Dhalf k n / A.z k n‖ ^ 2 := by
+  refine ((memℓp_two_iff.mp (lp.memℓp w)).mul_left A.β⁻¹).congr fun n ↦ ?_
+  have hz := A.z_ne_zero k hμ n
+  rw [Dhalf, norm_div, norm_div, norm_div, norm_mul, norm_I, norm_real,
+    Real.norm_of_nonneg (Real.sqrt_nonneg _)]
+  field_simp
+  rw [Real.sq_sqrt A.β_pos.le]
+
+/-- `𝒟^(1/2)(w/d) = w`. -/
+theorem DhalfVec_div (hμ : A.μ ≠ 0) (w : ℓ²(ℤ, ℂ)) :
+    A.DhalfVec k (A.summable_div_Dhalf k hμ w) = w := by
+  ext n
+  simp [DhalfVec, mul_div_cancel₀ _ (A.Dhalf_ne_zero k hμ n)]
+
 /-- `χ_r v = 𝒟^(1/2)(1 + 𝒦)𝒟^(1/2)v`, row by row, for `∑ₙ |vₙ/zₙ|² < ∞`. -/
 theorem hasSum_chiR_mul (hμ : A.μ ≠ 0) {v : ℤ → ℂ} (hv : Summable fun n ↦ ‖v n / A.z k n‖ ^ 2)
     (n : ℤ) : HasSum (fun m ↦ A.chiR k ε n m * v m)
@@ -108,18 +124,9 @@ theorem injective_onePlusK_iff (hμ : A.μ ≠ 0) :
   · intro h
     rw [injective_iff_map_eq_zero]
     intro w hw
-    have hv : Summable fun n ↦ ‖w n / A.Dhalf k n / A.z k n‖ ^ 2 := by
-      refine ((memℓp_two_iff.mp (lp.memℓp w)).mul_left A.β⁻¹).congr fun n ↦ ?_
-      have hz := A.z_ne_zero k hμ n
-      rw [Dhalf, norm_div, norm_div, norm_div, norm_mul, norm_I, norm_real,
-        Real.norm_of_nonneg (Real.sqrt_nonneg _)]
-      field_simp
-      rw [Real.sq_sqrt A.β_pos.le]
-    have hw' : A.DhalfVec k hv = w := by
-      ext n
-      simp [DhalfVec, mul_div_cancel₀ _ (hd n)]
-    have h0 := h _ hv fun n ↦ by
-      simpa [hw', hw] using A.hasSum_chiR_mul k ε hμ hv n
+    have h0 := h _ (A.summable_div_Dhalf k hμ w) fun n ↦ by
+      simpa [A.DhalfVec_div k hμ, hw] using
+        A.hasSum_chiR_mul k ε hμ (A.summable_div_Dhalf k hμ w) n
     ext n
     have hn := congrFun h0 n
     simp only [Pi.zero_apply, div_eq_zero_iff, hd n, or_false] at hn
