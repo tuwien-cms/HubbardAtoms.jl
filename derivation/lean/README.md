@@ -72,6 +72,7 @@ longitudinal vertex with a two-sided inverse.
 | `SpectralLink.lean` | density and magnetic: `1 - (εU/β)𝒯(s) = Φ_k(s)/D_k(s)` for `D_k(u) ≠ 0`, including `u = 0`; for `U ≠ 0`, `P(s) ≠ 0`, the eigenvalue `ℓ(s) = -K_e(s)/P(s) + βf_e(u)[1 - (εU/β)𝒯(s)]` with `f_e(u) = (f_r(u) + f_r(-u))/2`; so for `μ ≠ 0` every `g_s` with `Φ_k(s) = 0` (`s = 0` included) and `P(s) ≠ 0` is an eigenvector of `χ_r` with eigenvalue `-K_e(s)/P(s)` | not in the note |
 | `ConverseTransform.lean` | density and magnetic, `U ≠ 0`, `μ ≠ 0`: for a bounded `v` with `χ_r v = ℓv`, the Cauchy transforms `v̂(s) = ∑ₙ vₙg_s(n)`, `ψ̂(s) = ∑ₙ f_r(zₙ)vₙg_s(n)` satisfy `[ℓ - ℓ(s)]v̂(s) = -β(Φ_k/D_k)(s)ψ̂(s)` off the lattice; so `v̂(s) = 0` at the roots of `Φ_k` with `ℓ(s) ≠ ℓ` | not in the note |
 | `ConverseAnalytic.lean` | density and magnetic, `μ ≠ 0`, bounded `v`: `E(u) = ∑ₘ vₘD_k(u)/(zₘ² - u²)` is entire (`D_k(±zₙ) = 0`), equals `v̂(u²)D_k(u)` off the lattice and gives back `vₙ = -2zₙE(zₙ)/(β sinh βzₙ)` on it; for `χ_r v = ℓv` (and `U ≠ 0`), `E` vanishes at the roots of `Φ_k` with `ℓ(s) ≠ ℓ` | not in the note |
+| `ConverseCircles.lean` | density and magnetic, `μ ≠ 0`: on the circles `\|u\|² = μ² + ((2j + k)π/β)²` between the lattice values, `\|v̂(u²)\| ≤ Mδ_j` for `\|vₘ\| ≤ M` with `δ_j → 0`, so `𝒯 → 0`, and for large `j`, `Φ_k ≠ 0` and `\|E(u)\| ≤ 2Mδ_j\|Φ_k(u)\|` there | not in the note |
 
 `scripts/check.sh` rebuilds the library from a cold cache (failing on any warning), checks every
 declaration, private and auxiliary ones included, with the kernel for `sorry` and for axioms beyond
