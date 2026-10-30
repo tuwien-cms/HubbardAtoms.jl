@@ -69,3 +69,4 @@ import HubbardAtomLean.SpectralLink
 import HubbardAtomLean.ConverseTransform
 import HubbardAtomLean.ComplexZeros
 import HubbardAtomLean.ConverseAnalytic
+import HubbardAtomLean.ConverseCircles
