@@ -48,6 +48,9 @@ longitudinal vertex with a two-sided inverse.
 | `FieldEqualSpin.lean` | the equal-spin pair from the Hamiltonian, `χ_E↑ = (β/2)Q(xₙ, x_n̄)(δₙₘ - δ_{m n̄})`; its inverse and that of the bubble on the mirror-odd subspace, and **the equal-spin vertex** `Γ_E↑` of Eq. (field-E); `Γ_E↓` through the spin flip | Eq. (field-E) |
 | `FieldTHalfFilling.lean` | the transverse input at `μ = 0`, where the Cauchy matrix is the mirror; **the transverse vertex at `μ = 0`**, Eq. (field-T-axis) (`gammaTHF_eq_note`), under `THFHyp`; the pair vertices at `h = 0` | Eq. (field-T-axis) |
 | `FieldTZero.lean` | at `h = 0`, `k = 0`, where `W = 0`: from the Hamiltonian, `χ_T↑ = χ_m` of the zero-field atom (also at `μ = 0`) and `b_T↑ = B_m`, so Theorem "density and magnetic" and Corollary "half filling" give the transverse vertex there; the opposite-spin pair at `μ = 0`, `k = 0` through the Shiba map | Eq. (field-T) at `h = 0`, `k = 0` |
+| `FieldLZero.lean` | longitudinal, at `h = 0`: from the Hamiltonian, `χ_L,σσ = χ↑↑` and `χ_L,σ(-σ) = χ↑↓` of the zero-field atom `(U, β, μ)`, so `χ_L,στ = (χ_d + s_στχ_m)/2` (`s_στ = ±1`), and the bubble is `B`; for `μ ≠ 0`, where `1 + 𝒦_d` and `1 + 𝒦_m` are invertible, `Y_στ = (χ_d⁻¹ + s_στχ_m⁻¹)/2` (with `χ_r⁻¹` of `GammaClosedForm.lean`) is a two-sided inverse of `χ_L` and its only right inverse with columns in `∑_l \|v_l/z_l\|² < ∞`, and `β²(Y - b⁻¹)_στ = (Γ_d + s_στΓ_m)/2` (`gammaL_h0`, which holds unconditionally through `Ring.inverse`); the closed form of Eq. (field-L) needs `h ≠ 0` and is not compared | Eq. (field-h0), longitudinal part, at the level of the inverse |
+| `FieldLehmannKMS.lean` | the four-point function under a shift of the time origin: in closed form, rotating a path (weights `(P, Q₁, Q₂, Q₃) ↦ (Q₃, P, Q₁, Q₂)`, rates `(r₁, r₂, r₃) ↦ (-r₁₂₃, r₁, r₂)`) changes the sign (`simplexW_rotate`), so for fermionic phases each ordered term changes sign when the operator at `τ = 0` moves to the front (`orderedTerm_rotate`), and the two orders of a pair cancel off `ω = 0`; hence the particle–hole reflection of one pair, `χ[c†, c'](ν, ν', ω) = -χ[c, c'](-ν - ω, ν', ω)` and `χ[c, c'†](ν, ν', ω) = -χ[c, c'](ν, -ν' - ω, ω)` | the Shiba map of Section F.6 on the longitudinal sector |
+| `FieldLMu0.lean` | longitudinal: the Shiba map `(U, μ, h) ↦ (-U, h, μ)` reflects the frequencies of `↓` with the signs `ε↑ = 1`, `ε↓ = -1`, `χ_L,στ(n, m) = ε_σε_τχ^shiba_L,στ(R_σn, R_τm)` and `b_σ(n) = b^shiba_σ(R_σn)` for all `μ`, `h`; at `μ = 0`, `h ≠ 0`, where `1 + 𝒦_d` and `1 + 𝒦_m` of the source `D = (-U, β, h)` are invertible, `Y_στ(n, m) = ε_σε_τY^D_στ(R_σn, R_τm)` (with `Y^D` of `FieldLZero.lean`) is a two-sided inverse of `χ_L` and its only right inverse with columns in the class, and `β²(Y - b⁻¹)_στ = (ε_σε_τ/2)[Γ_d^D + ε_σε_τΓ_m^D](R_σn, R_τm)` (`gammaL_mu0`, unconditional through `Ring.inverse`) | Eq. (field-mu0), longitudinal part, at the level of the inverse |
 | `FieldLInput.lean` | the longitudinal input from the Hamiltonian: `P(z)χ↑↓(z, v) = λ[ρ/(z + v) - m/(z - v)] + (N₀↓(v) + z²N₂↓(v))/P(v)` off the axes `μ = 0`, `h = 0`, and `P(z)χ↑↑(z, v) = -βH↑(z)δ_zv + δ_k0 ζ↑(z² - a²)(v² - a²)/P(v)` for all `μ`, `h`; the rows of spin `↓` through the spin flip | Eq. (field-L-data), the input of Eq. (field-L) |
 | `DividedDifferences.lean` | off the diagonal, each susceptibility as a divided difference of one function of one frequency, from the inputs: `(zₙ² - zₘ²)χ_r,nm = εU[f_r(zₙ) - f_r(zₘ)]` (density and magnetic), `(tₙ - tₘ)χ_s,nm = -U[f_s(n) - f_s(m)]` (singlet, `b ≠ 0`), `(zₙ² - zₘ²)χ_T↑,nm = -U[f_T(zₙ) - f_T(zₘ)]` (transverse, `W ≠ 0`), and the longitudinal `χ↑↓` (off the axes `μ = 0`, `h = 0`) and `χ↑↑` on the two spin lattices, with the rows of spin `↓` by the spin flip, all for `n ≠ m`; `f` from `G`: `[G(ν) - G(ν + ω)]/(iω)` for `k ≠ 0` (density and magnetic, longitudinal), `-[G(ν) + G(-ν - ω)]/(2b)` (singlet), `[G↑(ν) - G↓(ν + ω)]/W` (transverse); at `μ = 0` both sides vanish on the mirror, as `f` is even (singlet: on the mirror for all `μ`) | not in the note |
 | `StaticResponse.lean` | at `k = 0` the functions `f` of `DividedDifferences.lean` as static responses of the propagator from the Hamiltonian, as derivatives along a line in `(μ, h)`: `f↑↑ = -∂G↑/∂μ↑`, `f↑↓ = -∂G↑/∂μ↓` (`μ↑ = μ + h`, `μ↓ = μ - h`), and at `h = 0` `f_d = -∂G/∂μ`, `f_m = -∂G↑/∂h` | not in the note |
@@ -132,7 +135,10 @@ Lean checks how they conjugate `c↑`, `c↓` and `H`.
   reformulations are exact identities, not that its loss estimates are right.
 * With field:
   For the coupled longitudinal vertex, Eq. (field-L):
-  the axes `μ = 0`, `h = 0`, `μ = ±h` (on `μ = ±h` the note uses Eq. (field-L-quotient))
+  the axes `μ = 0`, `h = 0`, `μ = ±h` (on `μ = ±h` the note uses Eq. (field-L-quotient); at `h = 0`,
+  `μ ≠ 0`, and at `μ = 0`, `h ≠ 0`, where `1 + 𝒦_d` and `1 + 𝒦_m` are invertible, the inverse and
+  the vertex are those of Eqs. (field-h0), (field-mu0), `FieldLZero.lean`, `FieldLMu0.lean`,
+  without a comparison with the closed form)
   and the longitudinal exceptional sets.
   Off the axes, `K_t(u_j) ≠ 0` of `LGeneric` is the note's `(K_↑, K_↓) ≠ (0, 0)`:
   at a root, `K_t = 0` forces `K_{-t} = 0` (`KL_opp_eq_zero`; at `u² = -q₀` the whole mode
@@ -166,8 +172,10 @@ Lean checks how they conjugate `c↑`, `c↓` and `H`.
   (`FieldTZero.lean`), under the zero-field assumptions.
   Not covered are the transverse exceptional sets
   (confluent roots, lattice roots),
-  the axis reductions of Eqs. (field-h0), (field-mu0) as identities between closed forms,
-  and the divergences of Section G.5.
+  the axis reductions of Eqs. (field-h0), (field-mu0) as identities between closed forms
+  (the longitudinal parts of Eqs. (field-h0), (field-mu0) hold at the level of the inverse,
+  for `μ ≠ 0` and `h ≠ 0` respectively, `FieldLZero.lean`, `FieldLMu0.lean`), and the divergences
+  of Section G.5.
 
 ## Build
 
