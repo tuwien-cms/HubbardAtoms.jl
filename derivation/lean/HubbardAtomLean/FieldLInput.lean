@@ -10,6 +10,9 @@ on the lattice `z = μ_σ + i(νₙ + ω_k/2)` of its own spin, `μ_σ = μ + σ
 * `FParams.PL_mul_chiL_updn`: off the axes `μ = 0`, `h = 0`,
   `P(z)χ↑↓(z, v) = λ[ρ/(z + v) - m/(z - v)] + (N₀↓(v) + z²N₂↓(v))/P(v)`, `λ = U²`, with the
   pair kernel (gap `2μ`) and the spin-flip kernel (gap `2h`).
+* `FParams.PL_mul_chiL_updn_all`: the same for all `μ`, `h`, with the kernels `kerPL`, `kerSL`,
+  which take the values `βp₀`, `βp↓` of Eq. (field-kernel-limits) where their rates vanish:
+  `μ = 0`, `m = -n - k - 1` (`pairL_eq_zero_iff`) and `h = 0`, `n = m` (`flipL_eq_zero_iff`).
 * `FParams.PL_mul_chiL_upup`: `P(z)χ↑↑(z, v) = -βH↑(z)δ_zv + δ_k0 ζ↑(z² - a²)(v² - a²)/P(v)`, for
   all `μ`, `h`.
 * `FParams.chiL_flip`: the spin flip maps `χ_σt(U, μ, h)` to `χ_{-σ,-t}(U, μ, -h)`.
@@ -70,14 +73,58 @@ theorem PL_dn (j : ℤ) : F.PL k (F.Bdn.z k j) =
   rw [PL, Params.z, show F.Bdn.w k = F.wL k from rfl]
   ring
 
+/-- The pair rate `x↑ₙ + x↓ₘ + w = 2μ + i(νₙ + νₘ + ω_k)` vanishes iff `μ = 0` and
+`m = -n - k - 1`. -/
+theorem pairL_eq_zero_iff (n m : ℤ) :
+    F.Bup.x n + F.Bdn.x m + F.Bup.w k = 0 ↔ F.μ = 0 ∧ n + m + k + 1 = 0 := by
+  rw [show F.Bup.x n + F.Bdn.x m + F.Bup.w k =
+      (F.lat F.μ).x n + (F.lat F.μ).x m + (F.lat F.μ).w k by
+    simp only [Params.x, Params.w, lat_μ, lat_ν, lat_ω]
+    push_cast
+    ring]
+  exact (F.lat F.μ).pair_eq_zero_iff k n m
+
+/-- The spin-flip rate `x↑ₙ - x↓ₘ = 2h + i(νₙ - νₘ)` vanishes iff `h = 0` and `n = m`. -/
+theorem flipL_eq_zero_iff (n m : ℤ) : F.Bup.x n - F.Bdn.x m = 0 ↔ F.h = 0 ∧ n = m := by
+  have e : F.Bup.x n - F.Bdn.x m = ((2 * F.h : ℝ) : ℂ) + ((F.lat 0).x n - (F.lat 0).x m) := by
+    simp only [Params.x, lat_μ, lat_ν]
+    push_cast
+    ring
+  have hre : ((F.lat 0).x n - (F.lat 0).x m).re = 0 := by simp [Params.x]
+  rw [e, ← (F.lat 0).x_sub_x_eq_zero_iff n m]
+  constructor
+  · intro h0
+    have hh : F.h = 0 := by
+      have := congrArg Complex.re h0
+      rw [add_re, ofReal_re, hre, zero_re] at this
+      linarith
+    refine ⟨hh, ?_⟩
+    rwa [hh, mul_zero, ofReal_zero, zero_add] at h0
+  · rintro ⟨hh, h0⟩
+    rw [hh, mul_zero, ofReal_zero, zero_add, h0]
+
+/-- The pair kernel of `(n, m)`: `ρ/(z↑ₙ + z↓ₘ)`, and `βp₀` where the pair rate vanishes (`μ = 0`,
+`m = -n - k - 1`, where `z↑ₙ + z↓ₘ = 0`). The value `βp₀` is the limit of Eq. (field-kernel-limits);
+the limit itself is not proved here. -/
+noncomputable def kerPL (n m : ℤ) : ℂ :=
+  if F.μ = 0 ∧ n + m + k + 1 = 0 then F.β * F.p₀ else F.ρ / (F.Bup.z k n + F.Bdn.z k m)
+
+/-- The spin-flip kernel of `(n, m)` in the row `↑`: `m/(z↑ₙ - z↓ₘ)`, and `βp↓` where the spin-flip
+rate vanishes (`h = 0`, `n = m`, where `z↑ₙ = z↓ₘ`). The value `βp↓` is the limit of
+Eq. (field-kernel-limits); the limit itself is not proved here. -/
+noncomputable def kerSL (n m : ℤ) : ℂ :=
+  if F.h = 0 ∧ n = m then F.β * F.pDn else F.mf / (F.Bup.z k n - F.Bdn.z k m)
+
 set_option maxHeartbeats 8000000 in
--- six paths and the disconnected part: rational expressions of high degree in eight variables
+-- six paths and the disconnected part, in the four cases of the two rates
 set_option maxRecDepth 4000 in
-/-- **The longitudinal input, opposite spins**, from the Hamiltonian, off the axes:
-`P(z)χ↑↓(z, v) = λ[ρ/(z + v) - m/(z - v)] + (N₀↓(v) + z²N₂↓(v))/P(v)`, `z = z↑ₙ`, `v = z↓ₘ`. -/
-theorem PL_mul_chiL_updn (hμ : F.μ ≠ 0) (hh : F.h ≠ 0) (n m : ℤ) :
+/-- **The longitudinal input, opposite spins**, from the Hamiltonian, for all `μ`, `h`:
+`P(z)χ↑↓(z, v) = λ[K_P - K_S] + (N₀↓(v) + z²N₂↓(v))/P(v)`, `z = z↑ₙ`, `v = z↓ₘ`, with the pair
+kernel `K_P = kerPL` and the spin-flip kernel `K_S = kerSL`. Where a rate vanishes, the path of the
+Fock space with that rate gives the factor `β` of `K_P = βp₀` or `K_S = βp↓`. -/
+theorem PL_mul_chiL_updn_all (n m : ℤ) :
     F.PL k (F.Bup.z k n) * F.chiL true false k n m =
-      F.lamL * (F.ρ / (F.Bup.z k n + F.Bdn.z k m) - F.mf / (F.Bup.z k n - F.Bdn.z k m)) +
+      F.lamL * (F.kerPL k n m - F.kerSL k n m) +
         (F.N₀L k F.rDn (F.Bdn.z k m) + F.Bup.z k n ^ 2 * F.N₂L k F.rDn (F.Bdn.z k m)) /
           F.PL k (F.Bdn.z k m) := by
   set BU := F.Bup with hBU
@@ -102,18 +149,9 @@ theorem PL_mul_chiL_updn (hμ : F.μ ≠ 0) (hh : F.h ≠ 0) (n m : ℤ) :
   simp only [orderedTerm_eq, triangleTerm_eq, lineTerm_eq]
   simp [Fin.sum_univ_four, cUp_eq, cDn_eq]
   have hk := BU.w_eq_zero_iff k
-  have hnm : BU.x n - BD.x m = 0 ↔ False := by
-    rw [iff_false]
-    intro h0
-    have := congrArg Complex.re h0
-    simp [hBU, hBD, Params.x] at this
-    exact hh (by linarith)
-  have hp : -(BU.x n + BD.x m + BU.w k) = 0 ↔ False := by
-    rw [iff_false]
-    intro h0
-    have := congrArg Complex.re h0
-    simp [hBU, hBD, Params.x, Params.w] at this
-    exact hμ (by linarith)
+  have hnm : BU.x n - BD.x m = 0 ↔ (F.h = 0 ∧ n = m) := F.flipL_eq_zero_iff n m
+  have hp : -(BU.x n + BD.x m + BU.w k) = 0 ↔ (F.μ = 0 ∧ n + m + k + 1 = 0) :=
+    neg_eq_zero.trans (F.pairL_eq_zero_iff k n m)
   push_cast at h1 h2 h3
   rw [F.pathTerm_eq 3 2 3 1 h1 h2 h3 (r₁ := -(BU.x n - F.a)) (r₂ := BU.x n + BU.w k - F.a)
       (r₃ := -(BD.x m + BU.w k - F.a)) (r₁₂ := BU.w k) (r₂₃ := BU.x n - BD.x m)
@@ -149,7 +187,6 @@ theorem PL_mul_chiL_updn (hμ : F.μ ≠ 0) (hh : F.h ≠ 0) (n m : ℤ) :
       (by simp [rate, energy]; ring) (by simp [rate, energy]; ring) (by ring) hk,
     F.pathTerm₁_eq 2 0 h3 (r := -(BD.x m + BU.w k + F.a)) (by simp [rate, energy]; ring),
     F.pathTerm₁_eq 3 1 h3 (r := -(BD.x m + BU.w k - F.a)) (by simp [rate, energy]; ring)]
-
   have hw := F.weights_sum'
   have X₁ := BU.x_add_ofReal_ne_zero n F.a
   have X₂ := BU.x_sub_ofReal_ne_zero n F.a
@@ -163,42 +200,161 @@ theorem PL_mul_chiL_updn (hμ : F.μ ≠ 0) (hh : F.h ≠ 0) (n m : ℤ) :
     rw [show BU.w k = BD.w k from rfl, BD.x_add_w]; exact BD.x_add_ofReal_ne_zero _ _
   have YW₂ : BD.x m + BU.w k - F.a ≠ 0 := by
     rw [show BU.w k = BD.w k from rfl, BD.x_add_w]; exact BD.x_sub_ofReal_ne_zero _ _
-  have hXY : BU.x n - BD.x m ≠ 0 := fun h0 ↦ hnm.mp h0
-  have hS : BU.x n + BD.x m + BU.w k ≠ 0 := fun h0 ↦ hp.mp (by rw [h0, neg_zero])
   have hzU : BU.z k n = BU.x n + BU.w k / 2 := rfl
   have hzD : BD.z k m = BD.x m + BU.w k / 2 := rfl
-  rw [show BU.z k n + BD.z k m = BU.x n + BD.x m + BU.w k by rw [hzU, hzD]; ring,
-    show BU.z k n - BD.z k m = BU.x n - BD.x m by rw [hzU, hzD]; ring]
+  have hzp : BU.z k n + BD.z k m = BU.x n + BD.x m + BU.w k := by rw [hzU, hzD]; ring
+  have hzm : BU.z k n - BD.z k m = BU.x n - BD.x m := by rw [hzU, hzD]; ring
+  rw [kerPL, kerSL, ← hBU, ← hBD, hzp, hzm]
   simp only [N₀L]
   rw [hBU, hBD, F.PL_up, F.PL_dn, ← hBU, ← hBD]
   simp only [simplexW, triangleW, weight, Matrix.cons_val, Matrix.cons_val_zero,
     Matrix.cons_val_one, N₂L, HL, q₀L, lamL, ζL, rDn, ρ, mf, hzU, hzD,
     show F.wL k = BU.w k from rfl]
   push_cast
-  by_cases hk0 : k = 0
-  · subst hk0
-    have hw0 : BU.w 0 = 0 := hk.mpr rfl
-    simp only [ite_true, kron_self, hw0, add_zero, sub_zero, zero_div, ne_eq,
-      OfNat.ofNat_ne_zero, not_false_eq_true, zero_pow] at XW₁ XW₂ YW₁ YW₂ hS ⊢
-    generalize BU.x n = X at *
-    generalize BD.x m = Y at *
-    generalize (F.a : ℂ) = a at *
-    generalize (F.β : ℂ) = β at *
-    generalize (F.p₂ : ℂ) = p₂ at *
-    obtain rfl : p₂ = 1 - F.p₀ - F.pUp - F.pDn := by linear_combination hw
-    field_simp
-    ring
-  · have hW : BU.w k ≠ 0 := mt hk.mp hk0
-    simp only [hk0, ite_false, kron_of_ne hk0, zero_mul, sub_zero, add_zero]
+  by_cases hCp : F.μ = 0 ∧ n + m + k + 1 = 0 <;> by_cases hCs : F.h = 0 ∧ n = m
+  · -- both rates vanish: `z↑ₙ = z↓ₘ = 0`, so `μ = h = 0` and `k` is odd
+    have hp0 : BU.x n + BD.x m + BU.w k = 0 := (F.pairL_eq_zero_iff k n m).mpr hCp
+    have hs0 : BU.x n - BD.x m = 0 := (F.flipL_eq_zero_iff n m).mpr hCs
+    have hp₂ : (F.p₂ : ℂ) = F.p₀ := by
+      rw [F.p₂_eq_p₀_mul, hCp.1, mul_zero, Real.exp_zero, mul_one]
+    have hud : (F.pUp : ℂ) = F.pDn := by
+      rw [F.pUp_eq_p₀_mul, F.pDn_eq_p₀_mul, hCs.1, add_zero, sub_zero]
+    have hk0 : k ≠ 0 := by
+      rintro rfl
+      have e₁ := hCp.2
+      have e₂ := hCs.2
+      omega
+    have hW : BU.w k ≠ 0 := mt hk.mp hk0
+    simp only [iff_true_intro hCp, iff_true_intro hCs, ite_true, hk0, ite_false,
+      kron_of_ne hk0, zero_mul, sub_zero, add_zero]
     generalize BU.x n = X at *
     generalize BD.x m = Y at *
     generalize BU.w k = W at *
     generalize (F.a : ℂ) = a at *
     generalize (F.β : ℂ) = β at *
     generalize (F.p₂ : ℂ) = p₂ at *
-    obtain rfl : p₂ = 1 - F.p₀ - F.pUp - F.pDn := by linear_combination hw
+    generalize (F.pUp : ℂ) = pu at *
+    subst hp₂ hud
+    generalize (F.p₀ : ℂ) = p₀ at *
+    obtain rfl : p₀ = (1 - 2 * F.pDn) / 2 := by linear_combination hw / 2
+    -- clear the denominators while they are in the form of the hypotheses, then substitute
     field_simp
+    obtain rfl : W = -X - Y := by linear_combination hp0
+    obtain rfl : Y = X := by linear_combination -hs0
     ring
+  · -- the pair rate vanishes: `μ = 0`, `m = -n - k - 1`
+    have hp0 : BU.x n + BD.x m + BU.w k = 0 := (F.pairL_eq_zero_iff k n m).mpr hCp
+    have hs0 : BU.x n - BD.x m ≠ 0 := mt (F.flipL_eq_zero_iff n m).mp hCs
+    have hp₂ : (F.p₂ : ℂ) = F.p₀ := by
+      rw [F.p₂_eq_p₀_mul, hCp.1, mul_zero, Real.exp_zero, mul_one]
+    simp only [iff_true_intro hCp, iff_false_intro hCs, ite_true, ite_false]
+    by_cases hk0 : k = 0
+    · subst hk0
+      have hw0 : BU.w 0 = 0 := hk.mpr rfl
+      simp only [ite_true, kron_self, hw0, add_zero, sub_zero, zero_div, ne_eq,
+        OfNat.ofNat_ne_zero, not_false_eq_true, zero_pow] at XW₁ XW₂ YW₁ YW₂ hp0 ⊢
+      generalize BU.x n = X at *
+      generalize BD.x m = Y at *
+      generalize (F.a : ℂ) = a at *
+      generalize (F.β : ℂ) = β at *
+      generalize (F.p₂ : ℂ) = p₂ at *
+      obtain rfl : Y = -X := by linear_combination hp0
+      subst hp₂
+      generalize (F.p₀ : ℂ) = p₀ at *
+      obtain rfl : p₀ = (1 - F.pUp - F.pDn) / 2 := by linear_combination hw / 2
+      have hX : X ≠ 0 := fun h ↦ hs0 (by linear_combination 2 * h)
+      field_simp
+      ring
+    · have hW : BU.w k ≠ 0 := mt hk.mp hk0
+      simp only [hk0, ite_false, kron_of_ne hk0, zero_mul, sub_zero, add_zero]
+      generalize BU.x n = X at *
+      generalize BD.x m = Y at *
+      generalize BU.w k = W at *
+      generalize (F.a : ℂ) = a at *
+      generalize (F.β : ℂ) = β at *
+      generalize (F.p₂ : ℂ) = p₂ at *
+      obtain rfl : Y = -X - W := by linear_combination hp0
+      subst hp₂
+      generalize (F.p₀ : ℂ) = p₀ at *
+      obtain rfl : p₀ = (1 - F.pUp - F.pDn) / 2 := by linear_combination hw / 2
+      field_simp
+      ring
+  · -- the spin-flip rate vanishes: `h = 0`, `n = m`
+    have hp0 : BU.x n + BD.x m + BU.w k ≠ 0 := mt (F.pairL_eq_zero_iff k n m).mp hCp
+    have hs0 : BU.x n - BD.x m = 0 := (F.flipL_eq_zero_iff n m).mpr hCs
+    have hud : (F.pUp : ℂ) = F.pDn := by
+      rw [F.pUp_eq_p₀_mul, F.pDn_eq_p₀_mul, hCs.1, add_zero, sub_zero]
+    simp only [iff_false_intro hCp, iff_true_intro hCs, ite_true, ite_false]
+    by_cases hk0 : k = 0
+    · subst hk0
+      have hw0 : BU.w 0 = 0 := hk.mpr rfl
+      simp only [ite_true, kron_self, hw0, add_zero, sub_zero, zero_div, ne_eq,
+        OfNat.ofNat_ne_zero, not_false_eq_true, zero_pow] at XW₁ XW₂ YW₁ YW₂ hp0 ⊢
+      generalize BU.x n = X at *
+      generalize BD.x m = Y at *
+      generalize (F.a : ℂ) = a at *
+      generalize (F.β : ℂ) = β at *
+      generalize (F.p₂ : ℂ) = p₂ at *
+      generalize (F.pUp : ℂ) = pu at *
+      obtain rfl : Y = X := by linear_combination -hs0
+      subst hud
+      obtain rfl : p₂ = 1 - F.p₀ - 2 * F.pDn := by linear_combination hw
+      have hY : Y ≠ 0 := fun h ↦ hp0 (by linear_combination 2 * h)
+      field_simp
+      ring
+    · have hW : BU.w k ≠ 0 := mt hk.mp hk0
+      simp only [hk0, ite_false, kron_of_ne hk0, zero_mul, sub_zero, add_zero]
+      generalize BU.x n = X at *
+      generalize BD.x m = Y at *
+      generalize BU.w k = W at *
+      generalize (F.a : ℂ) = a at *
+      generalize (F.β : ℂ) = β at *
+      generalize (F.p₂ : ℂ) = p₂ at *
+      generalize (F.pUp : ℂ) = pu at *
+      subst hud
+      obtain rfl : p₂ = 1 - F.p₀ - 2 * F.pDn := by linear_combination hw
+      field_simp
+      obtain rfl : Y = X := by linear_combination -hs0
+      ring
+  · -- off the axes
+    have hp0 : BU.x n + BD.x m + BU.w k ≠ 0 := mt (F.pairL_eq_zero_iff k n m).mp hCp
+    have hs0 : BU.x n - BD.x m ≠ 0 := mt (F.flipL_eq_zero_iff n m).mp hCs
+    simp only [iff_false_intro hCp, iff_false_intro hCs, ite_false]
+    by_cases hk0 : k = 0
+    · subst hk0
+      have hw0 : BU.w 0 = 0 := hk.mpr rfl
+      simp only [ite_true, kron_self, hw0, add_zero, sub_zero, zero_div, ne_eq,
+        OfNat.ofNat_ne_zero, not_false_eq_true, zero_pow] at XW₁ XW₂ YW₁ YW₂ hp0 ⊢
+      generalize BU.x n = X at *
+      generalize BD.x m = Y at *
+      generalize (F.a : ℂ) = a at *
+      generalize (F.β : ℂ) = β at *
+      generalize (F.p₂ : ℂ) = p₂ at *
+      obtain rfl : p₂ = 1 - F.p₀ - F.pUp - F.pDn := by linear_combination hw
+      field_simp
+      ring
+    · have hW : BU.w k ≠ 0 := mt hk.mp hk0
+      simp only [hk0, ite_false, kron_of_ne hk0, zero_mul, sub_zero, add_zero]
+      generalize BU.x n = X at *
+      generalize BD.x m = Y at *
+      generalize BU.w k = W at *
+      generalize (F.a : ℂ) = a at *
+      generalize (F.β : ℂ) = β at *
+      generalize (F.p₂ : ℂ) = p₂ at *
+      obtain rfl : p₂ = 1 - F.p₀ - F.pUp - F.pDn := by linear_combination hw
+      field_simp
+      ring
+
+/-- **The longitudinal input, opposite spins**, from the Hamiltonian, off the axes:
+`P(z)χ↑↓(z, v) = λ[ρ/(z + v) - m/(z - v)] + (N₀↓(v) + z²N₂↓(v))/P(v)`, `z = z↑ₙ`, `v = z↓ₘ`. -/
+theorem PL_mul_chiL_updn (hμ : F.μ ≠ 0) (hh : F.h ≠ 0) (n m : ℤ) :
+    F.PL k (F.Bup.z k n) * F.chiL true false k n m =
+      F.lamL * (F.ρ / (F.Bup.z k n + F.Bdn.z k m) - F.mf / (F.Bup.z k n - F.Bdn.z k m)) +
+        (F.N₀L k F.rDn (F.Bdn.z k m) + F.Bup.z k n ^ 2 * F.N₂L k F.rDn (F.Bdn.z k m)) /
+          F.PL k (F.Bdn.z k m) := by
+  have h := F.PL_mul_chiL_updn_all k n m
+  simp only [kerPL, kerSL, hμ, hh, false_and, ite_false] at h
+  exact h
 
 set_option maxHeartbeats 8000000 in
 -- four paths and the disconnected part: rational expressions of high degree in eight variables

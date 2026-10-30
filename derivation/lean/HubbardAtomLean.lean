@@ -35,6 +35,7 @@ import HubbardAtomLean.DividedDifferences
 import HubbardAtomLean.StaticResponse
 import HubbardAtomLean.WardIdentities
 import HubbardAtomLean.FieldLSums
+import HubbardAtomLean.FieldLAxisInput
 import HubbardAtomLean.FieldLAlg
 import HubbardAtomLean.FieldLCertData
 import HubbardAtomLean.FieldLCertW
