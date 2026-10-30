@@ -72,3 +72,5 @@ import HubbardAtomLean.ChiOperator
 import HubbardAtomLean.FieldTBounds
 import HubbardAtomLean.FieldTOperator
 import HubbardAtomLean.OpLatticeAll
+import HubbardAtomLean.SingletBounds
+import HubbardAtomLean.SingletOperator
