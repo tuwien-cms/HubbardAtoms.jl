@@ -4,8 +4,9 @@ import HubbardAtomLean.ConverseCircles
 # The converse of the spectral identity: eigenvectors are combinations of `g_s`
 
 For the density and magnetic channels, `U ≠ 0`, `μ ≠ 0`, and a bounded `v` with `χ_r v = ℓv`
-(`Params.eq_sum_gs_of_eigen`): if the roots of `Φ_k` are simple in `s = u²` and finitely many of
-them, `s = ρ²` for `ρ ∈ S`, have `ℓ(s) = ℓ`, then `vₙ = ∑_{ρ ∈ S} c_ρ g_{ρ²}(n)`.
+(`Params.eq_sum_gs_of_eigen`): if the roots of `Φ_k` are simple in `s = u²` (of order `≤ 2` in
+`u` at `u = 0`) and finitely many of them, `s = ρ²` for `ρ ∈ S`, have `ℓ(s) = ℓ`, then
+`vₙ = ∑_{ρ ∈ S} c_ρ g_{ρ²}(n)`.
 
 The proof divides entire functions instead of integrating over contours. With
 `Q(u) = ∏_{ρ ∈ S} (u² - ρ²)`:
@@ -181,8 +182,9 @@ theorem differentiable_Phik (ε : ℂ) : Differentiable ℂ (A.Phik k ε) := by
   fun_prop
 
 /-- **The converse of the spectral identity**: for `U ≠ 0`, `μ ≠ 0` and a bounded `v` with
-`χ_r v = ℓv`, if the roots of `Φ_k` are simple in `s = u²` and those with `ℓ(s) = ℓ` are
-`s = ρ²` for `ρ` in a finite set `S` (both assumed), then `v = ∑_{ρ ∈ S} c_ρ g_{ρ²}`. -/
+`χ_r v = ℓv`, if the roots of `Φ_k` are simple in `s = u²` (of order `≤ 2` in `u` at `u = 0`)
+and those with `ℓ(s) = ℓ` are `s = ρ²` for `ρ` in a finite set `S` (both assumed), then
+`v = ∑_{ρ ∈ S} c_ρ g_{ρ²}`. -/
 theorem eq_sum_gs_of_eigen {ε : ℂ} (hε : ε = 1 ∨ ε = -1) (ha : (A.a : ℂ) ≠ 0) (hμ : A.μ ≠ 0)
     {v : ℤ → ℂ} {M : ℝ} (hv : ∀ n, ‖v n‖ ≤ M) {ℓ : ℂ}
     (hχ : ∀ n, HasSum (fun m ↦ A.chiR k ε n m * v m) (ℓ * v n))
