@@ -363,6 +363,18 @@ theorem exists_lattice_dist {k : ℤ} {x : ℂ} (hx : ∀ n, A.z k n ≠ x) :
   obtain ⟨n₀, hn₀⟩ := (A.tendsto_norm_z_sub k x).exists_forall_le
   exact ⟨_, norm_pos_iff.mpr (sub_ne_zero.mpr (hx n₀)), hn₀⟩
 
+/-- `∑ₙ 1/(zₙ - x)²` converges absolutely, for every `x`. -/
+theorem summable_inv_z_sub_sq (k : ℤ) (x : ℂ) : Summable fun n ↦ 1 / (A.z k n - x) ^ 2 := by
+  have hc : (2 * Real.pi / A.β * I : ℂ) ≠ 0 :=
+    mul_ne_zero (div_ne_zero (mul_ne_zero two_ne_zero (ofReal_ne_zero.mpr Real.pi_ne_zero))
+      A.β_ne_zero) I_ne_zero
+  refine (summable_inv_mul_linear hc (A.μ + (1 + k) * Real.pi / A.β * I - x)
+    (A.μ + (1 + k) * Real.pi / A.β * I - x)).congr fun n ↦ ?_
+  rw [A.z_eq, one_div, sq]
+  congr 1
+  push_cast
+  ring
+
 /-- Lemma "basic sum" for double poles: `∑ₙ 1/(zₙ - x)² = S_k'(x) = S_k(x)² - β²/4` off the
 lattice, absolutely convergent. The slopes of `S_k` at `x` are the sums of `hasSum_pair`, which
 differ from this sum by at most a constant times `|y - x|`. -/
@@ -371,15 +383,7 @@ theorem hasSum_sq {k : ℤ} {x : ℂ} (hx : ∀ n, A.z k n ≠ x) :
   have hβ := A.β_ne_zero
   have hπ : (Real.pi : ℂ) ≠ 0 := ofReal_ne_zero.mpr Real.pi_ne_zero
   obtain ⟨r, hr, hdist⟩ := A.exists_lattice_dist hx
-  have hsum : Summable fun n ↦ 1 / (A.z k n - x) ^ 2 := by
-    have hc : (2 * Real.pi / A.β * I : ℂ) ≠ 0 :=
-      mul_ne_zero (div_ne_zero (mul_ne_zero two_ne_zero hπ) hβ) I_ne_zero
-    refine (summable_inv_mul_linear hc (A.μ + (1 + k) * Real.pi / A.β * I - x)
-      (A.μ + (1 + k) * Real.pi / A.β * I - x)).congr fun n ↦ ?_
-    rw [A.z_eq, one_div, sq]
-    congr 1
-    push_cast
-    ring
+  have hsum := A.summable_inv_z_sub_sq k x
   have hnorm := hsum.norm
   set T := ∑' n, 1 / (A.z k n - x) ^ 2
   set C := 2 / r * ∑' n, ‖1 / (A.z k n - x) ^ 2‖
