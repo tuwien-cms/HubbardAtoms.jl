@@ -70,3 +70,4 @@ import HubbardAtomLean.ConverseTransform
 import HubbardAtomLean.ComplexZeros
 import HubbardAtomLean.ConverseAnalytic
 import HubbardAtomLean.ConverseCircles
+import HubbardAtomLean.ConverseExpansion

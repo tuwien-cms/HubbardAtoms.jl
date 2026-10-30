@@ -12,7 +12,7 @@ modules="Basic Triplet StableForms Thermal Matsubara SingletInput Singlet PHInpu
   FieldLModeData FieldLModeZs FieldLModeZo FieldLRes FieldLPF FieldLCompl FieldLImage FieldLInverse
   FieldLVertex FieldLSymCert FieldLSym SpectralIdentity ChiBounds HilbertSchmidt ChiCompact
   GammaOperator GammaClosedForm GammaBoxes GammaContinuity DivergenceAlgebra SpectralLink
-  ConverseTransform ComplexZeros ConverseAnalytic ConverseCircles"
+  ConverseTransform ComplexZeros ConverseAnalytic ConverseCircles ConverseExpansion"
 
 # 1. Rebuild the library from a cold cache, so that every module is compiled and linted, and fail
 #    on any warning (a `sorry` is only a warning). With SERIAL=1 the modules are compiled one at a
