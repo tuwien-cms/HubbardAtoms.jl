@@ -75,3 +75,6 @@ import HubbardAtomLean.FieldLBounds
 import HubbardAtomLean.FieldLOperator
 import HubbardAtomLean.ChiContinuity
 import HubbardAtomLean.FieldTContinuity
+import HubbardAtomLean.ConverseAnalytic
+import HubbardAtomLean.ConverseCircles
+import HubbardAtomLean.ConverseExpansion
