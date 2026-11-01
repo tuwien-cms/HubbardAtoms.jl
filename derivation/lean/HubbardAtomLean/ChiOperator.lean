@@ -216,6 +216,26 @@ theorem isCompactOperator_KX (hX : L.ChiDecay X) :
     IsCompactOperator (hsOp (L.KX X) (L.summable_KX_sq X hX)) :=
   isCompactOperator_hsOp _ _
 
+/-- The rows of `X` are absolutely summable against a bounded vector. -/
+theorem summable_norm_X_mul (hX : L.ChiDecay X) {v : ℤ → ℂ} {C : ℝ} (hv : ∀ m, ‖v m‖ ≤ C)
+    (n : ℤ) : Summable fun m ↦ ‖X n m * v m‖ := by
+  obtain ⟨c, hc⟩ := hX.off
+  refine (((L.summable_inv_sq.mul_left (|c| / ‖L.z n‖ ^ 2 * |C|)).add
+    (hasSum_ite_eq n ‖X n n * v n‖).summable)).of_nonneg_of_le (fun _ ↦ norm_nonneg _)
+    fun m ↦ ?_
+  by_cases hnm : n = m
+  · subst hnm
+    rw [ite_eq_left rfl]
+    have : 0 ≤ |c| / ‖L.z n‖ ^ 2 * |C| * ‖L.z n‖⁻¹ ^ 2 := by positivity
+    linarith
+  · have hz := norm_pos_iff.mpr (L.z_ne_zero n)
+    have hm := norm_pos_iff.mpr (L.z_ne_zero m)
+    rw [ite_eq_right (Ne.symm hnm), add_zero, norm_mul]
+    calc ‖X n m‖ * ‖v m‖ ≤ |c| / (‖L.z n‖ ^ 2 * ‖L.z m‖ ^ 2) * |C| :=
+          mul_le_mul ((hc n m hnm).trans (div_le_div_of_nonneg_right (le_abs_self c)
+            (by positivity))) ((hv m).trans (le_abs_self C)) (norm_nonneg _) (by positivity)
+      _ = |c| / ‖L.z n‖ ^ 2 * |C| * ‖L.z m‖⁻¹ ^ 2 := by field_simp
+
 /-- `𝒦` is symmetric where `X` is. -/
 theorem KX_symm (hs : ∀ n m, X n m = X m n) (n m : ℤ) : L.KX X n m = L.KX X m n := by
   rw [KX, KX, hs, kron_comm, mul_comm (L.z n)]

@@ -80,6 +80,11 @@ run_cmd Elab.Command.liftCoreM do
       ``HubbardAtom.FParams.chiInvT_isLeftInverse,
       ``HubbardAtom.FParams.TGeneric.gammaOpT_eq,
       ``HubbardAtom.FParams.TGeneric.tendsto_gammaBoxT,
+      ``HubbardAtom.FParams.chiDecay_chiLe,
+      ``HubbardAtom.FParams.isUnit_onePlusKL_iff,
+      ``HubbardAtom.FParams.chiInvL_isLeftInverse,
+      ``HubbardAtom.FParams.LGeneric.gammaOpL_eq,
+      ``HubbardAtom.FParams.LGeneric.tendsto_gammaBoxL,
       ``HubbardAtom.Params.differentiable_Ehat,
       ``HubbardAtom.Params.norm_Ehat_le_circ,
       ``HubbardAtom.Params.eq_sum_gs_of_eigen] do
