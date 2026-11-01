@@ -73,3 +73,6 @@ import HubbardAtomLean.FieldTBounds
 import HubbardAtomLean.FieldTOperator
 import HubbardAtomLean.FieldLBounds
 import HubbardAtomLean.FieldLOperator
+import HubbardAtomLean.ConverseAnalytic
+import HubbardAtomLean.ConverseCircles
+import HubbardAtomLean.ConverseExpansion
