@@ -68,6 +68,9 @@ import HubbardAtomLean.DivergenceAlgebra
 import HubbardAtomLean.SpectralLink
 import HubbardAtomLean.ConverseTransform
 import HubbardAtomLean.ComplexZeros
+import HubbardAtomLean.FieldLZero
+import HubbardAtomLean.FieldLehmannKMS
+import HubbardAtomLean.FieldLMu0
 import HubbardAtomLean.ChiOperator
 import HubbardAtomLean.FieldTBounds
 import HubbardAtomLean.FieldTOperator
