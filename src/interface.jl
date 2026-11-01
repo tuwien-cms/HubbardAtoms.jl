@@ -155,10 +155,11 @@ const channel_reducible_vertex = Φ
     g3(r::SpinChannel, atom::AbstractHubbardAtom, (ν, ω)::FermiBose)
     G₃(…)
 
-Three-point (fermion-boson) Green's function, `G₃ᵣ(ν, ω) = -1/β Σ_ν′ χᵣ(ν, ν′, ω)` for
-`r = d, m, s`; for `r = d, m` it follows from the Ward identities of Krien and Valli, Phys.
-Rev. B 100, 245147 (2019), Eqs. (C1)-(C3). At half filling, η-pairing symmetry gives
-`G₃(s) = G₃(d)/2`. Zero for `r = t`, as `c↑c↑ = 0`.
+Three-point (fermion-boson) Green's function, `G₃ᵣ(ν, ω) = -1/β Σ_ν′ χᵣ(ν, ν′, ω)`; for
+`r = d, m` it follows from the Ward identities of Krien and Valli, Phys. Rev. B 100, 245147
+(2019), Eqs. (C1)-(C3). At half filling, η-pairing symmetry gives `G₃(s) = G₃(d)/2`. For
+`r = t` there is no contact term (`c↑c↑ = 0`), and the row sum is the bubble term that the
+triplet channel adds, `G₃(t) = G(ν)G(-ν-ω)/2`.
 """
 function G₃ end
 const g3 = G₃

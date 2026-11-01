@@ -346,22 +346,21 @@ end
 end
 
 @testitem "Doped atom: G₃ and χ(ω) from sums of χ" setup = [Doped] begin
-    # G₃(r) = -1/β Σ_ν′ χ(r, (ν, ν′, ω)) and χ(r, ω) = 2/β Σ_ν G₃(r, (ν, ω)) for r = d, m, s;
+    # G₃(r) = -1/β Σ_ν′ χ(r, (ν, ν′, ω)) and χ(r, ω) = 2/β Σ_ν G₃(r, (ν, ω)) in all channels;
     # the truncated sums over symmetric boxes converge like 1/N.
     N = 20_000
     for (U, β, μ) in ((1.3, 2.1, 0.4), (-0.7, 3.0, -0.2), (0.0, 1.0, 0.5)),
-        r in CHANNELS[1:3], (n, k) in ((0, 0), (0, 1), (-2, 2), (2, -1))
+        r in CHANNELS, (n, k) in ((0, 0), (0, 1), (-2, 2), (2, -1))
         at = DopedHubbardAtom(U, β, μ)
         S = sum(chi(r, at, (F(n), F(j), B(k))) for j in (-N - k):(N - 1))
         @test g3(r, at, (F(n), B(k))) ≈ -S / β rtol = 1e-4 atol = 1e-6
     end
-    for (U, β, μ) in ((1.3, 2.1, 0.4), (-0.7, 3.0, -0.2)), r in CHANNELS[1:3],
+    for (U, β, μ) in ((1.3, 2.1, 0.4), (-0.7, 3.0, -0.2)), r in CHANNELS,
         k in (0, 1, -2)
         at = DopedHubbardAtom(U, β, μ)
         S = sum(g3(r, at, (F(j), B(k))) for j in (-200_000 - k):199_999)
         @test chi(r, at, B(k)) ≈ 2S / at.beta atol = 1e-4
     end
-    @test iszero(g3(TripletChannel(), DopedHubbardAtom(1.3, 2.1, 0.4), (F(0), B(1))))
     # triplet: the bare pp bubble
     at = DopedHubbardAtom(1.3, 2.1, 0.4)
     for k in (0, 1, -2)
