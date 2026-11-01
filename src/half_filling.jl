@@ -421,7 +421,7 @@ function G₃(::m, at::HubbardAtom, (n, k)::FermiBose)
     -real(iszero(k) ? ∂G∂H(at, n) : ∂G∂ν(at, n, k))
 end
 G₃(::s, at::HubbardAtom, w::FermiBose) = G₃(d(), at, w) / 2
-G₃(::t, at::HubbardAtom, (n, k)::FermiBose) = zero(at.U)
+G₃(::t, at::HubbardAtom, (n, k)::FermiBose) = real(G(at, n) * G(at, -n - k)) / 2
 
 "Finite difference of Green's function with respect to frequency"
 function ∂G∂ν(at::HubbardAtom, n::FermionicFreq, k::BosonicFreq)

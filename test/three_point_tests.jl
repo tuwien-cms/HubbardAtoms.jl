@@ -3,15 +3,13 @@
 
     # G₃(r) = -1/β Σ_ν′ χ(r, (ν, ν′, ω)); the truncated sum converges like 1/N.
     N = 20_000
-    for (U, β) in ((0.0, 1.0), (1.3, 2.1), (-0.7, 3.0), (5.0, 2.0)), r in CHANNELS[1:3],
+    for (U, β) in ((0.0, 1.0), (1.3, 2.1), (-0.7, 3.0), (5.0, 2.0)), r in CHANNELS,
         (n, k) in ((0, 0), (0, 1), (-2, 2), (2, -1))
         at = HubbardAtom(U, β)
         ν, ω = FermionicFreq(2n + 1), BosonicFreq(2k)
         S = sum(chi(r, at, (ν, FermionicFreq(2j + 1), ω)) for j in (-N):(N - 1))
         @test g3(r, at, (ν, ω)) ≈ -S / β rtol = 1e-4
     end
-    @test iszero(g3(TripletChannel(), HubbardAtom(1.3, 2.1),
-                    (FermionicFreq(1), BosonicFreq(2))))
 end
 
 @testitem "Integrated susceptibilities" begin

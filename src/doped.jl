@@ -749,4 +749,5 @@ function G₃(::SingletChannel, at::DopedHubbardAtom, (n, k)::FermiBose)
     c = _pair(at, -Int(k))
     (-(f.𝒢 - _Ds(at)) / 2 + a * (f.t + a^2) * c + a^2 * (at._p0 + at._p2 - 2at._p1)) / f.𝒫
 end
-G₃(::TripletChannel, at::DopedHubbardAtom, (n, k)::FermiBose) = zero(Complex{typeof(at.U)})
+# no contact term for c↑c↑; the row sum is the bubble term that the triplet channel adds
+G₃(::TripletChannel, at::DopedHubbardAtom, (n, k)::FermiBose) = G(at, n) * G(at, -n - k) / 2
