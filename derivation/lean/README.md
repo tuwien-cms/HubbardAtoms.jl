@@ -184,12 +184,6 @@ Lean checks how they conjugate `c↑`, `c↓` and `H`.
   Its continuity in the parameters (`FieldTContinuity.lean`) also needs `μ ≠ 0` and `W ≠ 0`.
   The operator form of the longitudinal vertex (`FieldLOperator.lean`) is off the axes; its
   continuity in the parameters, and through it the axes, are not proved.
-  `χ_T↑ = χ_m` (`chiTUp_eq_chiR`), whose operator form is that of `GammaOperator.lean`. Its
-  continuity in the parameters is not proved. The operator form of the longitudinal vertex
-  (`FieldLOperator.lean`) is off the axes; its continuity, and through it the axes, are not
-  proved.
-  continuity in the parameters is not proved, and the longitudinal sector has no operator form
-  yet.
 
 ## Build
 
