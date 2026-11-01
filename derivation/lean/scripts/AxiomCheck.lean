@@ -86,7 +86,25 @@ run_cmd Elab.Command.liftCoreM do
       ``HubbardAtom.FParams.hasSum_chiL_mul_invLmu0,
       ``HubbardAtom.FParams.hasSum_invLmu0_mul_chiL,
       ``HubbardAtom.FParams.eq_invLmu0_of_hasSum,
-      ``HubbardAtom.FParams.gammaL_mu0] do
+      ``HubbardAtom.FParams.gammaL_mu0,
+      ``HubbardAtom.OpLattice.gammaOpX_eq_of_isRightInverse,
+      ``HubbardAtom.OpLattice.tendsto_gammaBoxX,
+      ``HubbardAtom.FParams.chiDecay_chiTUp,
+      ``HubbardAtom.FParams.isUnit_onePlusKT_iff,
+      ``HubbardAtom.FParams.chiInvT_isLeftInverse,
+      ``HubbardAtom.FParams.TGeneric.gammaOpT_eq,
+      ``HubbardAtom.FParams.TGeneric.tendsto_gammaBoxT,
+      ``HubbardAtom.FParams.chiDecay_chiLe,
+      ``HubbardAtom.FParams.isUnit_onePlusKL_iff,
+      ``HubbardAtom.FParams.chiInvL_isLeftInverse,
+      ``HubbardAtom.FParams.LGeneric.gammaOpL_eq,
+      ``HubbardAtom.FParams.LGeneric.tendsto_gammaBoxL,
+      ``HubbardAtom.OpLattice.continuousAt_gammaOpFam,
+      ``HubbardAtom.FParams.continuousAt_gammaOpTFam,
+      ``HubbardAtom.FParams.continuousAt_gammaOpTFam_of_TGeneric,
+      ``HubbardAtom.Params.differentiable_Ehat,
+      ``HubbardAtom.Params.norm_Ehat_le_circ,
+      ``HubbardAtom.Params.eq_sum_gs_of_eigen] do
     unless audited.contains anchor do
       throwError "{anchor} was not audited; the check is vacuous"
   if checked < 100 then
