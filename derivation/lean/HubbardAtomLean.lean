@@ -68,6 +68,9 @@ import HubbardAtomLean.DivergenceAlgebra
 import HubbardAtomLean.SpectralLink
 import HubbardAtomLean.ConverseTransform
 import HubbardAtomLean.ComplexZeros
+import HubbardAtomLean.ChiOperator
+import HubbardAtomLean.FieldTBounds
+import HubbardAtomLean.FieldTOperator
 import HubbardAtomLean.ConverseAnalytic
 import HubbardAtomLean.ConverseCircles
 import HubbardAtomLean.ConverseExpansion
