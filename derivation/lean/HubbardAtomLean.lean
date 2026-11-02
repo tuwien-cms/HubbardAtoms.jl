@@ -85,3 +85,5 @@ import HubbardAtomLean.DivergenceCriterion
 import HubbardAtomLean.StaticMagnetic
 import HubbardAtomLean.StaticDensity
 import HubbardAtomLean.StaticDensityComplex
+import HubbardAtomLean.VertexDividedDifferences
+import HubbardAtomLean.FieldLDividedDifferences
