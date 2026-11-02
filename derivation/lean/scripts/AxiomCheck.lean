@@ -104,7 +104,9 @@ run_cmd Elab.Command.liftCoreM do
       ``HubbardAtom.FParams.continuousAt_gammaOpTFam_of_TGeneric,
       ``HubbardAtom.Params.differentiable_Ehat,
       ``HubbardAtom.Params.norm_Ehat_le_circ,
-      ``HubbardAtom.Params.eq_sum_gs_of_eigen] do
+      ``HubbardAtom.Params.eq_sum_gs_of_eigen,
+      ``HubbardAtom.Params.Ks_ge_of_curve,
+      ``HubbardAtom.Params.singletGeneric_of_k_ne] do
     unless audited.contains anchor do
       throwError "{anchor} was not audited; the check is vacuous"
   if checked < 100 then
