@@ -105,6 +105,8 @@ run_cmd Elab.Command.liftCoreM do
       ``HubbardAtom.Params.differentiable_Ehat,
       ``HubbardAtom.Params.norm_Ehat_le_circ,
       ``HubbardAtom.Params.eq_sum_gs_of_eigen,
+      ``HubbardAtom.Params.abs_mu_lt_of_Ks_eq_zero,
+      ``HubbardAtom.Params.Ks_static_eq_zero_iff,
       ``HubbardAtom.Params.Ks_ge_of_curve,
       ``HubbardAtom.Params.singletGeneric_of_k_ne,
       ``HubbardAtom.Params.finite_roots_ell,

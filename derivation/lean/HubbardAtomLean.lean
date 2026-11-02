@@ -81,6 +81,7 @@ import HubbardAtomLean.FieldTContinuity
 import HubbardAtomLean.ConverseAnalytic
 import HubbardAtomLean.ConverseCircles
 import HubbardAtomLean.ConverseExpansion
+import HubbardAtomLean.StaticSinglet
 import HubbardAtomLean.StaticPairing
 import HubbardAtomLean.DivergenceCriterion
 import HubbardAtomLean.StaticMagnetic
