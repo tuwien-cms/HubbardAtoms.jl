@@ -89,4 +89,5 @@ import HubbardAtomLean.StaticDensity
 import HubbardAtomLean.StaticDensityComplex
 import HubbardAtomLean.VertexDividedDifferences
 import HubbardAtomLean.FieldLDividedDifferences
+import HubbardAtomLean.ChiFromG
 import HubbardAtomLean.FieldDividedDifferences
