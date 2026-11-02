@@ -25,7 +25,7 @@ open Complex
 namespace HubbardAtom
 
 /-- `x²e^{-x} ≤ 4e^{-2}` for `x ≥ 0`. -/
-theorem sq_mul_exp_neg_le {x : ℝ} (hx : 0 ≤ x) : x ^ 2 * Real.exp (-x) ≤ 4 * Real.exp (-2) := by
+theorem sq_mul_exp_neg_le_two {x : ℝ} (hx : 0 ≤ x) : x ^ 2 * Real.exp (-x) ≤ 4 * Real.exp (-2) := by
   have h := Real.add_one_le_exp (x / 2 - 1)
   have h2 : (x / 2) ^ 2 ≤ Real.exp (x / 2 - 1) ^ 2 := pow_le_pow_left₀ (by linarith) (by linarith) 2
   rw [← Real.exp_nat_mul] at h2
@@ -364,7 +364,7 @@ theorem c_bounds_of_curve (hμ : A.μ ≠ 0) (hc : A.μ + A.a * A.ρ = 0) :
   have hp₁ := A.p₁_le_exp
   have hp₁0 := A.p₁_pos
   have hA : 0 ≤ -(A.β * A.a) := by nlinarith
-  have hsq := sq_mul_exp_neg_le hA
+  have hsq := sq_mul_exp_neg_le_two hA
   rw [neg_neg, neg_sq] at hsq
   have he2 : Real.exp (-2) ≤ 1 / 3 := by
     rw [Real.exp_neg, inv_eq_one_div]
