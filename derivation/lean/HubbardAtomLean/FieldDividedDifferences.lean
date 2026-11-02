@@ -1,5 +1,6 @@
 import HubbardAtomLean.DividedDifferences
 import HubbardAtomLean.FieldLMu0
+import HubbardAtomLean.FieldEqualSpin
 
 /-!
 # Divided differences of the opposite-spin longitudinal blocks on the axes
@@ -24,6 +25,14 @@ The other sectors need nothing new: `chiR_divided_difference` and
 `chiTUp_divided_difference` hold for all `n ≠ m`, the mirror pairs at `μ = 0` included (`fR_neg`,
 `fT_neg`), `chiS_divided_difference` on the mirror (`f_s(n̄) = f_s(n)`), and
 `chiL_upup_divided_difference` for all `n ≠ m` (`f↑↓` is even).
+
+The pair sectors of `FieldPair.lean`, `FieldEqualSpin.lean`:
+
+* `FParams.chiAUp_divided_difference`, `chiADn_divided_difference`: the opposite-spin pairs,
+  through the Shiba map, `χ_A↑(U, μ, h) = χ_T↑(-U, h, μ)` and `χ_A↓(U, μ, h) = χ_T↑(-U, -h, μ)`,
+  for `iω_k - 2μ ≠ 0` and `n ≠ m`; `shiba_fT_zT`: `f_A↑(z'ₙ) = [G↑(νₙ) + G↓(-νₙ - ω_k)]/(iω_k - 2μ)`;
+* `FParams.chiEUp_divided_difference`, `chiEDn_divided_difference`: the equal-spin pairs,
+  `(tₙ - tₘ)χ_E,nm = 0`, where both sides vanish.
 -/
 
 open Complex
@@ -141,6 +150,66 @@ theorem fL_updn_eq_of_sq_eq (hU : F.U ≠ 0) {n m : ℤ} (h : F.Bup.z k n ^ 2 = 
   have hd := F.chiL_updn_divided_difference' k n m
   rw [h, sub_self, zero_mul, eq_comm, mul_eq_zero, sub_eq_zero] at hd
   exact hd.resolve_left (ofReal_ne_zero.mpr hU)
+
+/-! ### The opposite-spin and equal-spin pairs -/
+
+/-- **Divided differences, opposite-spin pair `A↑`**: for `W' = iω_k - 2μ ≠ 0` and `n ≠ m`, on the
+lattice `z'ₙ = h + i(νₙ + ω_k/2)` of the Shiba image `(-U, h, μ)`,
+`(z'ₙ² - z'ₘ²)χ_A↑,nm = U[f_A(z'ₙ) - f_A(z'ₘ)]` with `f_A = f_T` of the image (`chiAUp_eq`); on
+the mirror at `h = 0` both sides vanish (`fT_neg` of the image). -/
+theorem chiAUp_divided_difference (hW : F.shiba.WT k ≠ 0) {n m : ℤ} (hnm : n ≠ m) :
+    (F.shiba.zT k n ^ 2 - F.shiba.zT k m ^ 2) * F.chiAUp k n m =
+      F.U * (F.shiba.fT k (F.shiba.zT k n) - F.shiba.fT k (F.shiba.zT k m)) := by
+  rw [F.chiAUp_eq, F.shiba.chiTUp_divided_difference k hW hnm, shiba_U]
+  push_cast
+  ring
+
+/-- `f_A(z'ₙ) = [G↑(νₙ) + G↓(-νₙ - ω_k)]/(iω_k - 2μ)`: the Shiba image has `G'↑ = G↑` and
+`G'↓(ν) = -G↓(-ν)`. -/
+theorem shiba_fT_zT (n : ℤ) :
+    F.shiba.fT k (F.shiba.zT k n) =
+      (F.Gs true (F.ν n) + F.Gs false (F.ν (mirror k n))) / F.shiba.WT k := by
+  have hm : -F.ν n - F.ω k = F.ν (mirror k n) := ((F.lat 0).ν_mirror k n).symm
+  have hν : F.ν (mirror k n) = -F.ν (n + k) := by
+    rw [← hm, ← F.ν_add_ω]
+    ring
+  rw [F.shiba.fT_zT, F.shiba.propagator_up, F.shiba.propagator_dn, F.propagator_up,
+    F.propagator_dn]
+  simp only [Gc, shiba_rUp, shiba_rDn, shiba_a, lat_x, shiba_μ, shiba_h, shiba_ν]
+  rw [hν]
+  push_cast
+  ring
+
+/-- **Divided differences, opposite-spin pair `A↓`**: `χ_A↓(U, μ, h) = χ_T↑(-U, -h, μ)`
+(`chiADn_eq`), so for `iω_k - 2μ ≠ 0` and `n ≠ m` the identity of `T↑` at `(-U, -h, μ)`. -/
+theorem chiADn_divided_difference (hW : F.flip.shiba.WT k ≠ 0) {n m : ℤ} (hnm : n ≠ m) :
+    (F.flip.shiba.zT k n ^ 2 - F.flip.shiba.zT k m ^ 2) * F.chiADn k n m =
+      F.U * (F.flip.shiba.fT k (F.flip.shiba.zT k n) - F.flip.shiba.fT k (F.flip.shiba.zT k m)) := by
+  rw [F.chiADn_eq, F.flip.shiba.chiTUp_divided_difference k hW hnm, shiba_U, flip_U]
+  push_cast
+  ring
+
+/-- **Divided differences, equal-spin pair `E↑`**: `(tₙ - tₘ)χ_E↑,nm = 0` for all `n`, `m`
+(`tₙ = xₙx_n̄` on the lattice of `↑`), the divided difference of `f = 0`: `χ_E↑` lives on the
+diagonal and the mirror (`chiEUp_eq`), where `tₙ = tₘ`. -/
+theorem chiEUp_divided_difference (n m : ℤ) :
+    (F.Bup.t k n - F.Bup.t k m) * F.chiEUp k n m = 0 := by
+  rw [F.chiEUp_eq, mirrorBlock]
+  by_cases h₁ : n = m
+  · subst h₁
+    ring
+  by_cases h₂ : m = mirror k n
+  · subst h₂
+    rw [F.Bup.t_mirror]
+    ring
+  · rw [kron_of_ne h₁, kron_of_ne h₂]
+    ring
+
+/-- **Divided differences, equal-spin pair `E↓`**, by the spin flip (`chiEDn_eq`). -/
+theorem chiEDn_divided_difference (n m : ℤ) :
+    (F.Bdn.t k n - F.Bdn.t k m) * F.chiEDn k n m = 0 := by
+  rw [F.chiEDn_eq]
+  exact F.flip.chiEUp_divided_difference k n m
 
 end FParams
 
