@@ -81,3 +81,4 @@ import HubbardAtomLean.FieldTContinuity
 import HubbardAtomLean.ConverseAnalytic
 import HubbardAtomLean.ConverseCircles
 import HubbardAtomLean.ConverseExpansion
+import HubbardAtomLean.DivergenceCriterion
