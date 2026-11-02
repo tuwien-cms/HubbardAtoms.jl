@@ -110,7 +110,8 @@ run_cmd Elab.Command.liftCoreM do
       ``HubbardAtom.Params.Ke_ne_zero_mag,
       ``HubbardAtom.Params.isUnit_onePlusK_mag,
       ``HubbardAtom.Params.zero_mode_dens,
-      ``HubbardAtom.Params.densF_pos_of_zero_mode] do
+      ``HubbardAtom.Params.densF_pos_of_zero_mode,
+      ``HubbardAtom.Params.Phik_ne_zero_of_densF_neg] do
     unless audited.contains anchor do
       throwError "{anchor} was not audited; the check is vacuous"
   if checked < 100 then
