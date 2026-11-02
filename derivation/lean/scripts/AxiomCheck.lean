@@ -109,6 +109,8 @@ run_cmd Elab.Command.liftCoreM do
       ``HubbardAtom.Params.not_isUnit_onePlusK_iff,
       ``HubbardAtom.Params.Ke_ne_zero_mag,
       ``HubbardAtom.Params.isUnit_onePlusK_mag,
+      ``HubbardAtom.Params.zero_mode_dens,
+      ``HubbardAtom.Params.densF_pos_of_zero_mode,
       ``HubbardAtom.Params.gammaR_divided_difference,
       ``HubbardAtom.Params.gammaS_divided_difference,
       ``HubbardAtom.FParams.gammaTUp_divided_difference,
