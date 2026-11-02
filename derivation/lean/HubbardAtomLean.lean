@@ -82,3 +82,4 @@ import HubbardAtomLean.ConverseAnalytic
 import HubbardAtomLean.ConverseCircles
 import HubbardAtomLean.ConverseExpansion
 import HubbardAtomLean.VertexDividedDifferences
+import HubbardAtomLean.FieldLDividedDifferences
