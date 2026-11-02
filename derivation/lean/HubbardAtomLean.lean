@@ -82,5 +82,6 @@ import HubbardAtomLean.ConverseAnalytic
 import HubbardAtomLean.ConverseCircles
 import HubbardAtomLean.ConverseExpansion
 import HubbardAtomLean.DivergenceCriterion
+import HubbardAtomLean.StaticMagnetic
 import HubbardAtomLean.VertexDividedDifferences
 import HubbardAtomLean.FieldLDividedDifferences

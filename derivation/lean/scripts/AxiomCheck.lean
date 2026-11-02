@@ -107,6 +107,8 @@ run_cmd Elab.Command.liftCoreM do
       ``HubbardAtom.Params.eq_sum_gs_of_eigen,
       ``HubbardAtom.Params.finite_roots_ell,
       ``HubbardAtom.Params.not_isUnit_onePlusK_iff,
+      ``HubbardAtom.Params.Ke_ne_zero_mag,
+      ``HubbardAtom.Params.isUnit_onePlusK_mag,
       ``HubbardAtom.Params.gammaR_divided_difference,
       ``HubbardAtom.Params.gammaS_divided_difference,
       ``HubbardAtom.FParams.gammaTUp_divided_difference,
