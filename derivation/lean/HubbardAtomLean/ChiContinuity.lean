@@ -19,6 +19,8 @@ its own.
 
 * `OpLattice.gammaOpFam`: `Γ` along the family, `0` where the bounds of 6(a) fail;
 * `OpLattice.tendsto_tsum_norm_KX_sub_sq`: `∑ₙₘ |𝒦_nm(x) - 𝒦_nm(x₀)|² → 0`;
+* `OpLattice.ContHyp.tendsto_onePlusKX`: `1 + 𝒦` is continuous in the operator norm, so it stays
+  invertible near `x₀` if it is invertible at `x₀` (`ContHyp.eventually_isUnit`);
 * `OpLattice.continuousAt_gammaOpFam`: **`Γ_nm` is continuous at `x₀`**.
 -/
 
@@ -116,6 +118,39 @@ theorem ContHyp.continuousAt_tX (h : ContHyp L X b x₀) (n : ℤ) :
   simp only [tX]
   fun_prop (disch := assumption)
 
+open Classical in
+/-- **`1 + 𝒦` is continuous in the operator norm** along the family at `x₀` (`1` where the bounds
+of item 6(a) fail): `𝒦` is continuous in the Hilbert–Schmidt norm
+(`tendsto_tsum_norm_KX_sub_sq`), which bounds the operator norm (`norm_hsOp_le`). -/
+theorem ContHyp.tendsto_onePlusKX (h : ContHyp L X b x₀) (hX₀ : (L x₀).ChiDecay (X x₀)) :
+    Tendsto (fun x ↦ if hx : (L x).ChiDecay (X x) then (L x).onePlusKX (X x) hx else 1) (𝓝 x₀)
+      (𝓝 ((L x₀).onePlusKX (X x₀) hX₀)) := by
+  rw [tendsto_iff_norm_sub_tendsto_zero]
+  have ht := (tendsto_tsum_norm_KX_sub_sq h).sqrt
+  rw [Real.sqrt_zero] at ht
+  refine squeeze_zero' (Eventually.of_forall fun _ ↦ norm_nonneg _) ?_ ht
+  filter_upwards [h.chi] with x hx
+  have hs := (L x).summable_KX_sq (X x) hx
+  have hs₀ := (L x₀).summable_KX_sq (X x₀) hX₀
+  have hd : Summable fun p : ℤ × ℤ ↦ ‖(L x).KX (X x) p.1 p.2 -
+      (L x₀).KX (X x₀) p.1 p.2‖ ^ 2 :=
+    ((hs.mul_left 2).add (hs₀.mul_left 2)).of_nonneg_of_le (fun _ ↦ by positivity) fun p ↦ by
+      nlinarith [pow_le_pow_left₀ (norm_nonneg _) (norm_sub_le ((L x).KX (X x) p.1 p.2)
+        ((L x₀).KX (X x₀) p.1 p.2)) 2,
+        sq_nonneg (‖(L x).KX (X x) p.1 p.2‖ - ‖(L x₀).KX (X x₀) p.1 p.2‖)]
+  rw [dite_eq_left hx]
+  unfold onePlusKX
+  rw [add_sub_add_left_eq_sub, hsOp_sub ((L x).KX (X x)) hs ((L x₀).KX (X x₀)) hs₀ hd]
+  exact norm_hsOp_le (fun n m ↦ (L x).KX (X x) n m - (L x₀).KX (X x₀) n m) hd
+
+/-- **`1 + 𝒦` stays invertible near `x₀`** if it is invertible at `x₀`, as the units form an open
+set. -/
+theorem ContHyp.eventually_isUnit (h : ContHyp L X b x₀) (hX₀ : (L x₀).ChiDecay (X x₀))
+    (hu : IsUnit ((L x₀).onePlusKX (X x₀) hX₀)) :
+    ∀ᶠ x in 𝓝 x₀, ∀ hx : (L x).ChiDecay (X x), IsUnit ((L x).onePlusKX (X x) hx) := by
+  filter_upwards [(h.tendsto_onePlusKX hX₀).eventually (Units.isOpen.mem_nhds hu)] with x hx hc
+  simpa [dite_eq_left hc] using hx
+
 /-- **`Γ` is continuous along the family** at `x₀`, wherever `1 + 𝒦` is invertible at `x₀`:
 `𝒦` is continuous in norm (`tendsto_tsum_norm_KX_sub_sq`, `norm_hsOp_le`), and inversion is
 continuous at units. -/
@@ -129,23 +164,8 @@ theorem continuousAt_gammaOpFam (h : ContHyp L X b x₀) (hX₀ : (L x₀).ChiDe
   have hTx : ∀ x (hx : (L x).ChiDecay (X x)), T x = (L x).onePlusKX (X x) hx :=
     fun x hx ↦ dite_eq_left hx
   have hT : Tendsto T (𝓝 x₀) (𝓝 (T x₀)) := by
-    rw [tendsto_iff_norm_sub_tendsto_zero]
-    have ht := (tendsto_tsum_norm_KX_sub_sq h).sqrt
-    rw [Real.sqrt_zero] at ht
-    refine squeeze_zero' (Eventually.of_forall fun _ ↦ norm_nonneg _) ?_ ht
-    filter_upwards [h.chi] with x hx
-    have hs := (L x).summable_KX_sq (X x) hx
-    have hs₀ := (L x₀).summable_KX_sq (X x₀) hX₀
-    have hd : Summable fun p : ℤ × ℤ ↦ ‖(L x).KX (X x) p.1 p.2 -
-        (L x₀).KX (X x₀) p.1 p.2‖ ^ 2 :=
-      ((hs.mul_left 2).add (hs₀.mul_left 2)).of_nonneg_of_le (fun _ ↦ by positivity) fun p ↦ by
-        nlinarith [pow_le_pow_left₀ (norm_nonneg _) (norm_sub_le ((L x).KX (X x) p.1 p.2)
-          ((L x₀).KX (X x₀) p.1 p.2)) 2,
-          sq_nonneg (‖(L x).KX (X x) p.1 p.2‖ - ‖(L x₀).KX (X x₀) p.1 p.2‖)]
-    rw [hTx x hx, hTx x₀ hX₀]
-    unfold onePlusKX
-    rw [add_sub_add_left_eq_sub, hsOp_sub ((L x).KX (X x)) hs ((L x₀).KX (X x₀)) hs₀ hd]
-    exact norm_hsOp_le (fun n m ↦ (L x).KX (X x) n m - (L x₀).KX (X x₀) n m) hd
+    rw [hTx x₀ hX₀]
+    exact h.tendsto_onePlusKX hX₀
   have hinv : Tendsto (fun x ↦ Ring.inverse (T x)) (𝓝 x₀) (𝓝 (Ring.inverse (T x₀))) := by
     have hu' : IsUnit (T x₀) := (hTx x₀ hX₀).symm ▸ hu
     have h' := NormedRing.inverse_continuousAt hu'.unit
