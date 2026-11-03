@@ -98,3 +98,4 @@ import HubbardAtomLean.HalfFillingBounds
 import HubbardAtomLean.DMOperator
 import HubbardAtomLean.SingletNull
 import HubbardAtomLean.ConfluentOperator
+import HubbardAtomLean.DMContinuity
