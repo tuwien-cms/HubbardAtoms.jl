@@ -105,4 +105,3 @@ import HubbardAtomLean.LZLimits
 import HubbardAtomLean.FieldLAxisBounds
 import HubbardAtomLean.FieldLAxisOperator
 import HubbardAtomLean.FieldLAxisContinuity
-import HubbardAtomLean.LZLimitsSinglet
