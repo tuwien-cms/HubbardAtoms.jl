@@ -104,6 +104,7 @@ longitudinal vertex with a two-sided inverse.
 | `ConfluentOperator.lean` | density and magnetic, `μ ≠ 0`: `1 + 𝒦` is invertible iff `χ_r` has a right inverse whose columns satisfy `∑ₙ \|vₙ/zₙ\|² < ∞` (`isUnit_onePlusK_iff_exists_isRightInverse`; the converse direction of `GammaClosedForm.lean`, for columns in the class rather than bounded ones); at a double root `s₁ = s₂` (`DMConf`), the columns of `invRc` tend to `2εa/β²`, so `invRc = χ_r⁻¹` and the operator vertex `gammaOp` is the closed form `gammaRc` (`DMConf.gammaOp_eq`) | Proposition "removable singularities", item 2, as an operator |
 | `DMContinuity.lean` | the second half of item 6(d) for the density and magnetic channels through half filling: along a family `(U, β, μ)(x)` continuous at `x₀`, the vertex `gammaOpR` of `DMOperator.lean` is continuous at `x₀` wherever `1 + 𝒦` is invertible there, `μ(x₀) = 0` included (`continuousAt_gammaOpR`; at half filling under `HFHyp`, `continuousAt_gammaOpR_of_HFHyp`); the bounds of 6(a) on `z'ₙ` hold with constants uniform near `x₀` (`contHyp_R`), as off the fixed point `\|1/zₙ\| ≤ β/π`, off the mirror pairs `\|1/(zₙ + zₘ)\| ≤ β/(2π)`, `\|P(zₙ)\| ≥ (π/β)⁴`, and on a mirror pair Proposition "structure" holds with the pair coefficient `c₀ = ρ/(2μ)`, continued by `βp₀` at `μ = 0` and continuous as `e^{-βU/4}β sinhc(βμ)/Z` (`Pph_mul_chiR_mirror_all`, `pairC_zero_eq`); off the mirror pairs `zₘ²P(zₙ)χ_r,nm = (zₘ⁴/P(zₘ))[r₃(tₘ) + zₙ²n₂(tₘ)] - λρzₙ + λρzₙ²/(zₙ + zₘ)` (`z_sq_mul_Pph_mul_chiR`) | Lemma "continuity"; continuity of the vertex through `μ = 0` is not in the note |
 | `SingletContinuity.lean` | the second half of item 6(d) for the singlet: along a family `(U, β, μ)(x)` continuous at `x₀`, the vertex `gammaOpS` of `SingletOperator.lean` is continuous at `x₀` wherever `1 + 𝒦` is invertible there, for every `μ` and `k` (`continuousAt_gammaOpS`; under `SingletHyp`, `continuousAt_gammaOpS_of_SingletHyp`); the bounds of `SingletBounds.lean` hold with constants uniform near `x₀` (`contHyp_S`), through `b = 0`: both forms of the regular part of Proposition "pp" are `χ_s,reg = (a²r - a/2)(g₊g₊ + g₋g₋) + (2a³ - a²ρb)(g₊g₋g₊ + g₋g₊g₋)` with `r = ρ/b`, continued by `βp₀` at `b = 0` (`chiRegS_eq_uniform`, as `g₊ - g₋ = 2ab g₊g₋`), and at `k = 0`, `r` is the pair coefficient `c₀` of `DMContinuity.lean` | Lemma "continuity"; continuity of `Γ_s` is not in the note |
+| `LZLimits.lean` | the values at the lattice zeros as limits: along a family `(U, β, μ)(x)` continuous at `x₀`, at a lattice zero `t_c + Aₛ = 0` at `x₀`, `gammaS → gammaSlz` along any approach to `x₀` through points where the assumptions of Theorem "singlet" hold (`tendsto_gammaS_of_SingletLZ`), and at a lattice zero `z_c² = ŝ`, `gammaHF → gammaHFlz` through points where those of Corollary "half filling" hold (`tendsto_gammaHF_of_HFLZ`); at `μ = 0` the closed form of Eq. (Gamma-ph) tends to Eq. (Gamma-hf) (`tendsto_gammaR_of_HFHyp`) and, at a lattice zero, to Eq. (Gamma-hf-lz) (`tendsto_gammaR_of_HFLZ`), through points where the assumptions of Theorem "density and magnetic" hold; from the continuity of the operator vertex. That such points exist arbitrarily close to `x₀` is not shown, so the approach may be empty | Proposition "special", items 1 and 4: the values are the limits of Eqs. (Gamma-s), (Gamma-hf); the proof of Corollary "half filling" (`μ → 0`) |
 
 `scripts/check.sh` rebuilds the library from a cold cache (failing on any warning), checks every
 declaration, private and auxiliary ones included, with the kernel for `sorry` and for axioms beyond
@@ -156,10 +157,11 @@ Lean checks how they conjugate `c↑`, `c↓` and `H`.
 
 ## Not covered (yet)
 
-* Lemma "continuity" and the limits themselves: at the lattice zeros of Theorem "singlet" and
-  Corollary "half filling" the limiting inverses are written down and verified, but that they are
-  the limits of the closed forms is not proved. The lattice zeros `e(zₙ) = 0` of Theorem "density
-  and magnetic" at `μ ≠ 0`. Proposition "finite boxes".
+* Lemma "continuity", and that the values at the lattice zeros of Theorem "singlet" and Corollary
+  "half filling" are the limits of the closed forms: `LZLimits.lean` proves it only along
+  approaches through points where these hold, and that such points exist arbitrarily close is not
+  proved, so the approach may be empty. The lattice zeros
+  `e(zₙ) = 0` of Theorem "density and magnetic" at `μ ≠ 0`. Proposition "finite boxes".
 * That `χ_s`, `χ_r` and `χ_L` have no inverses other than the constructed ones. For the block-diagonal `χ_t`
   this is automatic; the note does not claim it for the other channels either.
 * Anything about rounding: `StableForms.lean` and `Thermal.lean` prove that the listed
