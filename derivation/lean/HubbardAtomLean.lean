@@ -91,3 +91,4 @@ import HubbardAtomLean.VertexDividedDifferences
 import HubbardAtomLean.FieldLDividedDifferences
 import HubbardAtomLean.ChiFromG
 import HubbardAtomLean.FieldDividedDifferences
+import HubbardAtomLean.OpLatticeAll
