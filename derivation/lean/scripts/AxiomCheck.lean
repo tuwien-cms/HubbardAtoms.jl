@@ -173,7 +173,13 @@ run_cmd Elab.Command.liftCoreM do
       ``HubbardAtom.FParams.isUnit_onePlusKLAll_of_DMGeneric_h0,
       ``HubbardAtom.Params.eventually_t_add_As_ne,
       ``HubbardAtom.Params.SingletLZ.eventually_singletHyp,
-      ``HubbardAtom.Params.SingletLZ.tendsto_gammaS] do
+      ``HubbardAtom.Params.SingletLZ.tendsto_gammaS,
+      ``HubbardAtom.exists_continuousAt_zero_of_hasDerivAt,
+      ``HubbardAtom.exists_continuousAt_root_of_simple,
+      ``HubbardAtom.exists_continuousAt_sqrt_root_of_simple,
+      ``HubbardAtom.Params.eventually_z_eq_imp,
+      ``HubbardAtom.Params.eventually_z_ne_of_off,
+      ``HubbardAtom.Params.continuousAt_S] do
     unless audited.contains anchor do
       throwError "{anchor} was not audited; the check is vacuous"
   if checked < 100 then
