@@ -165,6 +165,12 @@ run_cmd Elab.Command.liftCoreM do
       ``HubbardAtom.FParams.continuousAt_gammaOpLAll,
       ``HubbardAtom.FParams.tendsto_gammaL_of_LGeneric,
       ``HubbardAtom.FParams.continuousAt_gammaOpLAll_of_LGeneric,
+      ``HubbardAtom.FParams.isUnit_onePlusKLAll_iff_onePlusK_h0,
+      ``HubbardAtom.FParams.gammaOpLAll_h0,
+      ``HubbardAtom.FParams.isUnit_onePlusKLAll_shiba,
+      ``HubbardAtom.FParams.isUnit_onePlusKLAll_iff_onePlusK_mu0,
+      ``HubbardAtom.FParams.gammaOpLAll_mu0,
+      ``HubbardAtom.FParams.isUnit_onePlusKLAll_of_DMGeneric_h0,
       ``HubbardAtom.Params.eventually_t_add_As_ne,
       ``HubbardAtom.Params.SingletLZ.eventually_singletHyp,
       ``HubbardAtom.Params.SingletLZ.tendsto_gammaS] do
