@@ -29,7 +29,8 @@ parameters `(U, β, μ, h)(x)` continuous at `x₀` (`famF`), the vertex `Γ_L` 
   domain of Eq. (field-L), the closed form `gammaL` tends to `Γ_L(x₀)`. On an axis point this is
   the vertex as the limit of the closed form; such approaches exist under the nondegeneracy
   condition `LAxisGeneric` at `x₀`, e.g. along the line `lineL`
-  (`LAxisGeneric.tendsto_gammaL_lineL`, `FieldLAxisGeneric.lean`).
+  (`LAxisGeneric.tendsto_gammaL_lineL`, `FieldLAxisGeneric.lean`); there `Γ_L(x₀)` is the note's
+  explicit axis formula (`LAxisGeneric.gammaOpLAll_eq`, `FieldLAxisFormula.lean`).
 -/
 
 open Complex Filter Topology

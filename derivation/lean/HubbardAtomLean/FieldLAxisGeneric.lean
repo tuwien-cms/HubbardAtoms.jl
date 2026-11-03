@@ -10,7 +10,9 @@ Eq. (field-L) (`LGeneric` for both column spins) the closed form `gammaL` tends 
 such approaches are constructed at a point `x₀` on the axes `μ = 0`, `h = 0`, `μ = ±h`, under
 the nondegeneracy condition `LAxisGeneric` at `x₀`. That `LAxisGeneric` holds at any given axis
 point (the roots of `E₈` there and the values of `K`) is not shown; where it fails, the statements
-here are vacuous. Not in the note.
+here are vacuous; at `μ = h = 0` it never holds (`not_lAxisGeneric_corner`). Where it holds, the
+note's explicit formula on the axes is the limit of `gammaL` and, if `1 + 𝒦` is invertible, `Γ_L`
+(`FieldLAxisFormula.lean`). Not in the note.
 
 * `exists_continuousAt_sqrt_root_of_simple₀`: `exists_continuousAt_sqrt_root_of_simple` without
   `u₀ ≠ 0` (at `u₀ = 0` the root is `s^{1/2}` of the moving simple root `s → 0`).
