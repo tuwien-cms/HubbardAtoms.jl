@@ -164,7 +164,13 @@ run_cmd Elab.Command.liftCoreM do
       ``HubbardAtom.FParams.contHyp_LAll,
       ``HubbardAtom.FParams.continuousAt_gammaOpLAll,
       ``HubbardAtom.FParams.tendsto_gammaL_of_LGeneric,
-      ``HubbardAtom.FParams.continuousAt_gammaOpLAll_of_LGeneric] do
+      ``HubbardAtom.FParams.continuousAt_gammaOpLAll_of_LGeneric,
+      ``HubbardAtom.FParams.isUnit_onePlusKLAll_iff_onePlusK_h0,
+      ``HubbardAtom.FParams.gammaOpLAll_h0,
+      ``HubbardAtom.FParams.isUnit_onePlusKLAll_shiba,
+      ``HubbardAtom.FParams.isUnit_onePlusKLAll_iff_onePlusK_mu0,
+      ``HubbardAtom.FParams.gammaOpLAll_mu0,
+      ``HubbardAtom.FParams.isUnit_onePlusKLAll_of_DMGeneric_h0] do
     unless audited.contains anchor do
       throwError "{anchor} was not audited; the check is vacuous"
   if checked < 100 then

@@ -108,6 +108,7 @@ longitudinal vertex with a two-sided inverse.
 | `FieldLAxisBounds.lean` | item 6(a) for the longitudinal sector for every `μ`, `h`, on the lattices `z'` of `OpLatticeAll.lean` of the two spins (`opLatLAll`): off the mirror pairs and off `n = m`, respectively, `\|1/(z_σₙ + z_{-σ}ₘ)\|`, `\|1/(z_σₙ - z_{-σ}ₘ)\| ≤ β/(2π)`; on them the kernels of `PL_mul_chiL_opp_all` are `κ_P = ρ/(2μ)` and `κ_S = m/(2h)`, continued by `βp₀`, `βp↓`, as `e^{∓βU/4}β sinhc(βx)/Z`; the bounds with constants (`norm_chiL_opp_le_all_of`, `norm_chiL_self_le_all_of`, `norm_chiL_diag_le_all_of`), through the row and the column of the mirror fixed point, and `chiDecay_chiLe_all`, `bubbleDecay_bLe_all` at every `μ`, `h` | item 6(a) for Eq. (field-L) on the axes; not in the note |
 | `FieldLAxisOperator.lean` | items 6(b)–(c) and the boxes of 6(d) for the longitudinal sector for every `μ`, `h`, on `opLatLAll`: `χ_L` is symmetric (`chiL_symm_all`; the kernels of `PL_mul_chiL_opp_all` satisfy `K_P(z + v) = ρ`, `K_S(z - v) = σm` also on their special pairs); `Γ_L` as an operator (`gammaOpLAll`), which exists iff `χ_L` has no nonzero null vector with `∑ \|v_σn/z'_σn\|² < ∞` (`isUnit_onePlusKLAll_iff`; such null vectors are bounded), `Γ_L = β²(χ_L⁻¹ - b⁻¹)` with `χ_L⁻¹` a two-sided inverse, `Γ_L = gammaL` on the domain of Eq. (field-L) (`LGeneric.gammaOpLAll_eq`), and the box vertices converge to `Γ_L` wherever `1 + 𝒦` is invertible (`tendsto_gammaBoxLAll`); off the axes `Γ_L` is `gammaOpL` (`gammaOpLAll_eq_gammaOpL`) | items 6(b)–(c) for Eq. (field-L) on the axes; not in the note |
 | `FieldLAxisContinuity.lean` | the second half of item 6(d) for the longitudinal sector through the axes: along a family `(U, β, μ, h)(x)` continuous at `x₀` (`famF`), each entry of `χ_L` and of the bubble is continuous (`continuousAt_famF_chiL`, `continuousAt_famF_bL`; the kernels are `κ_P`, `κ_S` on their special pairs), the bounds of `FieldLAxisBounds.lean` hold uniformly near `x₀`, and `Γ_L` is continuous at `x₀` wherever `1 + 𝒦` is invertible there (`continuousAt_gammaOpLAll`, `continuousAt_gammaOpLAll_of_LGeneric`), on the axes included; so along any approach through the domain of Eq. (field-L), `gammaL → Γ_L(x₀)` (`tendsto_gammaL_of_LGeneric`; that such approaches exist is not shown) | item 6(d) for Eq. (field-L) on the axes; not in the note. Toward the continuous extension of Section "Reductions, continuous extensions and exceptional sets": any limit of Eq. (field-L) at an axis point along generic points is `Γ_L(x₀)`; the extension formula, its agreement with `Γ_L`, and that generic points approach are not proved |
+| `FieldLAxisValues.lean` | `1 + 𝒦` and `Γ_L` of `FieldLAxisOperator.lean` on the axes with a known inverse: at `h = 0`, `μ ≠ 0`, `1 + 𝒦` is invertible iff `1 + 𝒦_d` and `1 + 𝒦_m` of the zero-field atom `(U, β, μ)` are (`isUnit_onePlusKLAll_iff_onePlusK_h0`; a null vector `v` of `χ_L` gives the null vectors `v↑ ± v↓` of `χ_d`, `χ_m`, and conversely `(w, ±w)`), and there `χ_L⁻¹ = Y` of `FieldLZero.lean` and `Γ_L,στ = (Γ_d + s_στΓ_m)/2` (`gammaOpLAll_h0`); for every `μ`, `h`, `1 + 𝒦` is invertible iff that of the Shiba image `(-U, β, h, μ)` is (`isUnit_onePlusKLAll_shiba`, via `v_τl ↦ ε_τv_τ(R_τl)`), so at `μ = 0`, `h ≠ 0` it is invertible iff `1 + 𝒦_d` and `1 + 𝒦_m` of the source `D = (-U, β, h)` are (`isUnit_onePlusKLAll_iff_onePlusK_mu0`), and there `χ_L⁻¹ = Y` of `FieldLMu0.lean` and `Γ_L,στ(n, m) = (ε_σε_τ/2)[Γ_d^D + ε_σε_τΓ_m^D](R_σn, R_τm)` (`gammaOpLAll_mu0`) | Eqs. (field-h0), (field-mu0), longitudinal part, for the operator vertex (`μ ≠ 0`, respectively `h ≠ 0`; `μ = h = 0` is not covered); invertibility reduces to the zero-field `1 + 𝒦_d`, `1 + 𝒦_m` |
 
 `scripts/check.sh` rebuilds the library from a cold cache (failing on any warning), checks every
 declaration, private and auxiliary ones included, with the kernel for `sorry` and for axioms beyond
@@ -173,8 +174,8 @@ Lean checks how they conjugate `c↑`, `c↓` and `H`.
   For the coupled longitudinal vertex, Eq. (field-L):
   the axes `μ = 0`, `h = 0`, `μ = ±h` (on `μ = ±h` the note uses Eq. (field-L-quotient); at `h = 0`,
   `μ ≠ 0`, and at `μ = 0`, `h ≠ 0`, where `1 + 𝒦_d` and `1 + 𝒦_m` are invertible, the inverse and
-  the vertex are those of Eqs. (field-h0), (field-mu0), `FieldLZero.lean`, `FieldLMu0.lean`,
-  without a comparison with the closed form)
+  the vertex are those of Eqs. (field-h0), (field-mu0), `FieldLZero.lean`, `FieldLMu0.lean`, also
+  for the operator vertex `Γ_L` (`FieldLAxisValues.lean`), without a comparison with the closed form)
   and the longitudinal exceptional sets.
   Off the axes, `K_t(u_j) ≠ 0` of `LGeneric` is the note's `(K_↑, K_↓) ≠ (0, 0)`:
   at a root, `K_t = 0` forces `K_{-t} = 0` (`KL_opp_eq_zero`; at `u² = -q₀` the whole mode
@@ -209,8 +210,9 @@ Lean checks how they conjugate `c↑`, `c↓` and `H`.
   Not covered are the transverse exceptional sets
   (confluent roots, lattice roots),
   the axis reductions of Eqs. (field-h0), (field-mu0) as identities between closed forms
-  (the longitudinal parts of Eqs. (field-h0), (field-mu0) hold at the level of the inverse,
-  for `μ ≠ 0` and `h ≠ 0` respectively, `FieldLZero.lean`, `FieldLMu0.lean`), and the divergences
+  (the longitudinal parts of Eqs. (field-h0), (field-mu0) hold at the level of the inverse and for
+  the operator vertex, for `μ ≠ 0` and `h ≠ 0` respectively, `FieldLZero.lean`, `FieldLMu0.lean`,
+  `FieldLAxisValues.lean`), and the divergences
   of Section G.5.
   The operator form of the transverse vertex (`FieldTOperator.lean`) needs `μ ≠ 0` and `W ≠ 0`,
   like `TGeneric`, so the half-filling axis `μ = 0` (`THFHyp`) has none; at `W = 0`,
@@ -218,9 +220,14 @@ Lean checks how they conjugate `c↑`, `c↓` and `H`.
   Its continuity in the parameters (`FieldTContinuity.lean`) also needs `μ ≠ 0` and `W ≠ 0`.
   The operator form of the longitudinal vertex is `FieldLOperator.lean` off the axes and
   `FieldLAxisOperator.lean` for every `μ`, `h`; it is continuous in the parameters through the axes
-  wherever `1 + 𝒦` is invertible (`FieldLAxisContinuity.lean`). Not proved: that `1 + 𝒦` is
-  invertible at axis points, that the domain of Eq. (field-L) accumulates there, and the explicit
-  axis formula with its agreement with `Γ_L`.
+  wherever `1 + 𝒦` is invertible (`FieldLAxisContinuity.lean`). On `h = 0` with `μ ≠ 0`, `1 + 𝒦`
+  is invertible iff `1 + 𝒦_d` and `1 + 𝒦_m` of the zero-field atom `(U, β, μ)` are; on `μ = 0` with
+  `h ≠ 0`, iff those of the Shiba source `(-U, β, h)` are. There `Γ_L` is given by Eqs. (field-h0),
+  (field-mu0) (`FieldLAxisValues.lean`), so `1 + 𝒦` is invertible wherever both zero-field channels
+  are, e.g. under `DMGeneric`. Not proved: a reduction of `1 + 𝒦` on `μ = ±h ≠ 0` and at
+  `μ = h = 0` (only the null-vector criterion `isUnit_onePlusKLAll_iff`), that the domain of
+  Eq. (field-L) accumulates at axis points, and the explicit axis formula with its agreement with
+  `Γ_L`.
 
 ## Build
 
