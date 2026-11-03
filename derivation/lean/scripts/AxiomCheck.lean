@@ -155,7 +155,11 @@ run_cmd Elab.Command.liftCoreM do
       ``HubbardAtom.Params.tendsto_gammaR_of_HFLZ,
       ``HubbardAtom.FParams.norm_chiL_opp_le_all_of,
       ``HubbardAtom.FParams.chiDecay_chiLe_all,
-      ``HubbardAtom.FParams.bubbleDecay_bLe_all] do
+      ``HubbardAtom.FParams.bubbleDecay_bLe_all,
+      ``HubbardAtom.FParams.chiL_symm_all,
+      ``HubbardAtom.FParams.isUnit_onePlusKLAll_iff,
+      ``HubbardAtom.FParams.LGeneric.gammaOpLAll_eq,
+      ``HubbardAtom.FParams.gammaOpLAll_eq_gammaOpL] do
     unless audited.contains anchor do
       throwError "{anchor} was not audited; the check is vacuous"
   if checked < 100 then
