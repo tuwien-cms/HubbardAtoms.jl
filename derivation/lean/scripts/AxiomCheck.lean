@@ -48,6 +48,7 @@ run_cmd Elab.Command.liftCoreM do
       ``HubbardAtom.Params.HFLZ.gammaHF_eq, ``HubbardAtom.FParams.TGeneric.gammaTUp_eq,
       ``HubbardAtom.FParams.THFHyp.gammaTHF_eq, ``HubbardAtom.FParams.gammaADn_eq,
       ``HubbardAtom.FParams.gammaEUp_eq, ``HubbardAtom.FParams.PL_mul_chiL_updn,
+      ``HubbardAtom.FParams.PL_mul_chiL_opp_all,
       ``HubbardAtom.FParams.gammaTUp_static_hf,
       ``HubbardAtom.FParams.chiL_updn_divided_difference,
       ``HubbardAtom.FParams.hasDerivAt_Gs_up_h, ``HubbardAtom.FParams.hasSum_chiL_updn,
