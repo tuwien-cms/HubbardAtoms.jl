@@ -104,14 +104,16 @@ theorem flipL_eq_zero_iff (n m : ℤ) : F.Bup.x n - F.Bdn.x m = 0 ↔ F.h = 0 �
     rw [hh, mul_zero, ofReal_zero, zero_add, h0]
 
 /-- The pair kernel of `(n, m)`: `ρ/(z↑ₙ + z↓ₘ)`, and `βp₀` where the pair rate vanishes (`μ = 0`,
-`m = -n - k - 1`, where `z↑ₙ + z↓ₘ = 0`). The value `βp₀` is the limit of Eq. (field-kernel-limits);
-the limit itself is not proved here. -/
+`m = -n - k - 1`, where `z↑ₙ + z↓ₘ = 0`). The value `βp₀` is the limit of Eq. (field-kernel-limits):
+for fixed indices the kernel is continuous in `(U, β, μ, h)`, through `μ = 0`
+(`continuousAt_famF_kerPL`, `FieldLAxisContinuity.lean`). -/
 noncomputable def kerPL (n m : ℤ) : ℂ :=
   if F.μ = 0 ∧ n + m + k + 1 = 0 then F.β * F.p₀ else F.ρ / (F.Bup.z k n + F.Bdn.z k m)
 
 /-- The spin-flip kernel of `(n, m)` in the row `↑`: `m/(z↑ₙ - z↓ₘ)`, and `βp↓` where the spin-flip
 rate vanishes (`h = 0`, `n = m`, where `z↑ₙ = z↓ₘ`). The value `βp↓` is the limit of
-Eq. (field-kernel-limits); the limit itself is not proved here. -/
+Eq. (field-kernel-limits): for fixed indices the kernel is continuous in `(U, β, μ, h)`, through
+`h = 0` (`continuousAt_famF_kerSLs` with `kerSLs_true`, `FieldLAxisContinuity.lean`). -/
 noncomputable def kerSL (n m : ℤ) : ℂ :=
   if F.h = 0 ∧ n = m then F.β * F.pDn else F.mf / (F.Bup.z k n - F.Bdn.z k m)
 

@@ -17,7 +17,9 @@ of the limits of Eq. (field-kernel-limits). This file gives both rows, by the sp
 * `FParams.zL_add_opp_eq_zero_iff`, `zL_sub_opp_eq_zero_iff`: the conditions of the two kernels
   are where `z + v = 0` and `z = v`.
 
-That `βp₀` and `βp_{-σ}` are the limits of the kernels is not proved here.
+That `βp₀` and `βp_{-σ}` are the limits of the kernels is `continuousAt_famF_kerPL`,
+`continuousAt_famF_kerSLs` (`FieldLAxisContinuity.lean`): for fixed indices, the kernels are
+continuous in `(U, β, μ, h)` through `μ = 0`, `h = 0`.
 -/
 
 open Complex Matrix

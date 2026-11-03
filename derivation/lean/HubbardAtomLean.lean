@@ -109,3 +109,4 @@ import HubbardAtomLean.FieldLAxisValues
 import HubbardAtomLean.SingletLZApproach
 import HubbardAtomLean.RootContinuity
 import HubbardAtomLean.FieldLAxisGeneric
+import HubbardAtomLean.FieldLAxisFormula

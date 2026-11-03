@@ -189,7 +189,18 @@ run_cmd Elab.Command.liftCoreM do
       ``HubbardAtom.FParams.LAxisGeneric.exists_eventually_LGeneric,
       ``HubbardAtom.FParams.LAxisGeneric.tendsto_gammaL,
       ``HubbardAtom.FParams.eventually_offAxes_lineL,
-      ``HubbardAtom.FParams.LAxisGeneric.tendsto_gammaL_lineL] do
+      ``HubbardAtom.FParams.LAxisGeneric.tendsto_gammaL_lineL,
+      ``HubbardAtom.FParams.kerDL_mirror,
+      ``HubbardAtom.FParams.cMode_eq_cModeQ,
+      ``HubbardAtom.FParams.LGeneric.gammaLAll_eq,
+      ``HubbardAtom.FParams.tendsto_famF_cMode,
+      ``HubbardAtom.FParams.tendsto_famF_gammaLc,
+      ``HubbardAtom.FParams.LAxisGeneric.tendsto_gammaL_of_eventually,
+      ``HubbardAtom.FParams.LAxisGeneric.tendsto_gammaL_gammaLAll,
+      ``HubbardAtom.FParams.LAxisGeneric.gammaOpLAll_eq,
+      ``HubbardAtom.FParams.LAxisGeneric.tendsto_gammaL_lineL_gammaLAll,
+      ``HubbardAtom.FParams.continuousAt_famF_kerDL,
+      ``HubbardAtom.FParams.not_lAxisGeneric_corner] do
     unless audited.contains anchor do
       throwError "{anchor} was not audited; the check is vacuous"
   if checked < 100 then
