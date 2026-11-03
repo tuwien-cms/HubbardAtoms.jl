@@ -23,8 +23,9 @@ Likewise, at half filling the closed form of Eq. (Gamma-ph) tends to that of Eq.
 Each closed form equals the operator vertex where it holds (`SingletHyp.gammaOpS_eq`, …), and the
 operator vertex is continuous at `x₀` (`continuousAt_gammaOpS`, `continuousAt_gammaOpR`). That
 such approaches exist, i.e. that the assumptions hold at points arbitrarily close to `x₀`, is not
-shown. The theorems hold for every filter `l ≤ 𝓝 x₀`, `l = ⊥` included, where they say nothing,
-so they do not prove that the values are the limits.
+shown here. The theorems hold for every filter `l ≤ 𝓝 x₀`, `l = ⊥` included, where they say
+nothing, so they do not prove that the values are the limits. For the singlet, such points exist in
+`μ` at fixed `U`, `β`, `k` (`SingletLZApproach.lean`, `SingletLZ.tendsto_gammaS`).
 -/
 
 open Filter Topology
