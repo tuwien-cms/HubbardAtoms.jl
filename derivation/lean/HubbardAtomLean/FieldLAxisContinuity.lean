@@ -27,7 +27,9 @@ parameters `(U, β, μ, h)(x)` continuous at `x₀` (`famF`), the vertex `Γ_L` 
   (`continuousAt_gammaOpLAll_of_LGeneric`);
 * `FParams.tendsto_gammaL_of_LGeneric`: then along any approach to `x₀` through points of the
   domain of Eq. (field-L), the closed form `gammaL` tends to `Γ_L(x₀)`. On an axis point this is
-  the vertex as the limit of the closed form; that such approaches exist is not shown here.
+  the vertex as the limit of the closed form; such approaches exist under the nondegeneracy
+  condition `LAxisGeneric` at `x₀`, e.g. along the line `lineL`
+  (`LAxisGeneric.tendsto_gammaL_lineL`, `FieldLAxisGeneric.lean`).
 -/
 
 open Complex Filter Topology
@@ -576,8 +578,11 @@ theorem continuousAt_gammaOpLAll (hu : IsUnit ((famF U β μ h hβ x₀).onePlus
 
 /-- **The closed form tends to the operator vertex**: if `1 + 𝒦` is invertible at `x₀`, then along
 any approach `x i → x₀` through points where Eq. (field-L) holds, `gammaL → Γ_L(x₀)`. On an axis
-point, this is the vertex as the limit of the closed form. That such approaches exist, i.e. that the
-domain of Eq. (field-L) accumulates at `x₀`, is not shown; without them the statement is vacuous. -/
+point, this is the vertex as the limit of the closed form. Without such approaches the statement
+is vacuous; that they exist, i.e. that the domain of Eq. (field-L) accumulates at `x₀`, is shown
+under the nondegeneracy condition `LAxisGeneric` at `x₀`: near `x₀` the points off the axes are in
+the domain (`LAxisGeneric.exists_eventually_LGeneric`), and the line `lineL` reaches `x₀` through
+them (`LAxisGeneric.tendsto_gammaL_lineL`, `FieldLAxisGeneric.lean`). -/
 theorem tendsto_gammaL_of_LGeneric (hu : IsUnit ((famF U β μ h hβ x₀).onePlusKLAll k))
     {ι : Type*} {l : Filter ι} {x : ι → P} {u : ι → Fin 4 → ℂ} (hx : Tendsto x l (𝓝 x₀))
     (hg : ∀ᶠ i in l, ∀ t, (famF U β μ h hβ (x i)).LGeneric k t (u i)) (σ : Bool) (n : ℤ)
