@@ -94,3 +94,4 @@ import HubbardAtomLean.FieldDividedDifferences
 import HubbardAtomLean.OpLatticeAll
 import HubbardAtomLean.SingletBounds
 import HubbardAtomLean.SingletOperator
+import HubbardAtomLean.SingletNull
