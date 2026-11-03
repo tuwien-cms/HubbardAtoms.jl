@@ -43,10 +43,11 @@ Eq. (field-L) and, if `1 + 𝒦` is invertible there, the operator vertex `Γ_L`
 
 Assumed: `LAxisGeneric` at the axis point, and for the agreement that `1 + 𝒦` is invertible there.
 Not shown: that these hold at given axis points (on `h = 0`, `μ ≠ 0` and on `μ = 0`, `h ≠ 0` the
-invertibility reduces to the zero-field channels, `FieldLAxisValues.lean`; on `μ = ±h ≠ 0` there
-is no such reduction), and a comparison of `gammaLAll` with Eqs. (field-h0), (field-mu0) as closed
-forms. Not in the note: `LAxisGeneric`, the limits and the agreement as proofs, and the corner
-statement.
+invertibility reduces to the zero-field channels, `FieldLAxisValues.lean`; on `μ = ±h ≠ 0` it
+holds where `LGeneric` holds for the regular column spin, under a condition at `k = 0`,
+`FieldLAxisUnitPM.lean`), and a comparison of `gammaLAll` with Eqs. (field-h0), (field-mu0) as
+closed forms. Not in the note: `LAxisGeneric`, the limits and the agreement as proofs, and the
+corner statement.
 -/
 
 open Complex Filter Topology

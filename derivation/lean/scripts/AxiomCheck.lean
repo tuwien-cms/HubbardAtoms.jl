@@ -200,7 +200,20 @@ run_cmd Elab.Command.liftCoreM do
       ``HubbardAtom.FParams.LAxisGeneric.gammaOpLAll_eq,
       ``HubbardAtom.FParams.LAxisGeneric.tendsto_gammaL_lineL_gammaLAll,
       ``HubbardAtom.FParams.continuousAt_famF_kerDL,
-      ``HubbardAtom.FParams.not_lAxisGeneric_corner] do
+      ``HubbardAtom.FParams.not_lAxisGeneric_corner,
+      ``HubbardAtom.OpLattice.eq_zero_of_null_of_col,
+      ``HubbardAtom.FParams.LGeneric.null_not_eq_zero,
+      ``HubbardAtom.FParams.eq_smul_w0L_of_chiL_self,
+      ``HubbardAtom.FParams.eq_zero_of_chiL_self_of_ne,
+      ``HubbardAtom.FParams.hasSum_chiL_self_w0L,
+      ``HubbardAtom.FParams.LGeneric.isUnit_onePlusKLAll_of_HL_ne,
+      ``HubbardAtom.FParams.not_isUnit_onePlusKLAll_of_TL_eq_one,
+      ``HubbardAtom.FParams.LGeneric.isUnit_onePlusKLAll_iff_of_HL_ne,
+      ``HubbardAtom.FParams.HL_ne_of_cL,
+      ``HubbardAtom.FParams.TL_eq_of_cL,
+      ``HubbardAtom.FParams.isUnit_onePlusKLAll_of_cL_eq_zero,
+      ``HubbardAtom.FParams.isUnit_onePlusKLAll_iff_of_cL_eq_zero,
+      ``HubbardAtom.FParams.gammaOpLAll_eq_gammaLAll_of_cL_eq_zero] do
     unless audited.contains anchor do
       throwError "{anchor} was not audited; the check is vacuous"
   if checked < 100 then
