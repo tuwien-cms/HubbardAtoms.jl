@@ -96,3 +96,4 @@ import HubbardAtomLean.SingletBounds
 import HubbardAtomLean.SingletOperator
 import HubbardAtomLean.HalfFillingBounds
 import HubbardAtomLean.DMOperator
+import HubbardAtomLean.SingletNull
