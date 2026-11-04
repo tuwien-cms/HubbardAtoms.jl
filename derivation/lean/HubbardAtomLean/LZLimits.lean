@@ -25,7 +25,9 @@ operator vertex is continuous at `x₀` (`continuousAt_gammaOpS`, `continuousAt_
 such approaches exist, i.e. that the assumptions hold at points arbitrarily close to `x₀`, is not
 shown here. The theorems hold for every filter `l ≤ 𝓝 x₀`, `l = ⊥` included, where they say
 nothing, so they do not prove that the values are the limits. For the singlet, such points exist in
-`μ` at fixed `U`, `β`, `k` (`SingletLZApproach.lean`, `SingletLZ.tendsto_gammaS`).
+`μ` at fixed `U`, `β`, `k` (`SingletLZApproach.lean`, `SingletLZ.tendsto_gammaS`), and at a lattice
+zero of Corollary "half filling" in `β` at fixed `U`, `k`, `μ = 0` (`HalfFillingLZApproach.lean`,
+`HFLZ.tendsto_gammaHF`).
 -/
 
 open Filter Topology

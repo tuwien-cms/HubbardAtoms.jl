@@ -228,30 +228,30 @@ theorem hasSum_Nph_div (ha : (A.a : ℂ) ≠ 0) (hμ : A.μ = 0) (z : ℂ) :
 variable {A k ε} {u : ℂ}
 
 /-- `∑ₗ ĝ(zₗ) = T̂`: `S_k(û)/û` by Lemma "basic sum", and `∑ₗ zₗ⁻² = -β²/4` at `û = 0`. -/
-theorem HFHyp.hasSum_That (h : A.HFHyp k ε u) :
+theorem hasSum_That_of (hμ : A.μ = 0) (hu : u ^ 2 = A.shat k ε)
+    (hz : ∀ n, A.z k n ^ 2 - A.shat k ε ≠ 0) :
     HasSum (fun l ↦ A.ghat k ε (A.z k l)) (A.That k u) := by
-  have hμ := h.μ_eq
   by_cases hu0 : u = 0
   · -- then `k` is even: for odd `k`, `z = 0` is a lattice point
-    have hs : A.shat k ε = 0 := by rw [← h.u_sq, hu0]; ring
+    have hs : A.shat k ε = 0 := by rw [← hu, hu0]; ring
     have hk : Even k := by
       rcases Int.even_or_odd k with hk | hk
       · exact hk
       · obtain ⟨n, hn⟩ := A.exists_z_eq_mu_of_odd hk
-        exact absurd (by rw [hn, hμ, hs]; simp) (h.z_sq_ne n)
-    have hz : ∀ l, A.z k l ≠ 0 := fun l h0 ↦ h.z_sq_ne l (by rw [h0, hs]; ring)
+        exact absurd (by rw [hn, hμ, hs]; simp) (hz n)
+    have hz0 : ∀ l, A.z k l ≠ 0 := fun l h0 ↦ hz l (by rw [h0, hs]; ring)
     have hS : A.S k 0 = 0 := by
       have := A.S_mu_of_even hk
       rwa [hμ, ofReal_zero] at this
-    have h₀ := A.hasSum_sq hz
+    have h₀ := A.hasSum_sq hz0
     rw [hS] at h₀
     rw [That, ite_eq_left hu0]
     convert h₀ using 1
     · funext l
       rw [ghat, hs, sub_zero, sub_zero]
     · ring
-  · have hzu : ∀ l, A.z k l ≠ u := fun l h0 ↦ h.z_sq_ne l (by rw [h0, h.u_sq]; ring)
-    have hzu' : ∀ l, A.z k l ≠ -u := fun l h0 ↦ h.z_sq_ne l (by rw [h0, neg_sq, h.u_sq]; ring)
+  · have hzu : ∀ l, A.z k l ≠ u := fun l h0 ↦ hz l (by rw [h0, hu]; ring)
+    have hzu' : ∀ l, A.z k l ≠ -u := fun l h0 ↦ hz l (by rw [h0, neg_sq, hu]; ring)
     have hS : A.S k (-u) = -A.S k u := by
       have := A.S_mu_sub k u
       rwa [hμ, ofReal_zero, zero_sub, zero_add] at this
@@ -263,13 +263,17 @@ theorem HFHyp.hasSum_That (h : A.HFHyp k ε u) :
       have h₃ : A.z k l ^ 2 - u ^ 2 ≠ 0 := by
         rw [show A.z k l ^ 2 - u ^ 2 = (A.z k l - u) * (A.z k l + u) by ring]
         exact mul_ne_zero h₁ h₂
-      rw [ghat, ← h.u_sq, sub_neg_eq_add, div_sub_div _ _ h₁ h₂, div_div,
+      rw [ghat, ← hu, sub_neg_eq_add, div_sub_div _ _ h₁ h₂, div_div,
         eq_div_iff (mul_ne_zero (mul_ne_zero h₁ h₂) (mul_ne_zero two_ne_zero hu0))]
       field_simp
       ring
     · rw [hS]
       field_simp
       ring
+
+theorem HFHyp.hasSum_That (h : A.HFHyp k ε u) :
+    HasSum (fun l ↦ A.ghat k ε (A.z k l)) (A.That k u) :=
+  hasSum_That_of h.μ_eq h.u_sq h.z_sq_ne
 
 variable (A k ε) in
 /-- The rational identity behind `HFHyp.hasSum_Nph_ghat`, with `P(û) = ŝ² + κŝ + q₀²` and
