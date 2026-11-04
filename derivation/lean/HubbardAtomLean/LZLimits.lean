@@ -27,7 +27,11 @@ shown here. The theorems hold for every filter `l ≤ 𝓝 x₀`, `l = ⊥` incl
 nothing, so they do not prove that the values are the limits. For the singlet, such points exist in
 `μ` at fixed `U`, `β`, `k` (`SingletLZApproach.lean`, `SingletLZ.tendsto_gammaS`), and at a lattice
 zero of Corollary "half filling" in `β` at fixed `U`, `k`, `μ = 0` (`HalfFillingLZApproach.lean`,
-`HFLZ.tendsto_gammaHF`).
+`HFLZ.tendsto_gammaHF`). For `tendsto_gammaR_of_HFHyp` and `tendsto_gammaR_of_HFLZ` they exist in
+`μ` at fixed `U`, `β`, `k`, for `ŝ' ≠ 0` at odd `k` and, at a lattice zero, `c` off the mirror
+fixed points (`HalfFillingApproach.lean`, `HFHyp.exists_tendsto_gammaR`,
+`HFLZ.exists_tendsto_gammaR`); under the note's assumptions of Corollary "half filling",
+`exists_tendsto_gammaR_of_eph`.
 -/
 
 open Filter Topology
