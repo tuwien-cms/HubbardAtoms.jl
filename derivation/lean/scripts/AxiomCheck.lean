@@ -219,7 +219,26 @@ run_cmd Elab.Command.liftCoreM do
       ``HubbardAtom.FParams.LAxisGeneric.gammaLAll_h0_closed_self,
       ``HubbardAtom.FParams.LAxisGeneric.gammaLAll_h0_closed_not,
       ``HubbardAtom.FParams.LAxisGeneric.gammaLAll_mu0,
-      ``HubbardAtom.FParams.LAxisGeneric.gammaLAll_mu0_closed] do
+      ``HubbardAtom.FParams.LAxisGeneric.gammaLAll_mu0_closed,
+      ``HubbardAtom.FParams.isUnit_onePlusKLAll_iff_onePlusKR_h0,
+      ``HubbardAtom.FParams.eq_invLh0R_of_hasSum,
+      ``HubbardAtom.FParams.chiInvLAll_eq_invLh0R,
+      ``HubbardAtom.FParams.gammaOpLAll_h0R,
+      ``HubbardAtom.FParams.eq_chiInvLAll_of_hasSum,
+      ``HubbardAtom.FParams.chiInvLAll_shiba,
+      ``HubbardAtom.FParams.gammaOpLAll_shiba,
+      ``HubbardAtom.FParams.isUnit_onePlusKLAll_iff_onePlusKR_mu0,
+      ``HubbardAtom.FParams.gammaOpLAll_mu0R,
+      ``HubbardAtom.FParams.isUnit_onePlusKLAll_corner,
+      ``HubbardAtom.FParams.chiInvLAll_corner,
+      ``HubbardAtom.FParams.isUnit_onePlusKLAll_iff_corner,
+      ``HubbardAtom.FParams.gammaOpLAll_corner,
+      ``HubbardAtom.FParams.gammaOpLAll_corner_lz_d,
+      ``HubbardAtom.FParams.gammaOpLAll_corner_lz_m,
+      ``HubbardAtom.FParams.gammaOpLAll_corner_lz,
+      ``HubbardAtom.FParams.gammaOpLAll_corner_mu0,
+      ``HubbardAtom.FParams.continuousAt_gammaOpLAll_corner,
+      ``HubbardAtom.FParams.tendsto_gammaL_corner] do
     unless audited.contains anchor do
       throwError "{anchor} was not audited; the check is vacuous"
   if checked < 100 then

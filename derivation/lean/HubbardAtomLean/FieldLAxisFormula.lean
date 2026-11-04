@@ -39,15 +39,19 @@ Eq. (field-L) and, if `1 + 𝒦` is invertible there, the operator vertex `Γ_L`
   `Γ_L = gammaLAll`**: along the line `lineL`, both are limits of `gammaL`.
 * `FParams.not_lAxisGeneric_corner`: at `μ = h = 0`, `LAxisGeneric` never holds: the roots
   `u² = -q₀ ± λ(p₀ - p↑)` of `E₈` have `K_t = K_{t,-t} = 0`, the simultaneous `0/0` of the note,
-  which uses Eqs. (field-h0), (field-mu0) there.
+  which uses Eqs. (field-h0), (field-mu0) there; for `Γ_L` these hold at the corner where
+  `1 + 𝒦_d`, `1 + 𝒦_m` of the zero-field source are invertible, e.g. under `HFHyp`
+  (`FieldLAxisCorner.lean`).
 
 Assumed: `LAxisGeneric` at the axis point, and for the agreement that `1 + 𝒦` is invertible there.
-Not shown: that these hold at given axis points (on `h = 0`, `μ ≠ 0` and on `μ = 0`, `h ≠ 0` the
-invertibility reduces to the zero-field channels, `FieldLAxisValues.lean`; on `μ = ±h ≠ 0` it
-holds where `LGeneric` holds for the regular column spin, under a condition at `k = 0`,
-`FieldLAxisUnitPM.lean`). The comparison of `gammaLAll` with Eqs. (field-h0), (field-mu0) as
-closed forms is `FieldLAxisClosedForms.lean`. Not in the note: `LAxisGeneric`, the limits and the
-agreement as proofs, and the corner statement.
+Not shown: that these hold at given axis points (on `h = 0` and on `μ = 0` the invertibility
+reduces to the zero-field channels, `FieldLAxisValues.lean` off the corner and
+`FieldLAxisCorner.lean` through it, where it holds under `HFHyp` or `HFLZ` for each channel of
+`(U, β, 0)`, or under `HFHyp` for both channels of `(-U, β, 0)`; on `μ = ±h ≠ 0` it holds where
+`LGeneric` holds for the regular column spin, under a condition at `k = 0`,
+`FieldLAxisUnitPM.lean`). The comparison of `gammaLAll` with
+Eqs. (field-h0), (field-mu0) as closed forms is `FieldLAxisClosedForms.lean`. Not in the note:
+`LAxisGeneric`, the limits and the agreement as proofs, and the corner statement.
 -/
 
 open Complex Filter Topology
