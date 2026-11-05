@@ -439,6 +439,279 @@ theorem shat_corner (hμ : F.μ = 0) (hh : F.h = 0) (ε : ℂ) :
   push_cast
   constructor <;> ring
 
+/-! ### Continuity of the parts along a family -/
+
+section Family
+
+variable {P : Type*} [TopologicalSpace P] {U β μ h : P → ℝ} {hβ : ∀ x, 0 < β x} {k : ℤ}
+  {x₀ : P} (hU : ContinuousAt U x₀) (hb : ContinuousAt β x₀) (hm : ContinuousAt μ x₀)
+  (hh : ContinuousAt h x₀)
+
+include hU hb hm hh
+
+/-- `N`, `Φ` of `K_{↑↑}` and `K_{↓↑}`, and `L` of `K_{↓↑}`, at a moving point `v(x)`, are
+continuous: they are polynomials in the data. -/
+theorem continuousAt_famF_plus {v : P → ℂ} (hv : ContinuousAt v x₀) :
+    ContinuousAt (fun x ↦ (famF U β μ h hβ x).NLp k (v x)) x₀ ∧
+      ContinuousAt (fun x ↦ (famF U β μ h hβ x).PhiUU k (v x)) x₀ ∧
+      ContinuousAt (fun x ↦ (famF U β μ h hβ x).PhiDU k (v x)) x₀ ∧
+      ContinuousAt (fun x ↦ (famF U β μ h hβ x).LDU k (v x)) x₀ ∧
+      ContinuousAt (fun x ↦ ((famF U β μ h hβ x).kapL : ℂ)) x₀ := by
+  obtain ⟨ha, hβc, -, -, -⟩ := continuousAt_famF_data hU hb hm hh (hβ := hβ) (k := k)
+  have hq := continuousAt_famF_q₀L hU hb hm hh (hβ := hβ) (k := k)
+  have p₀ := continuousAt_famF_p hU hb hm hh (hβ := hβ) FParams.p₀ (by simp)
+  have pu := continuousAt_famF_p hU hb hm hh (hβ := hβ) FParams.pUp (by simp)
+  have pd := continuousAt_famF_p hU hb hm hh (hβ := hβ) FParams.pDn (by simp)
+  have p₂ := continuousAt_famF_p hU hb hm hh (hβ := hβ) FParams.p₂ (by simp)
+  have hκ : ContinuousAt (fun x ↦ ((famF U β μ h hβ x).kapL : ℂ)) x₀ := by
+    simp only [kapL, famF]
+    fun_prop
+  refine ⟨?_, ?_, ?_, ?_, hκ⟩ <;>
+    simp only [NLp, PhiUU, PhiDU, LDU, DXUU, DYUU, DrUU, DXDU, DYDU, DrDU, HL, lamL, piP, piS, rUp,
+      rDn, ρ, mf] <;>
+    push_cast <;> fun_prop
+
+end Family
+
+/-! ### `LAxisGeneric` near the corner on `μ = h` -/
+
+/-- At `u ≠ 0`: `2aβu - ελS_k(u) = 2auD̂(u)`, with `λ = 4a²`. -/
+theorem two_a_beta_sub (A : Params) (k : ℤ) {ε u : ℂ} (hu : u ≠ 0) :
+    2 * A.a * A.β * u - ε * (4 * A.a ^ 2) * A.S k u = 2 * A.a * u * A.Dhat k ε u := by
+  simp only [Params.Dhat, Params.That, hu, ↓reduceIte]
+  field_simp
+  ring
+
+/-- **`LAxisGeneric` near the corner on `μ = h`**: if both zero-field channels of `(U, β, 0)`
+satisfy the assumptions of Corollary "half filling" (`HFHyp`, with `ŝ' ≠ 0` for odd `k`) with
+`û ≠ 0`, then there are roots `v(s)` such that `LAxisGeneric` holds at every `μ = h = s ≠ 0` near
+`0`. The roots continue the roots `û`, `√ŝ'` of the channels at the corner
+(`exists_famF_E8L_root`). At `û`, `K_{↑↑}` and `K_{↓↑}` are `ρΨ/N` (`KL_UU_plus`, `KL_DU_plus`)
+with `Ψ → 16p₀⁴λ⁴κ²(1 - κ)·2aûD̂ ≠ 0` (`PhiUU_corner`, `PhiDU_corner`); at `√ŝ'` they tend to
+`±4βλ³κ(1 + κ)p₀³ ≠ 0` (`KL_UU_corner'`, `KL_DU_corner'`). -/
+theorem eventually_lAxisGeneric_plus {u u' : ℂ} (hd : (F.lat 0).HFHyp k 1 u)
+    (hm : (F.lat 0).HFHyp k (-1) u') (hu0 : u ≠ 0) (hu0' : u' ≠ 0)
+    (hsd : Odd k → (F.lat 0).shat' k 1 ≠ 0) (hsm : Odd k → (F.lat 0).shat' k (-1) ≠ 0) :
+    ∃ v : ℝ → Fin 4 → ℂ, ∀ᶠ s in 𝓝[≠] 0, (F.axis .plus s).LAxisGeneric k (v s) := by
+  -- the axis as a family, and its corner `F₀`
+  have hUc : ContinuousAt (fun _ : ℝ ↦ F.U) 0 := continuousAt_const
+  have hbc : ContinuousAt (fun _ : ℝ ↦ F.β) 0 := continuousAt_const
+  have hmc : ContinuousAt (fun s : ℝ ↦ s * Axis.dμ .plus) 0 := by fun_prop
+  have hhc : ContinuousAt (fun s : ℝ ↦ s * Axis.dh .plus) 0 := by fun_prop
+  set F₀ := F.axis .plus 0 with hF₀
+  have hμ₀ : F₀.μ = 0 := by simp [hF₀]
+  have hh₀ : F₀.h = 0 := by simp [hF₀]
+  have hl₀ : F₀.lat 0 = F.lat 0 := rfl
+  have hB₀ : ∀ σ, F₀.BL σ = F.lat 0 := fun σ ↦ by
+    cases σ <;> simp [hF₀, Bup, Bdn, axis_μ, axis_h, Axis.dμ, Axis.dh] <;> rfl
+  have ha : (F.a : ℂ) ≠ 0 := hd.a_ne
+  have hU : F.U ≠ 0 := fun h ↦ ha (by rw [a, h, zero_div, ofReal_zero])
+  have hl : F₀.lamL ≠ 0 := by
+    rw [axis_lamL, lamL]; exact mul_ne_zero (by norm_num) (pow_ne_zero 2 ha)
+  have hp : (F₀.p₀ : ℂ) ≠ 0 := ofReal_ne_zero.mpr F₀.p₀_pos.ne'
+  have hκ0 : (F₀.kapL : ℂ) ≠ 0 := ofReal_ne_zero.mpr (Real.exp_pos _).ne'
+  have hκ1 : (1 - F₀.kapL : ℂ) ≠ 0 := by
+    rw [sub_ne_zero, ne_comm, ← ofReal_one, ne_eq, ofReal_inj, kapL, Real.exp_eq_one_iff]
+    exact div_ne_zero (mul_ne_zero F.β_pos.ne' hU) two_ne_zero
+  have hκ1' : (1 + F₀.kapL : ℂ) ≠ 0 := by
+    rw [← ofReal_one, ← ofReal_add]
+    exact ofReal_ne_zero.mpr (by positivity [Real.exp_pos (F.β * F.U / 2)])
+  -- the roots at the corner: `û`, `√ŝ'_d`, `û'`, `√ŝ'_m`
+  obtain ⟨hsd₁, hsd₂⟩ := F₀.shat_corner k hμ₀ hh₀ 1
+  obtain ⟨hsm₁, hsm₂⟩ := F₀.shat_corner k hμ₀ hh₀ (-1)
+  rw [hl₀] at hsd₁ hsd₂ hsm₁ hsm₂
+  set vd : ℂ := (F.lat 0).shat' k 1 ^ (2⁻¹ : ℂ)
+  set vm : ℂ := (F.lat 0).shat' k (-1) ^ (2⁻¹ : ℂ)
+  have hvd : vd ^ 2 = (F.lat 0).shat' k 1 := by simp [vd]
+  have hvm : vm ^ 2 = (F.lat 0).shat' k (-1) := by simp [vm]
+  set U₀ : Fin 4 → ℂ := ![u, vd, u', vm]
+  set c : Fin 4 → ℂ := ![1 - F₀.kapL, -(1 + F₀.kapL), -(1 - F₀.kapL), 1 + F₀.kapL]
+  have hsq : ∀ j, U₀ j ^ 2 + F₀.q₀L k = F₀.lamL * F₀.p₀ * c j := fun j ↦ by
+    fin_cases j <;> simp only [U₀, c, Fin.zero_eta, Fin.mk_one, Fin.reduceFinMk,
+      Matrix.cons_val_zero, Matrix.cons_val_one, Matrix.cons_val_two, Matrix.cons_val_three,
+      Matrix.head_cons, Matrix.tail_cons]
+    · rw [hd.u_sq]; linear_combination hsd₁
+    · rw [hvd]; linear_combination hsd₂
+    · rw [hm.u_sq]; linear_combination hsm₁
+    · rw [hvm]; linear_combination hsm₂
+  have hc : ∀ i j, i ≠ j → c i - c j ≠ 0 := fun i j hij ↦ by
+    fin_cases i <;> fin_cases j <;> simp only [c, Fin.zero_eta, Fin.mk_one, Fin.reduceFinMk,
+      Matrix.cons_val_zero, Matrix.cons_val_one, Matrix.cons_val_two, Matrix.cons_val_three,
+      Matrix.head_cons, Matrix.tail_cons] at hij ⊢ <;>
+      first
+      | exact absurd rfl hij
+      | (intro h; apply (two_ne_zero : (2 : ℂ) ≠ 0); linear_combination h)
+      | (intro h; apply (two_ne_zero : (2 : ℂ) ≠ 0); linear_combination -h)
+      | (intro h; apply hκ0; linear_combination -h / 2)
+      | (intro h; apply hκ0; linear_combination h / 2)
+      | (intro h; apply hκ1; linear_combination h / 2)
+      | (intro h; apply hκ1; linear_combination -h / 2)
+      | (intro h; apply hκ1'; linear_combination h / 2)
+      | (intro h; apply hκ1'; linear_combination -h / 2)
+  have sep₀ : ∀ i j, i ≠ j → U₀ i ^ 2 - U₀ j ^ 2 ≠ 0 := fun i j hij ↦ by
+    rw [show U₀ i ^ 2 - U₀ j ^ 2 = F₀.lamL * F₀.p₀ * (c i - c j) by
+      linear_combination hsq i - hsq j]
+    exact mul_ne_zero (mul_ne_zero hl hp) (hc i j hij)
+  have hE : ∀ v, F₀.E8L k v = (v ^ 2 - (F.lat 0).shat k 1) * (v ^ 2 - (F.lat 0).shat' k 1) *
+      ((v ^ 2 - (F.lat 0).shat k (-1)) * (v ^ 2 - (F.lat 0).shat' k (-1))) := fun v ↦ by
+    rw [F₀.E8L_h0 k hh₀, hμ₀, hl₀, (F.lat 0).eph_of_mu' k 1 rfl, (F.lat 0).eph_of_mu' k (-1) rfl]
+  have root₀ : ∀ j, F₀.E8L k (U₀ j) = 0 := fun j ↦ by
+    rw [hE]
+    fin_cases j <;> simp only [U₀, Fin.zero_eta, Fin.mk_one, Fin.reduceFinMk, Matrix.cons_val_zero,
+      Matrix.cons_val_one, Matrix.cons_val_two, Matrix.cons_val_three, Matrix.head_cons,
+      Matrix.tail_cons]
+    · rw [hd.u_sq, sub_self, zero_mul, zero_mul]
+    · rw [hvd, sub_self, mul_zero, zero_mul]
+    · rw [hm.u_sq, sub_self, zero_mul, mul_zero]
+    · rw [hvm, sub_self, mul_zero, mul_zero]
+  -- the roots along the axis
+  have hpath : ∀ j, ∃ V : ℝ → ℂ, V 0 = U₀ j ∧ ContinuousAt V 0 ∧
+      ∀ᶠ s in 𝓝 0, (F.axis .plus s).E8L k (V s) = 0 := fun j ↦ by
+    obtain ⟨V, h0, hc, hr⟩ := exists_famF_E8L_root (hβ := fun _ ↦ F.β_pos) (k := k) hUc hbc hmc
+      hhc (u₀ := U₀ j) ha (root₀ j) (by
+        show ∑ i : Fin 5, (i : ℕ) * F₀.E8c k i * (U₀ j ^ 2) ^ ((i : ℕ) - 1) ≠ 0
+        rw [F₀.sum_E8c_deriv k root₀ sep₀ j]
+        exact dprod_ne sep₀ j)
+    exact ⟨V, h0, hc, hr.mono fun s h ↦ h.1⟩
+  choose V hV0 hVc hVr using hpath
+  have hroot : ∀ᶠ s in 𝓝 0, ∀ j, (F.axis .plus s).E8L k (V j s) = 0 :=
+    Filter.eventually_all.2 hVr
+  have hsep : ∀ᶠ s in 𝓝 0, ∀ i j, i ≠ j → V i s ^ 2 - V j s ^ 2 ≠ 0 :=
+    Filter.eventually_all.2 fun i ↦ Filter.eventually_all.2 fun j ↦ by
+      by_cases hij : i = j
+      · exact Eventually.of_forall fun _ h ↦ absurd hij h
+      · refine ((((hVc i).pow 2).sub ((hVc j).pow 2)).eventually_ne ?_).mono fun _ h _ ↦ h
+        show V i 0 ^ 2 - V j 0 ^ 2 ≠ 0
+        rw [hV0, hV0]
+        exact sep₀ i j hij
+  -- the corner roots are off both lattices
+  have hz₀ : ∀ n, (F.lat 0).z k n ^ 2 - (F.lat 0).shat k 1 ≠ 0 := hd.z_sq_ne
+  have hz₁ := Params.z_sq_ne'_of (A := F.lat 0) (k := k) (ε := 1) rfl hsd hd.odd_ne
+  have hz₂ : ∀ n, (F.lat 0).z k n ^ 2 - (F.lat 0).shat k (-1) ≠ 0 := hm.z_sq_ne
+  have hz₃ := Params.z_sq_ne'_of (A := F.lat 0) (k := k) (ε := -1) rfl hsm hm.odd_ne
+  have hoff : ∀ j t n, (F₀.BL t).z k n ≠ U₀ j := fun j t n hn ↦ by
+    rw [hB₀] at hn
+    fin_cases j <;> simp only [U₀, Fin.zero_eta, Fin.mk_one, Fin.reduceFinMk, Matrix.cons_val_zero,
+      Matrix.cons_val_one, Matrix.cons_val_two, Matrix.cons_val_three, Matrix.head_cons,
+      Matrix.tail_cons] at hn
+    · exact hz₀ n (by rw [hn, hd.u_sq, sub_self])
+    · exact hz₁ n (by rw [hn, hvd, sub_self])
+    · exact hz₂ n (by rw [hn, hm.u_sq, sub_self])
+    · exact hz₃ n (by rw [hn, hvm, sub_self])
+  -- continuity of the data along the axis
+  have hqc : ContinuousAt (fun s ↦ (F.axis .plus s).q₀L k) 0 := continuousAt_const
+  have hlc : ContinuousAt (fun s ↦ (F.axis .plus s).lamL) 0 := continuousAt_const
+  have hκc : ContinuousAt (fun s ↦ ((F.axis .plus s).kapL : ℂ)) 0 := continuousAt_const
+  have hp₀c : ContinuousAt (fun s ↦ ((F.axis .plus s).p₀ : ℂ)) 0 :=
+    continuousAt_famF_p hUc hbc hmc hhc (hβ := fun _ ↦ F.β_pos) FParams.p₀ (by simp)
+  have hp₂c : ContinuousAt (fun s ↦ ((F.axis .plus s).p₂ : ℂ)) 0 :=
+    continuousAt_famF_p hUc hbc hmc hhc (hβ := fun _ ↦ F.β_pos) FParams.p₂ (by simp)
+  -- at the roots `û`, `û'`: `N ≠ 0` and `Ψ ≠ 0` near the corner
+  have hvan : ∀ j ε, (ε = 1 ∨ ε = -1) → U₀ j ^ 2 + F₀.q₀L k = ε * F₀.lamL * F₀.p₀ * (1 - F₀.kapL) →
+      U₀ j ≠ 0 → (F.lat 0).Dhat k ε (U₀ j) ≠ 0 →
+      ∀ᶠ s in 𝓝 0, (F.axis .plus s).NLp k (V j s) ≠ 0 ∧
+        (F.axis .plus s).PhiUU k (V j s) + (F.axis .plus s).NLp k (V j s) *
+          ((F.axis .plus s).BL true).S k (V j s) * (4 * (F.axis .plus s).lamL ^ 2 *
+            (F.axis .plus s).kapL * (((F.axis .plus s).p₀ + (F.axis .plus s).p₂) / 2) *
+            (V j s ^ 2 + (F.axis .plus s).q₀L k)) ≠ 0 ∧
+        (F.axis .plus s).PhiDU k (V j s) + (F.axis .plus s).NLp k (V j s) *
+          ((F.axis .plus s).BL false).S k (V j s) * (F.axis .plus s).LDU k (V j s) ≠ 0 := by
+    intro j ε hε hu hu0 hD
+    obtain ⟨hN, hΦ, hΦ', hL, hκ⟩ := continuousAt_famF_plus hUc hbc hmc hhc (hβ := fun _ ↦ F.β_pos)
+      (k := k) (hVc j)
+    have hS := continuousAt_famF_S hbc hmc hhc (hβ := fun _ ↦ F.β_pos) (U := fun _ ↦ F.U)
+      (k := k) true (hVc j) (fun n ↦ by rw [hV0]; exact hoff j true n)
+    have hS' := continuousAt_famF_S hbc hmc hhc (hβ := fun _ ↦ F.β_pos) (U := fun _ ↦ F.U)
+      (k := k) false (hVc j) (fun n ↦ by rw [hV0]; exact hoff j false n)
+    have hS₀ : ∀ σ, (F₀.BL σ).S k (U₀ j) = (F.lat 0).S k (U₀ j) := fun σ ↦ by rw [hB₀]
+    have hval : 2 * F₀.a * F₀.β * U₀ j - ε * F₀.lamL * (F.lat 0).S k (U₀ j) ≠ 0 := by
+      have := two_a_beta_sub (F.lat 0) k (ε := ε) hu0
+      rw [lat_a, lat_β] at this
+      rw [axis_a, axis_β, axis_lamL, lamL, this]
+      exact mul_ne_zero (mul_ne_zero (mul_ne_zero two_ne_zero ha) hu0) hD
+    have hc16 : (16 : ℂ) * F₀.p₀ ^ 4 * F₀.lamL ^ 4 * F₀.kapL ^ 2 * (1 - F₀.kapL) ≠ 0 :=
+      mul_ne_zero (mul_ne_zero (mul_ne_zero (mul_ne_zero (by norm_num) (pow_ne_zero 4 hp))
+        (pow_ne_zero 4 hl)) (pow_ne_zero 2 hκ0)) hκ1
+    have hε0 : ε ≠ 0 := by rcases hε with rfl | rfl <;> norm_num
+    refine (hN.eventually_ne ?_).and ((ContinuousAt.eventually_ne ?_ ?_).and
+      (ContinuousAt.eventually_ne ?_ ?_))
+    · show F₀.NLp k (V j 0) ≠ 0
+      rw [hV0, F₀.NLp_corner k hμ₀ hh₀ hε hu]
+      exact mul_ne_zero (mul_ne_zero (mul_ne_zero (by norm_num) (pow_ne_zero 2 hl))
+        (pow_ne_zero 2 hp)) hκ0
+    · exact hΦ.add ((hN.mul hS).mul (by fun_prop))
+    · show F₀.PhiUU k (V j 0) + F₀.NLp k (V j 0) * (F₀.BL true).S k (V j 0) *
+        (4 * F₀.lamL ^ 2 * F₀.kapL * ((F₀.p₀ + F₀.p₂) / 2) * (V j 0 ^ 2 + F₀.q₀L k)) ≠ 0
+      rw [hV0, F₀.PhiUU_corner k hμ₀ hh₀ hε hu, hS₀]
+      exact mul_ne_zero hc16 hval
+    · exact hΦ'.add ((hN.mul hS').mul hL)
+    · show F₀.PhiDU k (V j 0) + F₀.NLp k (V j 0) * (F₀.BL false).S k (V j 0) *
+        F₀.LDU k (V j 0) ≠ 0
+      rw [hV0, F₀.PhiDU_corner k hμ₀ hh₀ hε hu, hS₀]
+      exact mul_ne_zero (mul_ne_zero hc16 hε0) hval
+  -- at the roots `√ŝ'`: `K_{↑↑}`, `K_{↓↑}` tend to `±4βλ³κ(1 + κ)p₀³ ≠ 0`
+  have hβ : (F₀.β : ℂ) ≠ 0 := ofReal_ne_zero.mpr F₀.β_pos.ne'
+  have hc4 : (4 : ℂ) * F₀.β * F₀.lamL ^ 3 * F₀.kapL * (1 + F₀.kapL) * F₀.p₀ ^ 3 ≠ 0 :=
+    mul_ne_zero (mul_ne_zero (mul_ne_zero (mul_ne_zero (mul_ne_zero (by norm_num) hβ)
+      (pow_ne_zero 3 hl)) hκ0) hκ1') (pow_ne_zero 3 hp)
+  have hnon : ∀ j ε, (ε = 1 ∨ ε = -1) →
+      U₀ j ^ 2 + F₀.q₀L k = -(ε * F₀.lamL * F₀.p₀ * (1 + F₀.kapL)) →
+      ∀ᶠ s in 𝓝 0, (F.axis .plus s).KL k true true (V j s) ≠ 0 ∧
+        (F.axis .plus s).KL k false true (V j s) ≠ 0 := by
+    intro j ε hε hu
+    have hε0 : ε ≠ 0 := by rcases hε with rfl | rfl <;> norm_num
+    have h₁ : ContinuousAt (fun s ↦ (F.axis .plus s).KL k true true (V j s)) 0 :=
+      continuousAt_famF_KL hUc hbc hmc hhc (hβ := fun _ ↦ F.β_pos) (k := k) true true (hVc j)
+        (fun n ↦ by rw [hV0]; exact hoff j true n)
+    have h₂ : ContinuousAt (fun s ↦ (F.axis .plus s).KL k false true (V j s)) 0 :=
+      continuousAt_famF_KL hUc hbc hmc hhc (hβ := fun _ ↦ F.β_pos) (k := k) false true (hVc j)
+        (fun n ↦ by rw [hV0]; exact hoff j false n)
+    refine (h₁.eventually_ne ?_).and (h₂.eventually_ne ?_)
+    · show F₀.KL k true true (V j 0) ≠ 0
+      rw [hV0, F₀.KL_UU_corner' k hμ₀ hh₀ hε hu]
+      refine ne_of_eq_of_ne (by ring) (mul_ne_zero hε0 hc4)
+    · show F₀.KL k false true (V j 0) ≠ 0
+      rw [hV0, F₀.KL_DU_corner' k hμ₀ hh₀ hε hu]
+      exact hc4
+  have hU₀ : ∀ j, U₀ j ^ 2 + F₀.q₀L k = F₀.lamL * F₀.p₀ * c j := hsq
+  have e₀ := hvan 0 1 (Or.inl rfl) (by rw [hU₀]; simp [c]) hu0 hd.D_ne
+  have e₂ := hvan 2 (-1) (Or.inr rfl) (by rw [hU₀]; simp [c]; ring) hu0' hm.D_ne
+  have e₁ := hnon 1 1 (Or.inl rfl) (by rw [hU₀]; simp [c]; ring)
+  have e₃ := hnon 3 (-1) (Or.inr rfl) (by rw [hU₀]; simp [c])
+  refine ⟨fun s j ↦ V j s, ?_⟩
+  filter_upwards [F.eventually_sep_off_axis k .plus hU 0, nhdsWithin_le_nhds hroot,
+    nhdsWithin_le_nhds hsep, nhdsWithin_le_nhds e₀, nhdsWithin_le_nhds e₁,
+    nhdsWithin_le_nhds e₂, nhdsWithin_le_nhds e₃, self_mem_nhdsWithin]
+    with s hso hr hs h₀ h₁ h₂ h₃ hs0
+  set G := F.axis .plus s with hGdef
+  have hμh : G.μ = G.h := by simp [hGdef, Axis.dμ, Axis.dh]
+  have hρ : (G.ρ : ℂ) ≠ 0 := G.rho_ne_zeroT (by simpa [hGdef, Axis.dμ] using hs0)
+  have hprod : ∀ v, G.E8L k v = ∏ j, (v ^ 2 - V j s ^ 2) := fun v ↦ by
+    rw [G.E8L_eq_prod k hr hs v, Fin.prod_univ_four]
+  obtain ⟨-, off⟩ := hso (fun j ↦ V j s) hprod
+  have hvan' : ∀ j, G.NLp k (V j s) ≠ 0 →
+      G.PhiUU k (V j s) + G.NLp k (V j s) * (G.BL true).S k (V j s) *
+        (4 * G.lamL ^ 2 * G.kapL * ((G.p₀ + G.p₂) / 2) * (V j s ^ 2 + G.q₀L k)) ≠ 0 →
+      G.PhiDU k (V j s) + G.NLp k (V j s) * (G.BL false).S k (V j s) * G.LDU k (V j s) ≠ 0 →
+      G.KL k true true (V j s) ≠ 0 ∧ G.KL k false true (V j s) ≠ 0 := fun j _ hΨ hΨ' ↦
+    ⟨fun hK ↦ by
+      have := G.KL_UU_plus k hμh (hr j)
+      rw [hK, mul_zero] at this
+      exact mul_ne_zero hρ hΨ this.symm,
+    fun hK ↦ by
+      have := G.KL_DU_plus k hμh (hr j)
+      rw [hK, mul_zero] at this
+      exact mul_ne_zero hρ hΨ' this.symm⟩
+  have hK : ∀ j, G.KL k true true (V j s) ≠ 0 ∧ G.KL k false true (V j s) ≠ 0
+    | 0 => hvan' 0 h₀.1 h₀.2.1 h₀.2.2
+    | 1 => h₁
+    | 2 => hvan' 2 h₂.1 h₂.2.1 h₂.2.2
+    | 3 => h₃
+  refine ⟨ha, hr, hs, fun j _ σ l ↦ off j σ l, fun t j _ ↦ ?_⟩
+  cases t
+  · exact Or.inr ⟨(hK j).2, G.sq_add_q₀L_ne_of_sep k hr hs j⟩
+  · exact Or.inl (hK j).1
+
 /-! ### `LAxisGeneric` near the corner on `h = 0` -/
 
 /-- **`LAxisGeneric` near the corner on `h = 0`**: if both zero-field channels of `(U, β, 0)`
