@@ -351,6 +351,94 @@ theorem KL_DU_plus (hμh : F.μ = F.h) {u : ℂ} (hr : F.E8L k u = 0) :
   push_cast at hr ⊢
   linear_combination F.lamL * F.β * ((F.p₀ + F.p₂ + F.kapL * F.p₂ + F.kapL * F.p₀) / 2) * hr
 
+/-! ### At the corner: the values of `N` and `Φ + N S L` -/
+
+/-- At the corner and `u² + q₀ = ελp₀(1 - κ)` (the root `ŝ` of the channel `ε`): `N = -4λ²p₀²κ`. -/
+theorem NLp_corner (hμ : F.μ = 0) (hh : F.h = 0) {ε : ℂ} (hε : ε = 1 ∨ ε = -1) {u : ℂ}
+    (hu : u ^ 2 + F.q₀L k = ε * F.lamL * F.p₀ * (1 - F.kapL)) :
+    F.NLp k u = -4 * F.lamL ^ 2 * F.p₀ ^ 2 * F.kapL := by
+  obtain ⟨-, -, -, hp, -⟩ := F.shiba_lat_weights hμ
+  have hd := F.pDn_of_plus (hμ.trans hh.symm)
+  have hu' := F.pUp_of_plus (hμ.trans hh.symm)
+  have hq : F.q₀L k = ε * F.lamL * F.p₀ * (1 - F.kapL) - u ^ 2 := by rw [← hu]; ring
+  simp only [NLp, HL, rUp, rDn, ρ, mf, hd, hu', hp, hq]
+  push_cast
+  rcases hε with rfl | rfl <;> ring
+
+/-- At the corner and `u² + q₀ = ελp₀(1 - κ)`: `Φ + N S 4λ²κP(u² + q₀) = 16p₀⁴λ⁴κ²(1 - κ)(2aβu - ελS)`
+for `K_{↑↑}`, at every value `S` of `S↑(u)`. -/
+theorem PhiUU_corner (hμ : F.μ = 0) (hh : F.h = 0) {ε : ℂ} (hε : ε = 1 ∨ ε = -1) {u : ℂ}
+    (hu : u ^ 2 + F.q₀L k = ε * F.lamL * F.p₀ * (1 - F.kapL)) (S : ℂ) :
+    F.PhiUU k u + F.NLp k u * S *
+        (4 * F.lamL ^ 2 * F.kapL * ((F.p₀ + F.p₂) / 2) * (u ^ 2 + F.q₀L k)) =
+      16 * F.p₀ ^ 4 * F.lamL ^ 4 * F.kapL ^ 2 * (1 - F.kapL) *
+        (2 * F.a * F.β * u - ε * F.lamL * S) := by
+  obtain ⟨-, -, -, hp, -⟩ := F.shiba_lat_weights hμ
+  have hd := F.pDn_of_plus (hμ.trans hh.symm)
+  have hu' := F.pUp_of_plus (hμ.trans hh.symm)
+  have hq : F.q₀L k = ε * F.lamL * F.p₀ * (1 - F.kapL) - u ^ 2 := by rw [← hu]; ring
+  simp only [PhiUU, DXUU, DYUU, DrUU, NLp, HL, rUp, rDn, ρ, mf, hd, hu', hp, hq]
+  push_cast
+  rcases hε with rfl | rfl <;> ring
+
+/-- At the corner and `u² + q₀ = ελp₀(1 - κ)`: `Φ + N S L = 16p₀⁴λ⁴κ²(1 - κ)ε(2aβu - ελS)` for
+`K_{↓↑}`, at every value `S` of `S↓(u)`. -/
+theorem PhiDU_corner (hμ : F.μ = 0) (hh : F.h = 0) {ε : ℂ} (hε : ε = 1 ∨ ε = -1) {u : ℂ}
+    (hu : u ^ 2 + F.q₀L k = ε * F.lamL * F.p₀ * (1 - F.kapL)) (S : ℂ) :
+    F.PhiDU k u + F.NLp k u * S * F.LDU k u =
+      16 * F.p₀ ^ 4 * F.lamL ^ 4 * F.kapL ^ 2 * (1 - F.kapL) * ε *
+        (2 * F.a * F.β * u - ε * F.lamL * S) := by
+  obtain ⟨-, -, -, hp, -⟩ := F.shiba_lat_weights hμ
+  have hd := F.pDn_of_plus (hμ.trans hh.symm)
+  have hu' := F.pUp_of_plus (hμ.trans hh.symm)
+  have hq : F.q₀L k = ε * F.lamL * F.p₀ * (1 - F.kapL) - u ^ 2 := by rw [← hu]; ring
+  simp only [PhiDU, DXDU, DYDU, DrDU, NLp, LDU, HL, rUp, rDn, ρ, mf, piS, piP, hd, hu', hp, hq]
+  push_cast
+  rcases hε with rfl | rfl <;> ring
+
+/-- At the corner and `u² + q₀ = -ελp₀(1 + κ)` (the root `ŝ'` of the channel `ε`):
+`K_{↑↑} = 4εβλ³κ(1 + κ)p₀³`. -/
+theorem KL_UU_corner' (hμ : F.μ = 0) (hh : F.h = 0) {ε : ℂ} (hε : ε = 1 ∨ ε = -1) {u : ℂ}
+    (hu : u ^ 2 + F.q₀L k = -(ε * F.lamL * F.p₀ * (1 + F.kapL))) :
+    F.KL k true true u = 4 * ε * F.β * F.lamL ^ 3 * F.kapL * (1 + F.kapL) * F.p₀ ^ 3 := by
+  obtain ⟨-, -, -, hp, -⟩ := F.shiba_lat_weights hμ
+  have hd := F.pDn_of_plus (hμ.trans hh.symm)
+  have hu' := F.pUp_of_plus (hμ.trans hh.symm)
+  have hq : F.q₀L k = -(ε * F.lamL * F.p₀ * (1 + F.kapL)) - u ^ 2 := by rw [← hu]; ring
+  simp only [KL, fMp, fMm, QL, αL, DL, cLw, pL_true, pL_false, rL_true, rL_false, Bool.not_true,
+    ↓reduceIte, HL, rUp, rDn, ρ, mf, piS, piP, hd, hu', hp, hq]
+  push_cast
+  rcases hε with rfl | rfl <;> ring
+
+/-- At the corner and `u² + q₀ = -ελp₀(1 + κ)`: `K_{↓↑} = 4βλ³κ(1 + κ)p₀³`. -/
+theorem KL_DU_corner' (hμ : F.μ = 0) (hh : F.h = 0) {ε : ℂ} (hε : ε = 1 ∨ ε = -1) {u : ℂ}
+    (hu : u ^ 2 + F.q₀L k = -(ε * F.lamL * F.p₀ * (1 + F.kapL))) :
+    F.KL k false true u = 4 * F.β * F.lamL ^ 3 * F.kapL * (1 + F.kapL) * F.p₀ ^ 3 := by
+  obtain ⟨-, -, -, hp, -⟩ := F.shiba_lat_weights hμ
+  have hd := F.pDn_of_plus (hμ.trans hh.symm)
+  have hu' := F.pUp_of_plus (hμ.trans hh.symm)
+  have hq : F.q₀L k = -(ε * F.lamL * F.p₀ * (1 + F.kapL)) - u ^ 2 := by rw [← hu]; ring
+  simp only [KL, fMp, fMm, Bool.true_eq_false, ↓reduceIte, Bool.not_false, Bool.not_true, αSL,
+    αPL, mL_true, rL_true, rL_false]
+  simp only [cS, cP, HL, rUp, rDn, ρ, mf, piS, piP, hd, hu', hp, hq]
+  push_cast
+  rcases hε with rfl | rfl <;> ring
+
+/-- At the corner, the roots of the zero-field channels in terms of the field data:
+`ŝ + q₀ = ελp₀(1 - κ)`, `ŝ' + q₀ = -ελp₀(1 + κ)`. -/
+theorem shat_corner (hμ : F.μ = 0) (hh : F.h = 0) (ε : ℂ) :
+    (F.lat 0).shat k ε + F.q₀L k = ε * F.lamL * F.p₀ * (1 - F.kapL) ∧
+      (F.lat 0).shat' k ε + F.q₀L k = -(ε * F.lamL * F.p₀ * (1 + F.kapL)) := by
+  have h₀ := F.lat_p₀ hh
+  have h₁ := F.lat_p₁_up hh
+  have hu' := F.pUp_of_plus (hμ.trans hh.symm)
+  obtain ⟨-, -, -, hp, -⟩ := F.shiba_lat_weights hμ
+  rw [hμ] at h₀ h₁
+  simp only [Params.shat, Params.shat', Params.q₀, Params.w, q₀L, wL, lamL, lat_a, lat_ω, h₀, h₁,
+    hu', hp]
+  push_cast
+  constructor <;> ring
+
 /-! ### `LAxisGeneric` near the corner on `h = 0` -/
 
 /-- **`LAxisGeneric` near the corner on `h = 0`**: if both zero-field channels of `(U, β, 0)`
