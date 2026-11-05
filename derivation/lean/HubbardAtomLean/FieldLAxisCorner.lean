@@ -533,9 +533,10 @@ theorem continuousAt_gammaOpLAll_corner (hU : ContinuousAt U x₀) (hb : Continu
 /-- **The closed form tends to Eq. (field-h0) at the corner**: along a family `(U, β, μ, h)(x)`
 continuous at `x₀` with `μ(x₀) = h(x₀) = 0`, if both channels of `(U(x₀), β(x₀), 0)` satisfy the
 assumptions of Corollary "half filling", then along any approach `x i → x₀` through points where
-Eq. (field-L) holds, `gammaL_στ → (gammaHF_d + s_στ gammaHF_m)/2` of `(U(x₀), β(x₀), 0)`. That
-such approaches exist is not shown: `LAxisGeneric`, which gives them elsewhere on the axes, never
-holds at the corner (`not_lAxisGeneric_corner`). -/
+Eq. (field-L) holds, `gammaL_στ → (gammaHF_d + s_στ gammaHF_m)/2` of `(U(x₀), β(x₀), 0)`.
+`LAxisGeneric`, which gives such approaches elsewhere on the axes, never holds at the corner
+(`not_lAxisGeneric_corner`); they exist through the axis points near it
+(`exists_tendsto_gammaL_corner`, `FieldLAxisCornerK.lean`). -/
 theorem tendsto_gammaL_corner (hU : ContinuousAt U x₀) (hb : ContinuousAt β x₀)
     (hm : ContinuousAt μ x₀) (hh : ContinuousAt h x₀) (hμ₀ : μ x₀ = 0) (hh₀ : h x₀ = 0)
     {u u' : ℂ} (hd : ((famF U β μ h hβ x₀).lat 0).HFHyp k 1 u)
