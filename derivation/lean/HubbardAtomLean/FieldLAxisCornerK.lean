@@ -220,6 +220,137 @@ theorem KL_opp_ne_mu0 (hμ : F.μ = 0) {ε : ℂ} (hε : ε = 1 ∨ ε = -1) (ha
   rw [F.eph_mu0 k hμ hε, hc, zero_add, hs] at he
   exact mul_ne_zero (mul_ne_zero (mul_ne_zero hε0 hl) hp) (mul_ne_zero two_ne_zero hq) he
 
+/-! ### On `μ = h`: `K = ρΨ/N` at the roots -/
+
+/-- `κ = e^{βU/2}`: on `μ = h`, `p↓ = κp₀` and `p↑ = κp₂`. -/
+noncomputable def kapL : ℝ := Real.exp (F.β * F.U / 2)
+
+theorem pDn_of_plus (hμh : F.μ = F.h) : F.pDn = F.kapL * F.p₀ := by
+  rw [pDn, p₀, boltzDn, boltz₀, kapL, hμh, mul_div_assoc', ← Real.exp_add]
+  congr 2
+  ring
+
+theorem pUp_of_plus (hμh : F.μ = F.h) : F.pUp = F.kapL * F.p₂ := by
+  rw [pUp, p₂, boltzUp, boltz₂, kapL, hμh, mul_div_assoc', ← Real.exp_add]
+  congr 2
+  ring
+
+/-- A part of `Φ` of `K_{↑↑}` on `μ = h` (`KL_UU_plus`). -/
+noncomputable def DXUU (h X Y P r κ l β : ℂ) : ℂ :=
+  2 * Y ^ 2 * P ^ 2 * κ ^ 2 * l ^ 2 * β + 2 * Y ^ 2 * P ^ 2 * κ * l ^ 2 * β -
+    2 * h ^ 2 * P ^ 2 * κ ^ 2 * l ^ 2 * β - 2 * h ^ 2 * P ^ 2 * l ^ 2 * β -
+    2 * h * Y * P ^ 2 * κ ^ 2 * l ^ 2 * β + 4 * h * Y * P ^ 2 * l ^ 2 * β -
+    2 * h * Y * P ^ 2 * κ * l ^ 2 * β - 2 * h ^ 2 * Y ^ 2 * β -
+    1 / 4 * Y ^ 2 * r ^ 2 * κ ^ 2 * l ^ 2 * β + 1 / 4 * Y ^ 2 * r ^ 2 * l ^ 2 * β +
+    2 * h * Y ^ 3 * β + 1 / 4 * h ^ 2 * r ^ 2 * κ ^ 2 * l ^ 2 * β +
+    1 / 4 * h ^ 2 * r ^ 2 * l ^ 2 * β + 1 / 2 * h ^ 2 * r ^ 2 * κ * l ^ 2 * β + 2 * h ^ 4 * β +
+    2 * h * X * Y ^ 2 * β - X * Y ^ 3 * β - 2 * h ^ 3 * X * β + h ^ 2 * X * Y * β -
+    2 * h ^ 3 * Y * β + 1 / 2 * h * Y * r ^ 2 * κ ^ 2 * l ^ 2 * β - h * Y * r ^ 2 * l ^ 2 * β -
+    1 / 2 * h * Y * r ^ 2 * κ * l ^ 2 * β
+
+/-- A part of `Φ` of `K_{↑↑}` on `μ = h` (`KL_UU_plus`). -/
+noncomputable def DYUU (h Y P r κ l β : ℂ) : ℂ :=
+  - 2 * h ^ 2 * P ^ 2 * l ^ 2 * β + 2 * h ^ 2 * P ^ 2 * κ * l ^ 2 * β -
+    2 * h * Y * P ^ 2 * κ ^ 2 * l ^ 2 * β - 2 * h * Y * P ^ 2 * κ * l ^ 2 * β +
+    1 / 2 * P ^ 2 * r ^ 2 * κ ^ 3 * l ^ 4 * β + 1 / 4 * P ^ 2 * r ^ 2 * κ ^ 4 * l ^ 4 * β -
+    1 / 4 * P ^ 2 * r ^ 2 * l ^ 4 * β - 1 / 2 * P ^ 2 * r ^ 2 * κ * l ^ 4 * β -
+    2 * P ^ 4 * κ ^ 3 * l ^ 4 * β - P ^ 4 * κ ^ 4 * l ^ 4 * β + P ^ 4 * l ^ 4 * β +
+    2 * P ^ 4 * κ * l ^ 4 * β - h ^ 2 * Y ^ 2 * β + 1 / 2 * h ^ 2 * r ^ 2 * l ^ 2 * β +
+    1 / 2 * h ^ 2 * r ^ 2 * κ * l ^ 2 * β + h ^ 4 * β + 1 / 4 * h * Y * r ^ 2 * κ ^ 2 * l ^ 2 * β -
+    1 / 4 * h * Y * r ^ 2 * l ^ 2 * β
+
+/-- A part of `Φ` of `K_{↑↑}` on `μ = h` (`KL_UU_plus`). -/
+noncomputable def DrUU (h P r κ l β : ℂ) : ℂ :=
+  5 / 2 * h * P ^ 2 * κ ^ 2 * l ^ 4 * β + h * P ^ 2 * κ ^ 3 * l ^ 4 * β -
+    1 / 4 * h * P ^ 2 * κ ^ 4 * l ^ 4 * β - 1 / 4 * h * P ^ 2 * l ^ 4 * β +
+    h * P ^ 2 * κ * l ^ 4 * β + 1 / 4 * h ^ 3 * κ ^ 2 * l ^ 2 * β + 1 / 4 * h ^ 3 * l ^ 2 * β -
+    1 / 2 * h ^ 3 * κ * l ^ 2 * β - 1 / 8 * h * r ^ 2 * κ ^ 2 * l ^ 4 * β +
+    1 / 16 * h * r ^ 2 * κ ^ 4 * l ^ 4 * β + 1 / 16 * h * r ^ 2 * l ^ 4 * β
+
+/-- A part of `Φ` of `K_{↓↑}` on `μ = h` (`KL_DU_plus`). -/
+noncomputable def DXDU (h X Y P r κ l β : ℂ) : ℂ :=
+  2 * Y * P ^ 3 * κ ^ 2 * l ^ 3 * β - 2 * Y * P ^ 3 * l ^ 3 * β + 2 * h * P ^ 3 * κ ^ 3 * l ^ 3 * β -
+    2 * h * P ^ 3 * κ * l ^ 3 * β - 2 * h * Y ^ 2 * P * κ * l * β - 2 * h ^ 3 * P * κ * l * β -
+    2 * X * Y ^ 2 * P * l * β + 2 * h ^ 2 * X * P * κ * l * β - 2 * h * X * Y * P * κ * l * β +
+    2 * h * X * Y * P * l * β + 4 * h ^ 2 * Y * P * κ * l * β -
+    3 / 4 * Y * P * r ^ 2 * κ ^ 2 * l ^ 3 * β - 1 / 4 * Y * P * r ^ 2 * κ ^ 3 * l ^ 3 * β +
+    3 / 4 * Y * P * r ^ 2 * l ^ 3 * β + 1 / 4 * Y * P * r ^ 2 * κ * l ^ 3 * β +
+    1 / 4 * h * P * r ^ 2 * κ ^ 2 * l ^ 3 * β - 1 / 4 * h * P * r ^ 2 * κ ^ 3 * l ^ 3 * β -
+    1 / 4 * h * P * r ^ 2 * l ^ 3 * β + 1 / 4 * h * P * r ^ 2 * κ * l ^ 3 * β
+
+/-- A part of `Φ` of `K_{↓↑}` on `μ = h` (`KL_DU_plus`). -/
+noncomputable def DYDU (h Y P r κ l β : ℂ) : ℂ :=
+  2 * h * P ^ 3 * κ ^ 2 * l ^ 3 * β + 2 * h * P ^ 3 * κ ^ 3 * l ^ 3 * β + 2 * h * P ^ 3 * l ^ 3 * β +
+    2 * h * P ^ 3 * κ * l ^ 3 * β - 2 * h ^ 3 * P * κ * l * β - 2 * h ^ 3 * P * l * β +
+    2 * h ^ 2 * Y * P * κ * l * β + 2 * h ^ 2 * Y * P * l * β +
+    1 / 4 * h * P * r ^ 2 * κ ^ 2 * l ^ 3 * β - 1 / 4 * h * P * r ^ 2 * κ ^ 3 * l ^ 3 * β -
+    1 / 4 * h * P * r ^ 2 * l ^ 3 * β + 1 / 4 * h * P * r ^ 2 * κ * l ^ 3 * β
+
+/-- A part of `Φ` of `K_{↓↑}` on `μ = h` (`KL_DU_plus`). -/
+noncomputable def DrDU (h P r κ l β : ℂ) : ℂ :=
+  - 1 / 2 * P ^ 3 * κ ^ 2 * l ^ 5 * β - 1 / 2 * P ^ 3 * κ ^ 3 * l ^ 5 * β +
+    1 / 4 * P ^ 3 * κ ^ 4 * l ^ 5 * β + 1 / 4 * P ^ 3 * κ ^ 5 * l ^ 5 * β +
+    1 / 4 * P ^ 3 * l ^ 5 * β + 1 / 4 * P ^ 3 * κ * l ^ 5 * β -
+    3 / 4 * h ^ 2 * P * κ ^ 2 * l ^ 3 * β - 1 / 4 * h ^ 2 * P * κ ^ 3 * l ^ 3 * β -
+    1 / 4 * h ^ 2 * P * l ^ 3 * β - 3 / 4 * h ^ 2 * P * κ * l ^ 3 * β +
+    1 / 8 * P * r ^ 2 * κ ^ 2 * l ^ 5 * β + 1 / 8 * P * r ^ 2 * κ ^ 3 * l ^ 5 * β -
+    1 / 16 * P * r ^ 2 * κ ^ 4 * l ^ 5 * β - 1 / 16 * P * r ^ 2 * κ ^ 5 * l ^ 5 * β -
+    1 / 16 * P * r ^ 2 * l ^ 5 * β - 1 / 16 * P * r ^ 2 * κ * l ^ 5 * β
+
+/-- `N(u) = H↑(-u)H↓(-u) - λ²σ²`, `σ = (p₀ + p₂ + p↑ + p↓)/2`: the factor of `K` on `μ = h`. -/
+noncomputable def NLp (u : ℂ) : ℂ :=
+  F.HL k F.rUp (-u) * F.HL k F.rDn (-u) - F.lamL ^ 2 * ((F.p₀ + F.p₂ + F.pUp + F.pDn) / 2) ^ 2
+
+/-- The arguments of the parts of `Φ` at the root `u`: `h = u² + q₀`, `X = 2au(1 - κ)ρ`,
+`Y = 2au(1 + κ)ρ`, `P = (p₀ + p₂)/2`, `ρ`, `κ`, `λ`, `β`. -/
+noncomputable def PhiUU (u : ℂ) : ℂ :=
+  let h := u ^ 2 + F.q₀L k
+  let x := 2 * F.a * u * (1 - F.kapL)
+  let y := 2 * F.a * u * (1 + F.kapL)
+  let P := ((F.p₀ : ℂ) + F.p₂) / 2
+  x * DXUU h (x * F.ρ) (y * F.ρ) P F.ρ F.kapL F.lamL F.β +
+    y * DYUU h (y * F.ρ) P F.ρ F.kapL F.lamL F.β + F.ρ * DrUU h P F.ρ F.kapL F.lamL F.β
+
+/-- **`K_{↑↑}` on `μ = h`**: at a root `u` of `E₈`, `N K_{↑↑} = ρ[Φ + N S↑ 4λ²κP(u² + q₀)]`. -/
+theorem KL_UU_plus (hμh : F.μ = F.h) {u : ℂ} (hr : F.E8L k u = 0) :
+    F.NLp k u * F.KL k true true u = F.ρ * (F.PhiUU k u + F.NLp k u * (F.BL true).S k u *
+      (4 * F.lamL ^ 2 * F.kapL * ((F.p₀ + F.p₂) / 2) * (u ^ 2 + F.q₀L k))) := by
+  have hd := F.pDn_of_plus hμh
+  have hu := F.pUp_of_plus hμh
+  simp only [E8L, HL, rUp, rDn, ρ, mf, piS, piP, hd, hu] at hr
+  simp only [NLp, PhiUU, DXUU, DYUU, DrUU, KL, fMp, fMm, QL, αL, DL, cLw, pL_true, pL_false,
+    rL_true, rL_false, Bool.not_true, ↓reduceIte, HL, rUp, rDn, ρ, mf, piS, piP, hd, hu]
+  push_cast at hr ⊢
+  linear_combination (-(F.β * (u ^ 2 + F.q₀L k))) * hr
+
+/-- `Φ` of `K_{↓↑}` on `μ = h`, with the arguments of `PhiUU`. -/
+noncomputable def PhiDU (u : ℂ) : ℂ :=
+  let h := u ^ 2 + F.q₀L k
+  let x := 2 * F.a * u * (1 - F.kapL)
+  let y := 2 * F.a * u * (1 + F.kapL)
+  let P := ((F.p₀ : ℂ) + F.p₂) / 2
+  x * DXDU h (x * F.ρ) (y * F.ρ) P F.ρ F.kapL F.lamL F.β +
+    y * DYDU h (y * F.ρ) P F.ρ F.kapL F.lamL F.β + F.ρ * DrDU h P F.ρ F.kapL F.lamL F.β
+
+/-- `L` of `K_{↓↑}` on `μ = h`: `K_{↓↑} = T + ρLS↓`. -/
+noncomputable def LDU (u : ℂ) : ℂ :=
+  F.lamL * (F.HL k F.rDn (-u) * F.HL k F.rUp (-u) + F.lamL ^ 2 * (F.piP - F.piS)) * F.kapL -
+    F.lamL * (F.HL k F.rDn (-u) * F.HL k F.rUp u - F.lamL ^ 2 * (F.piP - F.piS))
+
+set_option maxRecDepth 4000 in
+/-- **`K_{↓↑}` on `μ = h`**: at a root `u` of `E₈`, `N K_{↓↑} = ρ[Φ + N S↓ L]`. -/
+theorem KL_DU_plus (hμh : F.μ = F.h) {u : ℂ} (hr : F.E8L k u = 0) :
+    F.NLp k u * F.KL k false true u =
+      F.ρ * (F.PhiDU k u + F.NLp k u * (F.BL false).S k u * F.LDU k u) := by
+  have hd := F.pDn_of_plus hμh
+  have hu := F.pUp_of_plus hμh
+  simp only [E8L, HL, rUp, rDn, ρ, mf, piS, piP, hd, hu] at hr
+  simp only [KL, fMp, fMm, Bool.true_eq_false, ↓reduceIte, Bool.not_false, Bool.not_true, αSL,
+    αPL, mL_true, rL_true, rL_false]
+  simp only [NLp, PhiDU, LDU, DXDU, DYDU, DrDU, cS, cP, HL, rUp, rDn, ρ, mf, piS, piP, hd, hu]
+  push_cast at hr ⊢
+  linear_combination F.lamL * F.β * ((F.p₀ + F.p₂ + F.kapL * F.p₂ + F.kapL * F.p₀) / 2) * hr
+
 /-! ### `LAxisGeneric` near the corner on `h = 0` -/
 
 /-- **`LAxisGeneric` near the corner on `h = 0`**: if both zero-field channels of `(U, β, 0)`
