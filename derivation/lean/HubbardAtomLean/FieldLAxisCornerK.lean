@@ -25,7 +25,7 @@ for both zero-field channels at the corner (`HFHyp`, with `ŝ' ≠ 0` for odd `k
   (`KL_UU_plus`, `KL_DU_plus`; `Φ` is a polynomial in the data, `DXUU`, …, `DrDU`, found by
   computer algebra and checked by `ring`). At the corner, at `û² = ŝ`, `N = -4λ²p₀²κ` and
   `Φ + N S L = 16p₀⁴λ⁴κ²(1 - κ)·2aûD̂(û)` up to the sign `ε` (`NLp_corner`, `PhiUU_corner`,
-  `PhiDU_corner`, `two_a_beta_sub`), and at `√ŝ'`, `K = ±4βλ³κ(1 + κ)p₀³` (`KL_UU_corner'`,
+  `PhiDU_corner`, `Params.two_a_beta_sub`), and at `√ŝ'`, `K = ±4βλ³κ(1 + κ)p₀³` (`KL_UU_corner'`,
   `KL_DU_corner'`). So with `û ≠ 0` for both channels, `LAxisGeneric` holds near the corner on
   `μ = h` (`eventually_lAxisGeneric_plus`), and on `μ = -h` by the spin flip (`KL_flip`,
   `LAxisGeneric.flip`, `axis_minus`, `eventually_lAxisGeneric_minus`).
@@ -157,6 +157,13 @@ theorem HFHyp.exists_eventually_Kph_ne {u : ℂ} (h : A.HFHyp k ε u)
     exact mul_ne_zero hρ hΨn
   · exact hK₂
   · exact hK₂n
+
+/-- At `u ≠ 0`: `2aβu - ελS_k(u) = 2auD̂(u)`, with `λ = 4a²`. -/
+theorem two_a_beta_sub (A : Params) (k : ℤ) {ε u : ℂ} (hu : u ≠ 0) :
+    2 * A.a * A.β * u - ε * (4 * A.a ^ 2) * A.S k u = 2 * A.a * u * A.Dhat k ε u := by
+  simp only [Dhat, That, hu, ↓reduceIte]
+  field_simp
+  ring
 
 end Params
 
@@ -482,8 +489,7 @@ theorem continuousAt_famF_plus {v : P → ℂ} (hv : ContinuousAt v x₀) :
     ContinuousAt (fun x ↦ (famF U β μ h hβ x).NLp k (v x)) x₀ ∧
       ContinuousAt (fun x ↦ (famF U β μ h hβ x).PhiUU k (v x)) x₀ ∧
       ContinuousAt (fun x ↦ (famF U β μ h hβ x).PhiDU k (v x)) x₀ ∧
-      ContinuousAt (fun x ↦ (famF U β μ h hβ x).LDU k (v x)) x₀ ∧
-      ContinuousAt (fun x ↦ ((famF U β μ h hβ x).kapL : ℂ)) x₀ := by
+      ContinuousAt (fun x ↦ (famF U β μ h hβ x).LDU k (v x)) x₀ := by
   obtain ⟨ha, hβc, -, -, -⟩ := continuousAt_famF_data hU hb hm hh (hβ := hβ) (k := k)
   have hq := continuousAt_famF_q₀L hU hb hm hh (hβ := hβ) (k := k)
   have p₀ := continuousAt_famF_p hU hb hm hh (hβ := hβ) FParams.p₀ (by simp)
@@ -493,7 +499,7 @@ theorem continuousAt_famF_plus {v : P → ℂ} (hv : ContinuousAt v x₀) :
   have hκ : ContinuousAt (fun x ↦ ((famF U β μ h hβ x).kapL : ℂ)) x₀ := by
     simp only [kapL, famF]
     fun_prop
-  refine ⟨?_, ?_, ?_, ?_, hκ⟩ <;>
+  refine ⟨?_, ?_, ?_, ?_⟩ <;>
     simp only [NLp, PhiUU, PhiDU, LDU, DXUU, DYUU, DrUU, DXDU, DYDU, DrDU, HL, lamL, piP, piS, rUp,
       rDn, ρ, mf] <;>
     push_cast <;> fun_prop
@@ -501,13 +507,6 @@ theorem continuousAt_famF_plus {v : P → ℂ} (hv : ContinuousAt v x₀) :
 end Family
 
 /-! ### `LAxisGeneric` near the corner on `μ = h` -/
-
-/-- At `u ≠ 0`: `2aβu - ελS_k(u) = 2auD̂(u)`, with `λ = 4a²`. -/
-theorem two_a_beta_sub (A : Params) (k : ℤ) {ε u : ℂ} (hu : u ≠ 0) :
-    2 * A.a * A.β * u - ε * (4 * A.a ^ 2) * A.S k u = 2 * A.a * u * A.Dhat k ε u := by
-  simp only [Params.Dhat, Params.That, hu, ↓reduceIte]
-  field_simp
-  ring
 
 /-- **`LAxisGeneric` near the corner on `μ = h`**: if both zero-field channels of `(U, β, 0)`
 satisfy the assumptions of Corollary "half filling" (`HFHyp`, with `ŝ' ≠ 0` for odd `k`) with
@@ -644,7 +643,7 @@ theorem eventually_lAxisGeneric_plus {u u' : ℂ} (hd : (F.lat 0).HFHyp k 1 u)
         (F.axis .plus s).PhiDU k (V j s) + (F.axis .plus s).NLp k (V j s) *
           ((F.axis .plus s).BL false).S k (V j s) * (F.axis .plus s).LDU k (V j s) ≠ 0 := by
     intro j ε hε hu hu0 hD
-    obtain ⟨hN, hΦ, hΦ', hL, hκ⟩ := continuousAt_famF_plus hUc hbc hmc hhc (hβ := fun _ ↦ F.β_pos)
+    obtain ⟨hN, hΦ, hΦ', hL⟩ := continuousAt_famF_plus hUc hbc hmc hhc (hβ := fun _ ↦ F.β_pos)
       (k := k) (hVc j)
     have hS := continuousAt_famF_S hbc hmc hhc (hβ := fun _ ↦ F.β_pos) (U := fun _ ↦ F.U)
       (k := k) true (hVc j) (fun n ↦ by rw [hV0]; exact hoff j true n)
@@ -652,7 +651,7 @@ theorem eventually_lAxisGeneric_plus {u u' : ℂ} (hd : (F.lat 0).HFHyp k 1 u)
       (k := k) false (hVc j) (fun n ↦ by rw [hV0]; exact hoff j false n)
     have hS₀ : ∀ σ, (F₀.BL σ).S k (U₀ j) = (F.lat 0).S k (U₀ j) := fun σ ↦ by rw [hB₀]
     have hval : 2 * F₀.a * F₀.β * U₀ j - ε * F₀.lamL * (F.lat 0).S k (U₀ j) ≠ 0 := by
-      have := two_a_beta_sub (F.lat 0) k (ε := ε) hu0
+      have := (F.lat 0).two_a_beta_sub k (ε := ε) hu0
       rw [lat_a, lat_β] at this
       rw [axis_a, axis_β, axis_lamL, lamL, this]
       exact mul_ne_zero (mul_ne_zero (mul_ne_zero two_ne_zero ha) hu0) hD
@@ -700,11 +699,10 @@ theorem eventually_lAxisGeneric_plus {u u' : ℂ} (hd : (F.lat 0).HFHyp k 1 u)
     · change F₀.KL k false true (V j 0) ≠ 0
       rw [hV0, F₀.KL_DU_corner' k hμ₀ hh₀ hε hu]
       exact hc4
-  have hU₀ : ∀ j, U₀ j ^ 2 + F₀.q₀L k = F₀.lamL * F₀.p₀ * c j := hsq
-  have e₀ := hvan 0 1 (Or.inl rfl) (by rw [hU₀]; simp [c]) hu0 hd.D_ne
-  have e₂ := hvan 2 (-1) (Or.inr rfl) (by rw [hU₀]; simp [c]; ring) hu0' hm.D_ne
-  have e₁ := hnon 1 1 (Or.inl rfl) (by rw [hU₀]; simp [c]; ring)
-  have e₃ := hnon 3 (-1) (Or.inr rfl) (by rw [hU₀]; simp [c])
+  have e₀ := hvan 0 1 (Or.inl rfl) (by rw [hsq]; simp [c]) hu0 hd.D_ne
+  have e₂ := hvan 2 (-1) (Or.inr rfl) (by rw [hsq]; simp [c]; ring) hu0' hm.D_ne
+  have e₁ := hnon 1 1 (Or.inl rfl) (by rw [hsq]; simp [c]; ring)
+  have e₃ := hnon 3 (-1) (Or.inr rfl) (by rw [hsq]; simp [c])
   refine ⟨fun s j ↦ V j s, ?_⟩
   filter_upwards [F.eventually_sep_off_axis k .plus hU 0, nhdsWithin_le_nhds hroot,
     nhdsWithin_le_nhds hsep, nhdsWithin_le_nhds e₀, nhdsWithin_le_nhds e₁,
