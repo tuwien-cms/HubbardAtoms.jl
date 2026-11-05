@@ -36,9 +36,10 @@ for both zero-field channels at the corner (`HFHyp`, with `ŝ' ≠ 0` for odd `k
   `HFHyp.shiba_lat_zero`).
 * Approaches to the corner through the domain of Eq. (field-L): off the axes along the line
   `lineL` through each axis point where `LAxisGeneric` holds, Eq. (field-L) holds
-  (`LAxisGeneric.tendsto_gammaL_lineL_gammaLAll`), so under the assumptions on `h = 0` there are points
-  `y_i → 0` off the axes in the domain, along which `gammaL → (gammaHF_d + s_στ gammaHF_m)/2`
-  (`exists_tendsto_gammaL_corner`, with `tendsto_gammaL_corner`).
+  (`LAxisGeneric.tendsto_gammaL_lineL_gammaLAll`), so under the assumptions on `h = 0` there are
+  points `y_i → 0` off the axes in the domain, along which
+  `gammaL → (gammaHF_d + s_στ gammaHF_m)/2` (`exists_tendsto_gammaL_corner`, with
+  `tendsto_gammaL_corner`).
 
 Not shown: `μ = ±h` at `û = 0`; the `K` conditions away from the corner.
 -/
