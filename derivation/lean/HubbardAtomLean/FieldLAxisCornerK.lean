@@ -189,8 +189,8 @@ theorem KL_opp_mu0 (hμ : F.μ = 0) {ε : ℂ} (hε : ε = 1 ∨ ε = -1) (u : �
     simp only [Params.S, BL_true, Bup, lat_β, lat_μ, shiba_β, shiba_μ, hμ, zero_add]
   simp only [KL, fMp, fMm, Bool.not_false, Bool.not_true, αSL, αPL, mL_false, rL_true, rL_false,
     hS, Params.Kph, Params.eph, Params.Hph, Params.lam, Params.q₀, Params.w, Params.α,
-    Params.cbar, HL, rUp, rDn, ρ, hp, sub_self, zero_sub, zero_add, piS, piP, lamL, q₀L, wL, cS, cP, ha, lat_ω, lat_β, shiba_ω, shiba_β,
-    hρ, h₀, h₂, h₁]
+    Params.cbar, HL, rUp, rDn, ρ, hp, sub_self, zero_sub, zero_add, piS, piP, lamL, q₀L, wL, cS,
+    cP, ha, lat_ω, lat_β, shiba_ω, shiba_β, hρ, h₀, h₂, h₁]
   rcases hε with rfl | rfl <;> push_cast <;> ring
 
 /-- On `μ = 0`, `K_{↓↑}(u) = K_{↑↓}(-u)`, as `H↓(-u) = H↑(u)` and `S↓(u) = -S↑(-u)`. -/
@@ -250,7 +250,7 @@ noncomputable def DXUU (h X Y P r κ l β : ℂ) : ℂ :=
 
 /-- A part of `Φ` of `K_{↑↑}` on `μ = h` (`KL_UU_plus`). -/
 noncomputable def DYUU (h Y P r κ l β : ℂ) : ℂ :=
-  - 2 * h ^ 2 * P ^ 2 * l ^ 2 * β + 2 * h ^ 2 * P ^ 2 * κ * l ^ 2 * β -
+  -2 * h ^ 2 * P ^ 2 * l ^ 2 * β + 2 * h ^ 2 * P ^ 2 * κ * l ^ 2 * β -
     2 * h * Y * P ^ 2 * κ ^ 2 * l ^ 2 * β - 2 * h * Y * P ^ 2 * κ * l ^ 2 * β +
     1 / 2 * P ^ 2 * r ^ 2 * κ ^ 3 * l ^ 4 * β + 1 / 4 * P ^ 2 * r ^ 2 * κ ^ 4 * l ^ 4 * β -
     1 / 4 * P ^ 2 * r ^ 2 * l ^ 4 * β - 1 / 2 * P ^ 2 * r ^ 2 * κ * l ^ 4 * β -
@@ -269,8 +269,9 @@ noncomputable def DrUU (h P r κ l β : ℂ) : ℂ :=
 
 /-- A part of `Φ` of `K_{↓↑}` on `μ = h` (`KL_DU_plus`). -/
 noncomputable def DXDU (h X Y P r κ l β : ℂ) : ℂ :=
-  2 * Y * P ^ 3 * κ ^ 2 * l ^ 3 * β - 2 * Y * P ^ 3 * l ^ 3 * β + 2 * h * P ^ 3 * κ ^ 3 * l ^ 3 * β -
-    2 * h * P ^ 3 * κ * l ^ 3 * β - 2 * h * Y ^ 2 * P * κ * l * β - 2 * h ^ 3 * P * κ * l * β -
+  2 * Y * P ^ 3 * κ ^ 2 * l ^ 3 * β - 2 * Y * P ^ 3 * l ^ 3 * β +
+    2 * h * P ^ 3 * κ ^ 3 * l ^ 3 * β - 2 * h * P ^ 3 * κ * l ^ 3 * β -
+    2 * h * Y ^ 2 * P * κ * l * β - 2 * h ^ 3 * P * κ * l * β -
     2 * X * Y ^ 2 * P * l * β + 2 * h ^ 2 * X * P * κ * l * β - 2 * h * X * Y * P * κ * l * β +
     2 * h * X * Y * P * l * β + 4 * h ^ 2 * Y * P * κ * l * β -
     3 / 4 * Y * P * r ^ 2 * κ ^ 2 * l ^ 3 * β - 1 / 4 * Y * P * r ^ 2 * κ ^ 3 * l ^ 3 * β +
@@ -280,15 +281,16 @@ noncomputable def DXDU (h X Y P r κ l β : ℂ) : ℂ :=
 
 /-- A part of `Φ` of `K_{↓↑}` on `μ = h` (`KL_DU_plus`). -/
 noncomputable def DYDU (h Y P r κ l β : ℂ) : ℂ :=
-  2 * h * P ^ 3 * κ ^ 2 * l ^ 3 * β + 2 * h * P ^ 3 * κ ^ 3 * l ^ 3 * β + 2 * h * P ^ 3 * l ^ 3 * β +
-    2 * h * P ^ 3 * κ * l ^ 3 * β - 2 * h ^ 3 * P * κ * l * β - 2 * h ^ 3 * P * l * β +
+  2 * h * P ^ 3 * κ ^ 2 * l ^ 3 * β + 2 * h * P ^ 3 * κ ^ 3 * l ^ 3 * β +
+    2 * h * P ^ 3 * l ^ 3 * β + 2 * h * P ^ 3 * κ * l ^ 3 * β - 2 * h ^ 3 * P * κ * l * β -
+    2 * h ^ 3 * P * l * β +
     2 * h ^ 2 * Y * P * κ * l * β + 2 * h ^ 2 * Y * P * l * β +
     1 / 4 * h * P * r ^ 2 * κ ^ 2 * l ^ 3 * β - 1 / 4 * h * P * r ^ 2 * κ ^ 3 * l ^ 3 * β -
     1 / 4 * h * P * r ^ 2 * l ^ 3 * β + 1 / 4 * h * P * r ^ 2 * κ * l ^ 3 * β
 
 /-- A part of `Φ` of `K_{↓↑}` on `μ = h` (`KL_DU_plus`). -/
 noncomputable def DrDU (h P r κ l β : ℂ) : ℂ :=
-  - 1 / 2 * P ^ 3 * κ ^ 2 * l ^ 5 * β - 1 / 2 * P ^ 3 * κ ^ 3 * l ^ 5 * β +
+  -1 / 2 * P ^ 3 * κ ^ 2 * l ^ 5 * β - 1 / 2 * P ^ 3 * κ ^ 3 * l ^ 5 * β +
     1 / 4 * P ^ 3 * κ ^ 4 * l ^ 5 * β + 1 / 4 * P ^ 3 * κ ^ 5 * l ^ 5 * β +
     1 / 4 * P ^ 3 * l ^ 5 * β + 1 / 4 * P ^ 3 * κ * l ^ 5 * β -
     3 / 4 * h ^ 2 * P * κ ^ 2 * l ^ 3 * β - 1 / 4 * h ^ 2 * P * κ ^ 3 * l ^ 3 * β -
@@ -365,8 +367,9 @@ theorem NLp_corner (hμ : F.μ = 0) (hh : F.h = 0) {ε : ℂ} (hε : ε = 1 ∨ 
   push_cast
   rcases hε with rfl | rfl <;> ring
 
-/-- At the corner and `u² + q₀ = ελp₀(1 - κ)`: `Φ + N S 4λ²κP(u² + q₀) = 16p₀⁴λ⁴κ²(1 - κ)(2aβu - ελS)`
-for `K_{↑↑}`, at every value `S` of `S↑(u)`. -/
+/-- At the corner and `u² + q₀ = ελp₀(1 - κ)`:
+`Φ + N S 4λ²κP(u² + q₀) = 16p₀⁴λ⁴κ²(1 - κ)(2aβu - ελS)` for `K_{↑↑}`, at every value `S` of
+`S↑(u)`. -/
 theorem PhiUU_corner (hμ : F.μ = 0) (hh : F.h = 0) {ε : ℂ} (hε : ε = 1 ∨ ε = -1) {u : ℂ}
     (hu : u ^ 2 + F.q₀L k = ε * F.lamL * F.p₀ * (1 - F.kapL)) (S : ℂ) :
     F.PhiUU k u + F.NLp k u * S *
@@ -569,7 +572,7 @@ theorem eventually_lAxisGeneric_plus {u u' : ℂ} (hd : (F.lat 0).HFHyp k 1 u)
       ∀ᶠ s in 𝓝 0, (F.axis .plus s).E8L k (V s) = 0 := fun j ↦ by
     obtain ⟨V, h0, hc, hr⟩ := exists_famF_E8L_root (hβ := fun _ ↦ F.β_pos) (k := k) hUc hbc hmc
       hhc (u₀ := U₀ j) ha (root₀ j) (by
-        show ∑ i : Fin 5, (i : ℕ) * F₀.E8c k i * (U₀ j ^ 2) ^ ((i : ℕ) - 1) ≠ 0
+        change ∑ i : Fin 5, (i : ℕ) * F₀.E8c k i * (U₀ j ^ 2) ^ ((i : ℕ) - 1) ≠ 0
         rw [F₀.sum_E8c_deriv k root₀ sep₀ j]
         exact dprod_ne sep₀ j)
     exact ⟨V, h0, hc, hr.mono fun s h ↦ h.1⟩
@@ -581,7 +584,7 @@ theorem eventually_lAxisGeneric_plus {u u' : ℂ} (hd : (F.lat 0).HFHyp k 1 u)
       by_cases hij : i = j
       · exact Eventually.of_forall fun _ h ↦ absurd hij h
       · refine ((((hVc i).pow 2).sub ((hVc j).pow 2)).eventually_ne ?_).mono fun _ h _ ↦ h
-        show V i 0 ^ 2 - V j 0 ^ 2 ≠ 0
+        change V i 0 ^ 2 - V j 0 ^ 2 ≠ 0
         rw [hV0, hV0]
         exact sep₀ i j hij
   -- the corner roots are off both lattices
@@ -635,17 +638,17 @@ theorem eventually_lAxisGeneric_plus {u u' : ℂ} (hd : (F.lat 0).HFHyp k 1 u)
     have hε0 : ε ≠ 0 := by rcases hε with rfl | rfl <;> norm_num
     refine (hN.eventually_ne ?_).and ((ContinuousAt.eventually_ne ?_ ?_).and
       (ContinuousAt.eventually_ne ?_ ?_))
-    · show F₀.NLp k (V j 0) ≠ 0
+    · change F₀.NLp k (V j 0) ≠ 0
       rw [hV0, F₀.NLp_corner k hμ₀ hh₀ hε hu]
       exact mul_ne_zero (mul_ne_zero (mul_ne_zero (by norm_num) (pow_ne_zero 2 hl))
         (pow_ne_zero 2 hp)) hκ0
     · exact hΦ.add ((hN.mul hS).mul (by fun_prop))
-    · show F₀.PhiUU k (V j 0) + F₀.NLp k (V j 0) * (F₀.BL true).S k (V j 0) *
+    · change F₀.PhiUU k (V j 0) + F₀.NLp k (V j 0) * (F₀.BL true).S k (V j 0) *
         (4 * F₀.lamL ^ 2 * F₀.kapL * ((F₀.p₀ + F₀.p₂) / 2) * (V j 0 ^ 2 + F₀.q₀L k)) ≠ 0
       rw [hV0, F₀.PhiUU_corner k hμ₀ hh₀ hε hu, hS₀]
       exact mul_ne_zero hc16 hval
     · exact hΦ'.add ((hN.mul hS').mul hL)
-    · show F₀.PhiDU k (V j 0) + F₀.NLp k (V j 0) * (F₀.BL false).S k (V j 0) *
+    · change F₀.PhiDU k (V j 0) + F₀.NLp k (V j 0) * (F₀.BL false).S k (V j 0) *
         F₀.LDU k (V j 0) ≠ 0
       rw [hV0, F₀.PhiDU_corner k hμ₀ hh₀ hε hu, hS₀]
       exact mul_ne_zero (mul_ne_zero hc16 hε0) hval
@@ -667,10 +670,10 @@ theorem eventually_lAxisGeneric_plus {u u' : ℂ} (hd : (F.lat 0).HFHyp k 1 u)
       continuousAt_famF_KL hUc hbc hmc hhc (hβ := fun _ ↦ F.β_pos) (k := k) false true (hVc j)
         (fun n ↦ by rw [hV0]; exact hoff j false n)
     refine (h₁.eventually_ne ?_).and (h₂.eventually_ne ?_)
-    · show F₀.KL k true true (V j 0) ≠ 0
+    · change F₀.KL k true true (V j 0) ≠ 0
       rw [hV0, F₀.KL_UU_corner' k hμ₀ hh₀ hε hu]
       refine ne_of_eq_of_ne (by ring) (mul_ne_zero hε0 hc4)
-    · show F₀.KL k false true (V j 0) ≠ 0
+    · change F₀.KL k false true (V j 0) ≠ 0
       rw [hV0, F₀.KL_DU_corner' k hμ₀ hh₀ hε hu]
       exact hc4
   have hU₀ : ∀ j, U₀ j ^ 2 + F₀.q₀L k = F₀.lamL * F₀.p₀ * c j := hsq
@@ -765,7 +768,8 @@ theorem eventually_lAxisGeneric_h0 {u u' : ℂ} (hd : (F.lat 0).HFHyp k 1 u)
 `ŝ' ≠ 0` for odd `k`), then there are roots `v(s)` such that `LAxisGeneric` holds at every
 `h = s ≠ 0` near `0` on `μ = 0`. The roots are those of the Shiba channels near `h = 0`, as
 `E₈ = e'_d e'_m` (`E8L_mu0`); `K_{↑↓}(u) = cK'_ε(u)` and `K_{↓↑}(u) = K_{↑↓}(-u)`
-(`KL_opp_ne_mu0`, `KL_swap_mu0`), with `K'_ε ≠ 0` at every root (`HFHyp.exists_eventually_Kph_ne`). -/
+(`KL_opp_ne_mu0`, `KL_swap_mu0`), with `K'_ε ≠ 0` at every root
+(`HFHyp.exists_eventually_Kph_ne`). -/
 theorem eventually_lAxisGeneric_mu0 {u u' : ℂ} (hd : (F.shiba.lat 0).HFHyp k 1 u)
     (hm : (F.shiba.lat 0).HFHyp k (-1) u') (hsd : Odd k → (F.shiba.lat 0).shat' k 1 ≠ 0)
     (hsm : Odd k → (F.shiba.lat 0).shat' k (-1) ≠ 0) :
