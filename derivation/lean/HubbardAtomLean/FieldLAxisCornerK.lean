@@ -30,6 +30,10 @@ for both zero-field channels at the corner (`HFHyp`, with `ŝ' ≠ 0` for odd `k
   `KL_DU_corner'`). So with `û ≠ 0` for both channels, `LAxisGeneric` holds near the corner on
   `μ = h` (`eventually_lAxisGeneric_plus`), and on `μ = -h` by the spin flip (`KL_flip`,
   `LAxisGeneric.flip`, `axis_minus`, `eventually_lAxisGeneric_minus`).
+* One set of assumptions for all four axes (`eventually_lAxisGeneric_corner`): `HFHyp` for both
+  channels of `(U, β, 0)` gives it for those of `(-U, β, 0)`, as `ŝ(-U, ε) = ŝ(U, -ε)`,
+  `ŝ'(-U, ε) = ŝ'(U, ε)`, `D̂(-U, ε) = D̂(U, -ε)` at `μ = 0` (`shiba_lat_zero_hat`,
+  `HFHyp.shiba_lat_zero`).
 * Approaches to the corner through the domain of Eq. (field-L): off the axes along the line
   `lineL` through each axis point where `LAxisGeneric` holds, Eq. (field-L) holds
   (`LAxisGeneric.eventually_LGeneric_lineL`), so under the assumptions on `h = 0` there are points
@@ -770,6 +774,57 @@ theorem eventually_lAxisGeneric_h0 {u u' : ℂ} (hd : (F.lat 0).HFHyp k 1 u)
   have hq := G.sq_add_q₀L_ne_of_sep k root sep j
   exact ⟨G.KL_opp_ne_h0 k hh hε ha he hq hK t, hq⟩
 
+/-! ### The channels of the Shiba image at the corner -/
+
+/-- At `μ = 0`, the weights of `(-U, β, 0)` are those of `(U, β, 0)` with `p₀ ↔ p₁`. -/
+theorem shiba_lat_zero_p :
+    (F.shiba.lat 0).p₀ = (F.lat 0).p₁ ∧ (F.shiba.lat 0).p₁ = (F.lat 0).p₀ := by
+  have hZ : (F.shiba.lat 0).Z = (F.lat 0).Z := by
+    simp only [Params.Z, Params.boltz₀, Params.boltz₁, Params.boltz₂, lat_U, lat_β, lat_μ,
+      shiba_U, shiba_β]
+    ring_nf
+  constructor
+  · rw [Params.p₀, Params.p₁, hZ]
+    simp only [Params.boltz₀, Params.boltz₁, lat_U, lat_β, lat_μ, shiba_U, shiba_β]
+    ring_nf
+  · rw [Params.p₀, Params.p₁, hZ]
+    simp only [Params.boltz₀, Params.boltz₁, lat_U, lat_β, lat_μ, shiba_U, shiba_β]
+    ring_nf
+
+/-- At `μ = 0`: `ŝ(-U, ε) = ŝ(U, -ε)`, `ŝ'(-U, ε) = ŝ'(U, ε)`, `D̂(-U, ε) = D̂(U, -ε)`. -/
+theorem shiba_lat_zero_hat (ε u : ℂ) :
+    (F.shiba.lat 0).shat k ε = (F.lat 0).shat k (-ε) ∧
+      (F.shiba.lat 0).shat' k ε = (F.lat 0).shat' k ε ∧
+      (F.shiba.lat 0).Dhat k ε u = (F.lat 0).Dhat k (-ε) u := by
+  obtain ⟨h₀, h₁⟩ := F.shiba_lat_zero_p
+  have ha : ((F.shiba.lat 0).a : ℂ) = -(F.lat 0).a := by rw [lat_a, lat_a, shiba_a, ofReal_neg]
+  have hq : (F.shiba.lat 0).q₀ k = (F.lat 0).q₀ k := by
+    simp only [Params.q₀, Params.w, lat_a, lat_ω, shiba_a, shiba_ω]
+    push_cast
+    ring
+  have hT : (F.shiba.lat 0).That k u = (F.lat 0).That k u := by
+    simp only [Params.That, Params.S, lat_β, lat_μ, shiba_β]
+  refine ⟨?_, ?_, ?_⟩
+  · simp only [Params.shat, hq, ha, h₀, h₁]
+    ring
+  · simp only [Params.shat', hq, ha, h₀, h₁]
+    ring
+  · simp only [Params.Dhat, hT, ha, lat_β, shiba_β]
+    ring
+
+/-- **`HFHyp` for both channels of `(U, β, 0)` gives it for those of `(-U, β, 0)`**: the channel
+`ε` of `(-U, β, 0)` satisfies `HFHyp` at the root `û` of the channel `-ε` of `(U, β, 0)`; its `ŝ'`
+is that of the channel `ε` (`shiba_lat_zero_hat`). -/
+theorem HFHyp.shiba_lat_zero {ε u u' : ℂ} (h : (F.lat 0).HFHyp k (-ε) u)
+    (h' : (F.lat 0).HFHyp k ε u') : (F.shiba.lat 0).HFHyp k ε u where
+  ε_eq := h'.ε_eq
+  a_ne := by rw [lat_a, shiba_a, ofReal_neg, neg_ne_zero]; exact h.a_ne
+  μ_eq := rfl
+  z_sq_ne n := by rw [(F.shiba_lat_zero_hat k ε u).1]; exact h.z_sq_ne n
+  odd_ne n hn := by rw [(F.shiba_lat_zero_hat k ε u).2.1]; exact h'.odd_ne n hn
+  u_sq := by rw [(F.shiba_lat_zero_hat k ε u).1]; exact h.u_sq
+  D_ne := by rw [(F.shiba_lat_zero_hat k ε u).2.2]; exact h.D_ne
+
 /-! ### `LAxisGeneric` near the corner on `μ = 0` -/
 
 /-- **`LAxisGeneric` near the corner on `μ = 0`**: if both zero-field channels of the Shiba image
@@ -863,6 +918,29 @@ theorem eventually_lAxisGeneric_minus {u u' : ℂ} (hd : (F.lat 0).HFHyp k 1 u)
     ∃ v : ℝ → Fin 4 → ℂ, ∀ᶠ s in 𝓝[≠] 0, (F.axis .minus s).LAxisGeneric k (v s) := by
   obtain ⟨v, hv⟩ := F.eventually_lAxisGeneric_plus k hd hm hu0 hu0' hsd hsm
   exact ⟨v, hv.mono fun s h ↦ by rw [axis_minus]; exact h.flip⟩
+
+/-! ### All four axes under one set of assumptions -/
+
+/-- **`LAxisGeneric` near the corner on every axis**: if both zero-field channels of `(U, β, 0)`
+satisfy the assumptions of Corollary "half filling" (`HFHyp`, with `ŝ' ≠ 0` for odd `k`), with
+`û ≠ 0` for both on `μ = ±h`, then on each axis `d` there are roots `v(s)` such that
+`LAxisGeneric` holds at every axis point `s ≠ 0` near the corner. On `μ = 0` the channels of
+`(-U, β, 0)` satisfy `HFHyp` too (`HFHyp.shiba_lat_zero`). -/
+theorem eventually_lAxisGeneric_corner (d : Axis) {u u' : ℂ} (hd : (F.lat 0).HFHyp k 1 u)
+    (hm : (F.lat 0).HFHyp k (-1) u') (hsd : Odd k → (F.lat 0).shat' k 1 ≠ 0)
+    (hsm : Odd k → (F.lat 0).shat' k (-1) ≠ 0) (hu : d = .plus ∨ d = .minus → u ≠ 0 ∧ u' ≠ 0) :
+    ∃ v : ℝ → Fin 4 → ℂ, ∀ᶠ s in 𝓝[≠] 0, (F.axis d s).LAxisGeneric k (v s) := by
+  cases d
+  · exact F.eventually_lAxisGeneric_h0 k hd hm hsd hsm
+  · have hd' := HFHyp.shiba_lat_zero F k (ε := 1) hm hd
+    have hm' := HFHyp.shiba_lat_zero F k (ε := -1) (by rwa [neg_neg]) hm
+    exact F.eventually_lAxisGeneric_mu0 k hd' hm'
+      (by rw [(F.shiba_lat_zero_hat k 1 u').2.1]; exact hsd)
+      (by rw [(F.shiba_lat_zero_hat k (-1) u).2.1]; exact hsm)
+  · obtain ⟨hu, hu'⟩ := hu (Or.inl rfl)
+    exact F.eventually_lAxisGeneric_plus k hd hm hu hu' hsd hsm
+  · obtain ⟨hu, hu'⟩ := hu (Or.inr rfl)
+    exact F.eventually_lAxisGeneric_minus k hd hm hu hu' hsd hsm
 
 /-! ### Approaches to the corner through the domain of Eq. (field-L) -/
 
