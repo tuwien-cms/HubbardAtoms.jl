@@ -5,7 +5,32 @@ import HubbardAtomLean.FieldTZero
 /-!
 # The `K` conditions of `LAxisGeneric` near the corner
 
-Draft.
+Near every axis point, the point itself excepted, `LAxisGeneric` reduces to its `K` conditions
+(`eventually_lAxisGeneric_iff_axis`, `FieldLAxisIsolated.lean`). Here they are shown near the corner
+`μ = h = 0` on each axis, at fixed `U`, `β`, `k`, under the assumptions of Corollary "half filling"
+for both zero-field channels at the corner (`HFHyp`, with `ŝ' ≠ 0` for odd `k`). Not in the note.
+
+* `h = 0`: `E₈ = e_d e_m` (`E8L_h0`) and `K_{t,-t} = cK_ε + εβH(-u)e_ε` with
+  `c = -ε[H(u)H(-u) - λ²d_π]` (`KL_opp_h0`, a `ring` identity), where `c = 0` at a root of `e_ε`
+  forces `u² = -q₀` (`KL_opp_ne_h0`), which simple roots exclude (`sq_add_q₀L_ne_of_sep`).
+  The roots of the channels near `μ = 0` have `K_ε ≠ 0` at all four `±u₁`, `±u₂`
+  (`Params.HFHyp.exists_eventually_Kph_ne`, with `Params.HFHyp.eventually_Psi_ne` at `±û`, as `D̂`
+  is even at `μ = 0`). So `LAxisGeneric` holds near the corner on `h = 0`
+  (`eventually_lAxisGeneric_h0`).
+* `μ = 0`: the same with the channels of the Shiba image `(-U, β, h)` (`E8L_mu0`, `KL_opp_mu0`);
+  there `K_{↓↑}(u) = K_{↑↓}(-u)` (`KL_swap_mu0`), so `K'_ε` is needed at `±u`
+  (`eventually_lAxisGeneric_mu0`).
+* `μ = h`: there `p↓ = κp₀`, `p↑ = κp₂` with `κ = e^{βU/2}` (`pDn_of_plus`, `pUp_of_plus`), and
+  at a root of `E₈`, `N K = ρ(Φ + N S L)` for the column `σ = ↑`, `K_{↑↑}` and `K_{↓↑}`
+  (`KL_UU_plus`, `KL_DU_plus`; `Φ` is a polynomial in the data, `DXUU`, …, `DrDU`, found by
+  computer algebra and checked by `ring`). At the corner, at `û² = ŝ`, `N = -4λ²p₀²κ` and
+  `Φ + N S L = 16p₀⁴λ⁴κ²(1 - κ)·2aûD̂(û)` up to the sign `ε` (`NLp_corner`, `PhiUU_corner`,
+  `PhiDU_corner`, `two_a_beta_sub`), and at `√ŝ'`, `K = ±4βλ³κ(1 + κ)p₀³` (`KL_UU_corner'`,
+  `KL_DU_corner'`). So with `û ≠ 0` for both channels, `LAxisGeneric` holds near the corner on
+  `μ = h` (`eventually_lAxisGeneric_plus`), and on `μ = -h` by the spin flip (`KL_flip`,
+  `LAxisGeneric.flip`, `axis_minus`, `eventually_lAxisGeneric_minus`).
+
+Not shown: `μ = ±h` at `û = 0`; the `K` conditions away from the corner.
 -/
 
 open Complex Filter Topology
@@ -339,7 +364,6 @@ noncomputable def LDU (u : ℂ) : ℂ :=
   F.lamL * (F.HL k F.rDn (-u) * F.HL k F.rUp (-u) + F.lamL ^ 2 * (F.piP - F.piS)) * F.kapL -
     F.lamL * (F.HL k F.rDn (-u) * F.HL k F.rUp u - F.lamL ^ 2 * (F.piP - F.piS))
 
-set_option maxRecDepth 4000 in
 /-- **`K_{↓↑}` on `μ = h`**: at a root `u` of `E₈`, `N K_{↓↑} = ρ[Φ + N S↓ L]`. -/
 theorem KL_DU_plus (hμh : F.μ = F.h) {u : ℂ} (hr : F.E8L k u = 0) :
     F.NLp k u * F.KL k false true u =
@@ -812,6 +836,48 @@ theorem eventually_lAxisGeneric_mu0 {u u' : ℂ} (hd : (F.shiba.lat 0).HFHyp k 1
     rw [Bool.not_false, G.KL_swap_mu0 k hμ]
     exact G.KL_opp_ne_mu0 k hμ hε ha he' (by rwa [neg_sq]) (hK _ he')
   · exact G.KL_opp_ne_mu0 k hμ hε ha he hq (hK _ he)
+
+/-! ### On `μ = -h`, by the spin flip -/
+
+/-- The spin flip exchanges the spins of `K`: `K^flip_{t,σ} = K_{-t,-σ}`. -/
+theorem KL_flip (t σ : Bool) (u : ℂ) : F.flip.KL k t σ u = F.KL k (!t) (!σ) u := by
+  have hpi : F.flip.piS = F.piS := by simp only [piS, flip_pUp, flip_pDn]; ring
+  have hpP : F.flip.piP = F.piP := by simp only [piP, flip_p₀, flip_p₂]
+  have hcS : F.flip.cS = F.cS := by simp only [cS, flip_pUp, flip_pDn, flip_β]; ring
+  have hcP : F.flip.cP = F.cP := by simp only [cP, flip_p₀, flip_p₂, flip_β]
+  have hD : ∀ σ, F.flip.DL σ = F.DL (!σ) := fun σ ↦ by simp only [DL, flip_pL, flip_p₀, flip_p₂]
+  have hc : ∀ σ, F.flip.cLw σ = F.cLw (!σ) := fun σ ↦ by simp only [cLw, flip_pL, flip_p₀, flip_p₂]
+  cases t <;> cases σ <;>
+    simp only [KL, fMp, fMm, QL, αL, αSL, αPL, HL, flip_rL, flip_mL, flip_BL, flip_ρ, flip_lamL,
+      flip_a, flip_q₀L, flip_β, hpi, hpP, hcS, hcP, hD, hc, Bool.not_true, Bool.not_false,
+      Bool.true_eq_false, Bool.false_eq_true, ↓reduceIte]
+
+/-- `LAxisGeneric` is invariant under the spin flip. -/
+theorem LAxisGeneric.flip {u : Fin 4 → ℂ} (h : F.LAxisGeneric k u) : F.flip.LAxisGeneric k u := by
+  have hE : ∀ x, F.flip.E8L k x = F.E8L k x := fun x ↦ by
+    rw [F.flip.E8L_eq k true, F.E8L_eq k false]
+    simp only [flip_rL, flip_lamL, flip_q₀L, HL, flip_a, Bool.not_true, Bool.not_false, piS, piP,
+      flip_pUp, flip_pDn, flip_p₀, flip_p₂]
+    ring
+  refine ⟨h.a_ne, fun j ↦ (hE _).trans (h.root j), h.sep, fun j hj σ l ↦ ?_, fun t j hj ↦ ?_⟩
+  · rw [flip_BL]
+    exact h.off j hj (!σ) l
+  · have := h.K_ne (!t) j hj
+    rw [Bool.not_not] at this
+    rwa [KL_flip, KL_flip, Bool.not_not, flip_q₀L]
+
+/-- `μ = -h` is the spin flip of `μ = h`. -/
+theorem axis_minus (s : ℝ) : F.axis .minus s = (F.axis .plus s).flip := by
+  simp only [axis, flip, Axis.dμ, Axis.dh, mul_one, mul_neg]
+
+/-- **`LAxisGeneric` near the corner on `μ = -h`**, under the assumptions of
+`eventually_lAxisGeneric_plus`, by the spin flip (`LAxisGeneric.flip`, `axis_minus`). -/
+theorem eventually_lAxisGeneric_minus {u u' : ℂ} (hd : (F.lat 0).HFHyp k 1 u)
+    (hm : (F.lat 0).HFHyp k (-1) u') (hu0 : u ≠ 0) (hu0' : u' ≠ 0)
+    (hsd : Odd k → (F.lat 0).shat' k 1 ≠ 0) (hsm : Odd k → (F.lat 0).shat' k (-1) ≠ 0) :
+    ∃ v : ℝ → Fin 4 → ℂ, ∀ᶠ s in 𝓝[≠] 0, (F.axis .minus s).LAxisGeneric k (v s) := by
+  obtain ⟨v, hv⟩ := F.eventually_lAxisGeneric_plus k hd hm hu0 hu0' hsd hsm
+  exact ⟨v, hv.mono fun s h ↦ by rw [axis_minus]; exact h.flip⟩
 
 end FParams
 

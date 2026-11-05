@@ -263,7 +263,26 @@ run_cmd Elab.Command.liftCoreM do
       ``HubbardAtom.Params.HFHyp.exists_tendsto_gammaR,
       ``HubbardAtom.Params.HFLZ.exists_eventually_dmGeneric,
       ``HubbardAtom.Params.HFLZ.exists_tendsto_gammaR,
-      ``HubbardAtom.Params.exists_tendsto_gammaR_of_eph] do
+      ``HubbardAtom.Params.exists_tendsto_gammaR_of_eph,
+      ``HubbardAtom.Params.HFHyp.eventually_Psi_ne,
+      ``HubbardAtom.Params.HFHyp.neg,
+      ``HubbardAtom.Params.HFHyp.exists_eventually_Kph_ne,
+      ``HubbardAtom.FParams.E8L_h0,
+      ``HubbardAtom.FParams.KL_opp_h0,
+      ``HubbardAtom.FParams.KL_opp_ne_h0,
+      ``HubbardAtom.FParams.eventually_lAxisGeneric_h0,
+      ``HubbardAtom.FParams.E8L_mu0,
+      ``HubbardAtom.FParams.KL_opp_mu0,
+      ``HubbardAtom.FParams.KL_swap_mu0,
+      ``HubbardAtom.FParams.eventually_lAxisGeneric_mu0,
+      ``HubbardAtom.FParams.KL_UU_plus,
+      ``HubbardAtom.FParams.KL_DU_plus,
+      ``HubbardAtom.FParams.PhiUU_corner,
+      ``HubbardAtom.FParams.PhiDU_corner,
+      ``HubbardAtom.FParams.eventually_lAxisGeneric_plus,
+      ``HubbardAtom.FParams.KL_flip,
+      ``HubbardAtom.FParams.LAxisGeneric.flip,
+      ``HubbardAtom.FParams.eventually_lAxisGeneric_minus] do
     unless audited.contains anchor do
       throwError "{anchor} was not audited; the check is vacuous"
   if checked < 100 then
