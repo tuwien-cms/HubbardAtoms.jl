@@ -86,16 +86,52 @@ end FParams
 
 namespace Params
 
-variable (A : Params) (k : ℤ) (ε : ℂ)
+variable {A : Params} {k : ℤ} {ε : ℂ}
 
-/-- At `k = 0`, `P(v) = (v² - a²)²`. -/
-theorem Pph_zero (v : ℂ) : A.Pph 0 v = (v ^ 2 - A.a ^ 2) ^ 2 := by
-  simp only [Pph, Qp, Qm, w_zero]
-  ring
-
-/-- `ModeOK` with `P ≠ 0` is `K ≠ 0`. -/
-theorem ModeOK.Kph_ne {u : ℂ} (h : A.ModeOK k ε u) (hP : A.Pph k u ≠ 0) : A.Kph k ε u ≠ 0 :=
-  h.elim And.right fun h ↦ absurd h.1 hP
+/-- **`K ≠ 0` at every root of `e` near half filling**: under `HFHyp` with `ŝ' ≠ 0` for odd `k`,
+the roots `u₁`, `u₂` of `HFHyp.exists_eventually_dmGeneric` satisfy `DMGeneric` at every `μ ≠ 0`
+near `0`, and there `K(v) ≠ 0` at all four roots `v = ±u₁, ±u₂` of `e`: `K(±u₁) = ρΨ(±u₁)` with
+`Ψ(±u₁) ≠ 0` (`HFHyp.eventually_Psi_ne`, at `±û` by `HFHyp.neg`), and `K(±u₂) → -2λβp₀`
+(`eventually_Kph_ne_of_shat'`). -/
+theorem HFHyp.exists_eventually_Kph_ne {u : ℂ} (h : A.HFHyp k ε u)
+    (hs' : Odd k → A.shat' k ε ≠ 0) :
+    ∃ u₁ u₂ : ℝ → ℂ, ∀ᶠ μ in 𝓝[≠] A.μ, (A.withMu μ).DMGeneric k ε (u₁ μ) (u₂ μ) ∧
+      ∀ v, (A.withMu μ).eph k ε v = 0 → (A.withMu μ).Kph k ε v ≠ 0 := by
+  have hμ := h.μ_eq
+  have hss := A.shat_sub_shat'_ne k ε h.ε_eq h.a_ne
+  have hz' := z_sq_ne'_of hμ hs' h.odd_ne
+  obtain ⟨u₂, hu₂, hc₂, he₂, hm₂⟩ := exists_root₂ h.ε_eq h.a_ne hμ hz'
+  obtain ⟨u₁, hu₁, hc₁, he₁⟩ := A.exists_root_of_mu k ε hμ
+    (by rw [A.eph_of_mu' k ε hμ, h.u_sq, sub_self, zero_mul])
+    (fun h0 ↦ hss (by rw [h.u_sq] at h0; linear_combination h0))
+  have hu₁' : u₁ A.μ ^ 2 = A.shat k ε := by rw [hu₁, h.u_sq]
+  have he₁n : ∀ᶠ μ in 𝓝 A.μ, (A.withMu μ).eph k ε (-u₁ μ) = 0 := by
+    filter_upwards [he₁] with μ he
+    rwa [eph_neg]
+  have hc₁n : ContinuousAt (fun μ ↦ -u₁ μ) A.μ := hc₁.neg
+  have hΨ := h.eventually_Psi_ne hs' hu₁ hc₁ he₁
+  have hΨn := h.neg.eventually_Psi_ne hs' (u₁ := fun μ ↦ -u₁ μ) (by simp [hu₁]) hc₁n he₁n
+  have hX := (A.continuousAt_withMu_X k ε hc₁).eventually_ne (X_ne_of_mu h.ε_eq h.a_ne hμ hu₁')
+  have hXn := (A.continuousAt_withMu_X k ε hc₁n).eventually_ne
+    (X_ne_of_mu h.ε_eq h.a_ne hμ (show (-u₁ A.μ) ^ 2 = _ by rw [neg_sq]; exact hu₁'))
+  refine ⟨u₁, u₂, ?_⟩
+  filter_upwards [eventually_dmGeneric_of h.ε_eq h.a_ne hμ h.shat_ne_of_odd hs' hu₁' hc₁ he₁ hu₂
+      hc₂ he₂ hm₂ hΨ, self_mem_nhdsWithin, hΨ, hΨn, nhdsWithin_le_nhds hX,
+    nhdsWithin_le_nhds hXn,
+    nhdsWithin_le_nhds (eventually_Kph_ne_of_shat' h.ε_eq h.a_ne hμ hz' hu₂ hc₂),
+    nhdsWithin_le_nhds (eventually_Kph_ne_of_shat' h.ε_eq h.a_ne hμ hz' (v := fun μ ↦ -u₂ μ)
+      (by simp [hu₂]) hc₂.neg)] with μ hdm hμ' hΨ hΨn hX hXn hK₂ hK₂n
+  refine ⟨hdm, fun v hv ↦ ?_⟩
+  have hρ := (A.withMu μ).rho_ne_zero (by rw [withMu_μ, ← hμ]; exact hμ')
+  rw [(A.withMu μ).eph_eq_mul k ε hdm.e_u₁ hdm.e_u₂ hdm.s_ne, mul_eq_zero, sub_eq_zero,
+    sub_eq_zero, sq_eq_sq_iff_eq_or_eq_neg, sq_eq_sq_iff_eq_or_eq_neg] at hv
+  rcases hv with (rfl | rfl) | (rfl | rfl)
+  · rw [(A.withMu μ).Kph_eq_rho_mul k ε hdm.e_u₁ hX]
+    exact mul_ne_zero hρ hΨ
+  · rw [(A.withMu μ).Kph_eq_rho_mul k ε (by rw [eph_neg]; exact hdm.e_u₁) hXn]
+    exact mul_ne_zero hρ hΨn
+  · exact hK₂
+  · exact hK₂n
 
 end Params
 
@@ -116,39 +152,17 @@ theorem eventually_lAxisGeneric_h0 {u u' : ℂ} (hd : (F.lat 0).HFHyp k 1 u)
     ∃ v : ℝ → Fin 4 → ℂ, ∀ᶠ s in 𝓝[≠] 0, (F.axis .h0 s).LAxisGeneric k (v s) := by
   have ha : (F.a : ℂ) ≠ 0 := hd.a_ne
   have hU : F.U ≠ 0 := fun h ↦ ha (by rw [a, h, zero_div, ofReal_zero])
-  have h0 : (F.lat 0).μ = 0 := rfl
-  obtain ⟨u₁, u₂, hu₁, hu₂, hc₁, hc₂, hdd⟩ := hd.exists_eventually_dmGeneric hsd
-  obtain ⟨w₁, w₂, hw₁, hw₂, hc₁', hc₂', hdm⟩ := hm.exists_eventually_dmGeneric hsm
-  rw [h0] at hu₁ hu₂ hw₁ hw₂ hc₁ hc₂ hc₁' hc₂' hdd hdm
-  -- `P ≠ 0` at the four roots near the corner, for `k ≠ 0`
-  have hP : ∀ᶠ s in 𝓝 (0 : ℝ), k ≠ 0 → (F.lat 0).Pph k (u₁ s) ≠ 0 ∧
-      (F.lat 0).Pph k (u₂ s) ≠ 0 ∧ (F.lat 0).Pph k (w₁ s) ≠ 0 ∧ (F.lat 0).Pph k (w₂ s) ≠ 0 := by
-    by_cases hk : k = 0
-    · exact Eventually.of_forall fun _ h ↦ absurd hk h
-    have hc : ∀ {f : ℝ → ℂ}, ContinuousAt f 0 →
-        ContinuousAt (fun s ↦ (F.lat 0).Pph k (f s)) 0 := fun hf ↦ by
-      simp only [Params.Pph, Params.Qp, Params.Qm]
-      fun_prop
-    have hk' : ∀ ε : ℂ, ¬(k = 0 ∧ ε = -1) := fun _ h ↦ hk h.1
-    filter_upwards [(hc hc₁).eventually_ne (by
-        rw [hu₁]; exact Params.Pph_ne_of_shat (A := F.lat 0) k 1 hd.ε_eq ha h0 hd.u_sq),
-      (hc hc₂).eventually_ne (Params.Pph_ne_of_shat' (A := F.lat 0) (k := k) hd.ε_eq ha h0
-        (hk' 1) hu₂),
-      (hc hc₁').eventually_ne (by
-        rw [hw₁]; exact Params.Pph_ne_of_shat (A := F.lat 0) k (-1) hm.ε_eq ha h0 hm.u_sq),
-      (hc hc₂').eventually_ne (Params.Pph_ne_of_shat' (A := F.lat 0) (k := k) hm.ε_eq ha h0
-        (hk' (-1)) hw₂)] with s h₁ h₂ h₃ h₄ _
-    exact ⟨h₁, h₂, h₃, h₄⟩
+  obtain ⟨u₁, u₂, hdd⟩ := hd.exists_eventually_Kph_ne hsd
+  obtain ⟨w₁, w₂, hdm⟩ := hm.exists_eventually_Kph_ne hsm
   refine ⟨fun s ↦ ![u₁ s, u₂ s, w₁ s, w₂ s], ?_⟩
-  filter_upwards [F.eventually_sep_off_axis k .h0 hU 0, hdd, hdm, nhdsWithin_le_nhds hP]
-    with s hso hds hms hPs
+  filter_upwards [F.eventually_sep_off_axis k .h0 hU 0, hdd, hdm] with s hso ⟨hds, hKd⟩ ⟨hms, hKm⟩
   set G := F.axis .h0 s with hGdef
   set V : Fin 4 → ℂ := ![u₁ s, u₂ s, w₁ s, w₂ s]
   have hG : G.lat G.μ = (F.lat 0).withMu s := by
     simp only [hGdef, FParams.lat, Params.withMu, axis_μ, Axis.dμ, mul_one]
     rfl
   have hh : G.h = 0 := by simp [hGdef, Axis.dh]
-  rw [← hG] at hds hms
+  rw [← hG] at hds hms hKd hKm
   have hprod : ∀ v, G.E8L k v = ∏ j, (v ^ 2 - V j ^ 2) := fun v ↦ by
     rw [G.E8L_h0 k hh, (G.lat G.μ).eph_eq_mul k 1 hds.e_u₁ hds.e_u₂ hds.s_ne,
       (G.lat G.μ).eph_eq_mul k (-1) hms.e_u₁ hms.e_u₂ hms.s_ne, Fin.prod_univ_four]
@@ -161,21 +175,15 @@ theorem eventually_lAxisGeneric_h0 {u u' : ℂ} (hd : (F.lat 0).HFHyp k 1 u)
     exact ⟨j, Finset.mem_univ _, sub_self _⟩
   refine ⟨ha, root, sep, fun j _ σ l ↦ off j σ l, fun t j hj ↦ Or.inr ?_⟩
   have key : ∃ ε : ℂ, (ε = 1 ∨ ε = -1) ∧ (G.lat G.μ).eph k ε (V j) = 0 ∧
-      (G.lat G.μ).ModeOK k ε (V j) ∧ (k ≠ 0 → (G.lat G.μ).Pph k (V j) ≠ 0) := by
+      (G.lat G.μ).Kph k ε (V j) ≠ 0 := by
     fin_cases j
-    · exact ⟨1, hd.ε_eq, hds.e_u₁, hds.mode₁, fun hk ↦ (hPs hk).1⟩
-    · exact ⟨1, hd.ε_eq, hds.e_u₂, hds.mode₂, fun hk ↦ (hPs hk).2.1⟩
-    · exact ⟨-1, hm.ε_eq, hms.e_u₁, hms.mode₁, fun hk ↦ (hPs hk).2.2.1⟩
-    · exact ⟨-1, hm.ε_eq, hms.e_u₂, hms.mode₂, fun hk ↦ (hPs hk).2.2.2⟩
-  obtain ⟨ε, hε, he, hmo, hPk⟩ := key
-  have hP : (G.lat G.μ).Pph k (V j) ≠ 0 := by
-    by_cases hk : k = 0
-    · subst hk
-      rw [Params.Pph_zero]
-      exact pow_ne_zero 2 (sub_ne_zero.mpr fun h ↦ hj ⟨rfl, h⟩)
-    · exact hPk hk
+    · exact ⟨1, hd.ε_eq, hds.e_u₁, hKd _ hds.e_u₁⟩
+    · exact ⟨1, hd.ε_eq, hds.e_u₂, hKd _ hds.e_u₂⟩
+    · exact ⟨-1, hm.ε_eq, hms.e_u₁, hKm _ hms.e_u₁⟩
+    · exact ⟨-1, hm.ε_eq, hms.e_u₂, hKm _ hms.e_u₂⟩
+  obtain ⟨ε, hε, he, hK⟩ := key
   have hq := G.sq_add_q₀L_ne_of_sep k root sep j
-  exact ⟨G.KL_opp_ne_h0 k hh hε ha he hq (hmo.Kph_ne _ _ _ hP) t, hq⟩
+  exact ⟨G.KL_opp_ne_h0 k hh hε ha he hq hK t, hq⟩
 
 end FParams
 

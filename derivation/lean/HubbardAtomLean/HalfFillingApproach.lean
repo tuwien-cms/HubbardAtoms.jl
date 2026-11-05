@@ -557,25 +557,32 @@ theorem shat'_static (hμ : A.μ = 0) : A.shat' 0 (-1) = A.a ^ 2 := by
   rw [shat', q₀, w_zero]
   linear_combination (4 * (A.a : ℂ) ^ 2) * hs
 
+/-- Near `μ = 0`, `K(v) ≠ 0` along any `v(μ)` continuous at `0` with `v(0)² = ŝ'` off the
+lattice, as `K(v) → -2λβp₀` (`Kph_of_mu'`). -/
+theorem eventually_Kph_ne_of_shat' (hε : ε = 1 ∨ ε = -1) (ha : (A.a : ℂ) ≠ 0) (hμ : A.μ = 0)
+    (hz' : ∀ n, A.z k n ^ 2 - A.shat' k ε ≠ 0) {v : ℝ → ℂ} (hv : v A.μ ^ 2 = A.shat' k ε)
+    (hc : ContinuousAt v A.μ) : ∀ᶠ μ in 𝓝 A.μ, (A.withMu μ).Kph k ε (v μ) ≠ 0 := by
+  have hl := A.lam_ne_zero ε hε ha
+  have hβ : (A.β : ℂ) ≠ 0 := ofReal_ne_zero.mpr A.β_pos.ne'
+  have hp : (A.p₀ : ℂ) ≠ 0 := ofReal_ne_zero.mpr A.p₀_pos.ne'
+  have hoff : ∀ n, (A.withMu A.μ).z k n ≠ v A.μ := fun n hn ↦
+    hz' n (by rw [← hv, ← hn, withMu_self, sub_self])
+  refine (A.continuousAt_withMu_Kph k ε hc hoff).eventually_ne ?_
+  change A.Kph k ε (v A.μ) ≠ 0
+  rw [A.Kph_of_mu' k ε hμ hv]
+  exact mul_ne_zero (mul_ne_zero (mul_ne_zero (by norm_num) hl) hβ) hp
+
 /-- Near `μ = 0`, a root `u₂(μ)` of `e` with `u₂(0)² = ŝ'` and `P(u₂(0)) ≠ 0` has `P(u₂) ≠ 0` and
-`K(u₂) ≠ 0`, as `K(u₂) → -2λβp₀` (`Kph_of_mu'`). -/
+`K(u₂) ≠ 0` (`eventually_Kph_ne_of_shat'`). -/
 theorem eventually_modeOK (hε : ε = 1 ∨ ε = -1) (ha : (A.a : ℂ) ≠ 0) (hμ : A.μ = 0)
     (hz' : ∀ n, A.z k n ^ 2 - A.shat' k ε ≠ 0) {u₂ : ℝ → ℂ} (hu₂ : u₂ A.μ ^ 2 = A.shat' k ε)
     (hc₂ : ContinuousAt u₂ A.μ) (hP : A.Pph k (u₂ A.μ) ≠ 0) :
     ∀ᶠ μ in 𝓝 A.μ, (A.withMu μ).ModeOK k ε (u₂ μ) := by
-  have hl := A.lam_ne_zero ε hε ha
-  have hβ : (A.β : ℂ) ≠ 0 := ofReal_ne_zero.mpr A.β_pos.ne'
-  have hp : (A.p₀ : ℂ) ≠ 0 := ofReal_ne_zero.mpr A.p₀_pos.ne'
-  have hoff : ∀ n, (A.withMu A.μ).z k n ≠ u₂ A.μ := fun n hn ↦
-    hz' n (by rw [← hu₂, ← hn, withMu_self, sub_self])
   have hcP : ContinuousAt (fun μ ↦ A.Pph k (u₂ μ)) A.μ := by
     simp only [Pph, Qp, Qm]
     fun_prop
-  have hK := (A.continuousAt_withMu_Kph k ε hc₂ hoff).eventually_ne (by
-    change A.Kph k ε (u₂ A.μ) ≠ 0
-    rw [A.Kph_of_mu' k ε hμ hu₂]
-    exact mul_ne_zero (mul_ne_zero (mul_ne_zero (by norm_num) hl) hβ) hp)
-  filter_upwards [hcP.eventually_ne hP, hK] with μ hPμ hKμ
+  filter_upwards [hcP.eventually_ne hP, eventually_Kph_ne_of_shat' hε ha hμ hz' hu₂ hc₂]
+    with μ hPμ hKμ
   exact Or.inl ⟨hPμ, hKμ⟩
 
 /-- **The second root near `μ = 0`**: for `ŝ'` off the lattice, a root `u₂(μ)` of `e`, continuous at
@@ -723,32 +730,39 @@ theorem HFHyp.shat_ne_of_odd {u : ℂ} (h : A.HFHyp k ε u) (hk : Odd k) : A.sha
   rwa [A.z_of_fixed k (by unfold mirror; omega), h.μ_eq, ofReal_zero, zero_pow two_ne_zero,
     zero_sub, neg_ne_zero] at hz
 
-/-- **The assumptions of Theorem "density and magnetic" hold near half filling**: under `HFHyp`
-with `ŝ' ≠ 0` for odd `k`, there are roots `u₁(μ)`, `u₂(μ)` of `e`, continuous at `μ = 0` with
-`u₁(0) = û`, `u₂(0)² = ŝ'`, such that `DMGeneric` holds at every `μ ≠ 0` near `0`. For `û ≠ 0`,
+/-- At `μ = 0`, `S_k` is odd, so `D̂` is even. -/
+theorem Dhat_neg (hμ : A.μ = 0) (u : ℂ) : A.Dhat k ε (-u) = A.Dhat k ε u := by
+  have hS := A.S_mu_sub k u
+  rw [hμ, ofReal_zero, zero_sub, zero_add] at hS
+  simp only [Dhat, That, neg_eq_zero]
+  split_ifs
+  · rfl
+  · rw [hS, neg_div_neg_eq]
+
+/-- `HFHyp` at `û` gives it at `-û`. -/
+theorem HFHyp.neg {u : ℂ} (h : A.HFHyp k ε u) : A.HFHyp k ε (-u) :=
+  { h with
+    u_sq := by rw [neg_sq, h.u_sq]
+    D_ne := by rw [Dhat_neg h.μ_eq]; exact h.D_ne }
+
+/-- **`Ψ ≠ 0` near half filling**: under `HFHyp` with `ŝ' ≠ 0` for odd `k`, along any root `u₁(μ)`
+of `e` continuous at `μ = 0` with `u₁(0) = û`, `Ψ(u₁) ≠ 0` at every `μ ≠ 0` near `0`. For `û ≠ 0`,
 `Ψ(u₁)` is continuous with `Ψ(û) = -2aûD̂ ≠ 0` (`Psi_of_mu`). For `û = 0` (even `k`),
-`Ψ(u₁) → 0`; there `K(u₁) ≠ 0` as `1 + 𝒦` stays invertible (`eventually_isUnit_onePlusKR`),
-while `K(u₁) = 0` would make `φ_{u₁}` a null vector (`not_isUnit_onePlusKR_of_Kph`; `u₁ ≠ 0` by
-`eventually_eph_zero_ne`). In the static magnetic channel (`k = 0`, `ε = -1`), `u₂ = a` is the
-atomic root, at every `μ`. -/
-theorem HFHyp.exists_eventually_dmGeneric {u : ℂ} (h : A.HFHyp k ε u)
-    (hs' : Odd k → A.shat' k ε ≠ 0) :
-    ∃ u₁ u₂ : ℝ → ℂ, u₁ A.μ = u ∧ u₂ A.μ ^ 2 = A.shat' k ε ∧ ContinuousAt u₁ A.μ ∧
-      ContinuousAt u₂ A.μ ∧ ∀ᶠ μ in 𝓝[≠] A.μ, (A.withMu μ).DMGeneric k ε (u₁ μ) (u₂ μ) := by
+`Ψ(u₁) → 0`; there `K(u₁) = ρΨ(u₁) ≠ 0` as `1 + 𝒦` stays invertible
+(`eventually_isUnit_onePlusKR`), while `K(u₁) = 0` would make `φ_{u₁}` a null vector
+(`not_isUnit_onePlusKR_of_Kph`; `u₁ ≠ 0` by `eventually_eph_zero_ne`). -/
+theorem HFHyp.eventually_Psi_ne {u : ℂ} (h : A.HFHyp k ε u) (hs' : Odd k → A.shat' k ε ≠ 0)
+    {u₁ : ℝ → ℂ} (hu₁ : u₁ A.μ = u) (hc₁ : ContinuousAt u₁ A.μ)
+    (he₁ : ∀ᶠ μ in 𝓝 A.μ, (A.withMu μ).eph k ε (u₁ μ) = 0) :
+    ∀ᶠ μ in 𝓝[≠] A.μ, (A.withMu μ).Psi k ε (u₁ μ) ≠ 0 := by
   have hμ := h.μ_eq
   have hl := A.lam_ne_zero ε h.ε_eq h.a_ne
-  have hss := A.shat_sub_shat'_ne k ε h.ε_eq h.a_ne
-  obtain ⟨u₂, hu₂, hc₂, he₂, hm₂⟩ :=
-    exists_root₂ h.ε_eq h.a_ne hμ (z_sq_ne'_of hμ hs' h.odd_ne)
-  obtain ⟨u₁, hu₁, hc₁, he₁⟩ := A.exists_root_of_mu k ε hμ
-    (by rw [A.eph_of_mu' k ε hμ, h.u_sq, sub_self, zero_mul])
-    (fun h0 ↦ hss (by rw [h.u_sq] at h0; linear_combination h0))
   have hu₁' : u₁ A.μ ^ 2 = A.shat k ε := by rw [hu₁, h.u_sq]
   by_cases hu : u = 0
   · -- `û = 0`: `K(u₁) ≠ 0` from the invertibility of `1 + 𝒦`
     subst hu
-    refine ⟨u₁, u₂, hu₁, hu₂, hc₁, hc₂, eventually_dmGeneric_of h.ε_eq h.a_ne hμ h.shat_ne_of_odd
-      hs' hu₁' hc₁ he₁ hu₂ hc₂ he₂ hm₂ ?_⟩
+    obtain ⟨u₂, hu₂, hc₂, he₂, -⟩ :=
+      exists_root₂ h.ε_eq h.a_ne hμ (z_sq_ne'_of hμ hs' h.odd_ne)
     have hcP : ContinuousAt (fun μ ↦ A.Pph k (u₁ μ)) A.μ := by
       simp only [Pph, Qp, Qm]
       fun_prop
@@ -766,14 +780,32 @@ theorem HFHyp.exists_eventually_dmGeneric {u : ℂ} (h : A.HFHyp k ε u)
     rw [(A.withMu μ).Kph_eq_rho_mul k ε he₁ hX, hΨ, mul_zero]
   have hoff : ∀ n, (A.withMu A.μ).z k n ≠ u₁ A.μ := fun n hn ↦
     h.z_sq_ne n (by rw [withMu_self] at hn; rw [hn, hu₁', sub_self])
-  have hΨ := (A.continuousAt_withMu_Psi k ε hc₁ hoff
-      (X_ne_of_mu h.ε_eq h.a_ne hμ hu₁')).eventually_ne (by
-    change A.Psi k ε (u₁ A.μ) ≠ 0
-    rw [hu₁, A.Psi_of_mu k ε hμ h.u_sq hu hl]
-    exact mul_ne_zero (mul_ne_zero (mul_ne_zero (by norm_num) (by exact_mod_cast h.a_ne)) hu)
-      h.D_ne)
+  refine nhdsWithin_le_nhds ((A.continuousAt_withMu_Psi k ε hc₁ hoff
+      (X_ne_of_mu h.ε_eq h.a_ne hμ hu₁')).eventually_ne ?_)
+  change A.Psi k ε (u₁ A.μ) ≠ 0
+  rw [hu₁, A.Psi_of_mu k ε hμ h.u_sq hu hl]
+  exact mul_ne_zero (mul_ne_zero (mul_ne_zero (by norm_num) (by exact_mod_cast h.a_ne)) hu)
+    h.D_ne
+
+/-- **The assumptions of Theorem "density and magnetic" hold near half filling**: under `HFHyp`
+with `ŝ' ≠ 0` for odd `k`, there are roots `u₁(μ)`, `u₂(μ)` of `e`, continuous at `μ = 0` with
+`u₁(0) = û`, `u₂(0)² = ŝ'`, such that `DMGeneric` holds at every `μ ≠ 0` near `0`
+(`HFHyp.eventually_Psi_ne`). In the static magnetic channel (`k = 0`, `ε = -1`), `u₂ = a` is the
+atomic root, at every `μ`. -/
+theorem HFHyp.exists_eventually_dmGeneric {u : ℂ} (h : A.HFHyp k ε u)
+    (hs' : Odd k → A.shat' k ε ≠ 0) :
+    ∃ u₁ u₂ : ℝ → ℂ, u₁ A.μ = u ∧ u₂ A.μ ^ 2 = A.shat' k ε ∧ ContinuousAt u₁ A.μ ∧
+      ContinuousAt u₂ A.μ ∧ ∀ᶠ μ in 𝓝[≠] A.μ, (A.withMu μ).DMGeneric k ε (u₁ μ) (u₂ μ) := by
+  have hμ := h.μ_eq
+  have hss := A.shat_sub_shat'_ne k ε h.ε_eq h.a_ne
+  obtain ⟨u₂, hu₂, hc₂, he₂, hm₂⟩ :=
+    exists_root₂ h.ε_eq h.a_ne hμ (z_sq_ne'_of hμ hs' h.odd_ne)
+  obtain ⟨u₁, hu₁, hc₁, he₁⟩ := A.exists_root_of_mu k ε hμ
+    (by rw [A.eph_of_mu' k ε hμ, h.u_sq, sub_self, zero_mul])
+    (fun h0 ↦ hss (by rw [h.u_sq] at h0; linear_combination h0))
+  have hu₁' : u₁ A.μ ^ 2 = A.shat k ε := by rw [hu₁, h.u_sq]
   exact ⟨u₁, u₂, hu₁, hu₂, hc₁, hc₂, eventually_dmGeneric_of h.ε_eq h.a_ne hμ h.shat_ne_of_odd hs'
-    hu₁' hc₁ he₁ hu₂ hc₂ he₂ hm₂ (nhdsWithin_le_nhds hΨ)⟩
+    hu₁' hc₁ he₁ hu₂ hc₂ he₂ hm₂ (h.eventually_Psi_ne hs' hu₁ hc₁ he₁)⟩
 
 /-- **Corollary "half filling" as a limit in `μ`**: under `HFHyp` with `ŝ' ≠ 0` for odd `k`,
 `gammaR → gammaHF` as `μ → 0`, `μ ≠ 0`, at fixed `U`, `β`, `k`, with the roots `u₁`, `u₂` of
