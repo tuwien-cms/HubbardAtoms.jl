@@ -36,7 +36,7 @@ for both zero-field channels at the corner (`HFHyp`, with `ŝ' ≠ 0` for odd `k
   `HFHyp.shiba_lat_zero`).
 * Approaches to the corner through the domain of Eq. (field-L): off the axes along the line
   `lineL` through each axis point where `LAxisGeneric` holds, Eq. (field-L) holds
-  (`LAxisGeneric.eventually_LGeneric_lineL`), so under the assumptions on `h = 0` there are points
+  (`LAxisGeneric.tendsto_gammaL_lineL_gammaLAll`), so under the assumptions on `h = 0` there are points
   `y_i → 0` off the axes in the domain, along which `gammaL → (gammaHF_d + s_στ gammaHF_m)/2`
   (`exists_tendsto_gammaL_corner`, with `tendsto_gammaL_corner`).
 
@@ -783,13 +783,9 @@ theorem shiba_lat_zero_p :
     simp only [Params.Z, Params.boltz₀, Params.boltz₁, Params.boltz₂, lat_U, lat_β, lat_μ,
       shiba_U, shiba_β]
     ring_nf
-  constructor
-  · rw [Params.p₀, Params.p₁, hZ]
-    simp only [Params.boltz₀, Params.boltz₁, lat_U, lat_β, lat_μ, shiba_U, shiba_β]
-    ring_nf
-  · rw [Params.p₀, Params.p₁, hZ]
-    simp only [Params.boltz₀, Params.boltz₁, lat_U, lat_β, lat_μ, shiba_U, shiba_β]
-    ring_nf
+  simp only [Params.p₀, Params.p₁, hZ, Params.boltz₀, Params.boltz₁, lat_U, lat_β, lat_μ, shiba_U,
+    shiba_β]
+  constructor <;> ring_nf
 
 /-- At `μ = 0`: `ŝ(-U, ε) = ŝ(U, -ε)`, `ŝ'(-U, ε) = ŝ'(U, ε)`, `D̂(-U, ε) = D̂(U, -ε)`. -/
 theorem shiba_lat_zero_hat (ε u : ℂ) :
@@ -944,27 +940,11 @@ theorem eventually_lAxisGeneric_corner (d : Axis) {u u' : ℂ} (hd : (F.lat 0).H
 
 /-! ### Approaches to the corner through the domain of Eq. (field-L) -/
 
-/-- Off the axes along the line `lineL` through a point where `LAxisGeneric` holds, Eq. (field-L)
-holds with roots `u(r)` for `r ≠ 0` small (as in `LAxisGeneric.tendsto_gammaL_lineL`, without the
-invertibility of `1 + 𝒦`). -/
-theorem LAxisGeneric.eventually_LGeneric_lineL {G : FParams} {u₀ : Fin 4 → ℂ}
-    (h₀ : G.LAxisGeneric k u₀) :
-    ∃ u : ℝ → Fin 4 → ℂ, ∀ᶠ r in 𝓝[≠] (0 : ℝ), ∀ t, (G.lineL r).LGeneric k t (u r) := by
-  have e : famF (fun _ ↦ G.U) (fun _ ↦ G.β) (fun r ↦ G.μ + r) (fun r ↦ G.h + 2 * r)
-      (fun _ ↦ G.β_pos) 0 = G := G.lineL_zero
-  rw [← e] at h₀
-  obtain ⟨u, -, -, hev⟩ := h₀.exists_eventually_LGeneric continuousAt_const continuousAt_const
-    (by fun_prop) (by fun_prop)
-  refine ⟨u, ?_⟩
-  filter_upwards [nhdsWithin_le_nhds hev, G.eventually_offAxes_lineL] with r hr ho
-  exact hr ho
-
 /-- **Approaches to the corner through the domain of Eq. (field-L) exist**: under the assumptions
 of `eventually_lAxisGeneric_h0` (`HFHyp` for both channels of `(U, β, 0)`, with `ŝ' ≠ 0` for odd
 `k`), there are points `y_i → 0` in the `(μ, h)` plane and roots `v_i` such that Eq. (field-L)
 holds at `(U, β, y_i)` for both column spins, and along them
-`gammaL → (gammaHF_d + s_στ gammaHF_m)/2` (`tendsto_gammaL_corner`). The points lie on the lines
-`lineL` through the axis points `(1/(i + 1), 0)` of `h = 0`, within `3/(i + 1)` of the corner. -/
+`gammaL → (gammaHF_d + s_στ gammaHF_m)/2` (`tendsto_gammaL_corner`). -/
 theorem exists_tendsto_gammaL_corner {u u' : ℂ} (hd : (F.lat 0).HFHyp k 1 u)
     (hm : (F.lat 0).HFHyp k (-1) u') (hsd : Odd k → (F.lat 0).shat' k 1 ≠ 0)
     (hsm : Odd k → (F.lat 0).shat' k (-1) ≠ 0) :
@@ -980,7 +960,7 @@ theorem exists_tendsto_gammaL_corner {u u' : ℂ} (hd : (F.lat 0).HFHyp k 1 u)
   have hQ : ∀ᶠ s in 𝓝[≠] (0 : ℝ), ∃ (y : ℝ × ℝ) (v : Fin 4 → ℂ), ‖y‖ ≤ 3 * |s| ∧
       ∀ t, (Fy y).LGeneric k t v := by
     filter_upwards [hw, self_mem_nhdsWithin] with s hs hs0
-    obtain ⟨u₁, hu₁⟩ := hs.eventually_LGeneric_lineL k
+    obtain ⟨u₁, -, -, hu₁, -⟩ := hs.tendsto_gammaL_lineL_gammaLAll
     have h1 : ∀ᶠ r in 𝓝 (0 : ℝ), |r| < |s| :=
       (continuous_abs.tendsto 0).eventually (gt_mem_nhds (by rw [abs_zero]; exact abs_pos.2 hs0))
     have hr : ∀ᶠ r in 𝓝[≠] (0 : ℝ), |r| < |s| ∧ ∀ t, ((F.axis .h0 s).lineL r).LGeneric k t (u₁ r) :=
@@ -995,20 +975,13 @@ theorem exists_tendsto_gammaL_corner {u u' : ℂ} (hd : (F.lat 0).HFHyp k 1 u)
   have hs : Tendsto (fun i : ℕ ↦ 1 / ((i : ℝ) + 1)) atTop (𝓝[≠] 0) :=
     tendsto_nhdsWithin_iff.2 ⟨tendsto_one_div_add_atTop_nhds_zero_nat,
       Eventually.of_forall fun i ↦ (by positivity : (0 : ℝ) < 1 / ((i : ℝ) + 1)).ne'⟩
-  obtain ⟨N, hN⟩ := Filter.eventually_atTop.1 (hs.eventually hQ)
-  have hyv : ∀ i : ℕ, ∃ (y : ℝ × ℝ) (v : Fin 4 → ℂ), N ≤ i →
-      ‖y‖ ≤ 3 * |1 / ((i : ℝ) + 1)| ∧ ∀ t, (Fy y).LGeneric k t v := fun i ↦ by
-    by_cases hi : N ≤ i
-    · obtain ⟨y, v, h⟩ := hN i hi
-      exact ⟨y, v, fun _ ↦ h⟩
-    · exact ⟨0, 0, fun h ↦ absurd h hi⟩
-  choose y v hyv using hyv
+  obtain ⟨y, hy⟩ := (hs.eventually hQ).choice
+  obtain ⟨v, hv⟩ := hy.choice
   have hy : Tendsto y atTop (𝓝 0) := by
-    refine squeeze_zero_norm' (Filter.eventually_atTop.2 ⟨N, fun i hi ↦ (hyv i hi).1⟩) ?_
+    refine squeeze_zero_norm' (hv.mono fun i h ↦ h.1) ?_
     have := (tendsto_one_div_add_atTop_nhds_zero_nat (𝕜 := ℝ)).abs.const_mul (3 : ℝ)
     rwa [abs_zero, mul_zero] at this
-  have hg : ∀ᶠ i in atTop, ∀ t, (Fy (y i)).LGeneric k t (v i) :=
-    Filter.eventually_atTop.2 ⟨N, fun i hi ↦ (hyv i hi).2⟩
+  have hg : ∀ᶠ i in atTop, ∀ t, (Fy (y i)).LGeneric k t (v i) := hv.mono fun i h ↦ h.2
   exact ⟨y, v, hy, hg, fun σ n τ m ↦ tendsto_gammaL_corner continuousAt_const continuousAt_const
     continuous_fst.continuousAt continuous_snd.continuousAt rfl rfl hd hm hy hg σ n τ m⟩
 
