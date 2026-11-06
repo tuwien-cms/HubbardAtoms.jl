@@ -405,6 +405,107 @@ theorem exists_eq_of_mem_roots_axisPoly {s : ℝ} {u : Fin 4 → ℂ}
     obtain ⟨j, -, hrj⟩ := h0
     exact ⟨j, fun ha ↦ hk ha.1, sq_eq_sq_iff_eq_or_eq_neg.1 (sub_eq_zero.1 hrj)⟩
 
+/-! ### The `K` conditions on the axes -/
+
+/-- `axisG` along the real axis is analytic. -/
+theorem analyticAt_axisG_ofReal (lam μ' : ℂ) (s₀ : ℝ) :
+    AnalyticAt ℝ (fun s : ℝ ↦ F.axisG k d lam μ' s) s₀ :=
+  (F.analyticAt_axisG k d lam μ' s₀).restrictScalars.comp (ofRealCLM.analyticAt s₀)
+
+/-- **On an axis, `LAxisGeneric` fails only at isolated points once it holds at one point**: at
+fixed `U ≠ 0`, `β`, `k`, if `LAxisGeneric` holds at one point `s₁` of the axis `d`, then near
+every `s₀`, at every `s ≠ s₀`, it holds for some choice of the signs of the roots. The constants
+`λ`, `μ'` of `axisG` are chosen at `s₁` (`exists_add_mul_ne_zero`), so that `axisG ≠ 0` there;
+it is analytic along the axis (`analyticAt_axisG`), so it vanishes only at isolated points, and
+where it does not, at each root `u_j` or at `-u_j` both `K_{t,t} + λK_{t,-t} ≠ 0`. -/
+theorem eventually_exists_lAxisGeneric (hU : F.U ≠ 0) {s₁ : ℝ} {u₁ : Fin 4 → ℂ}
+    (h₁ : (F.axis d s₁).LAxisGeneric k u₁) (s₀ : ℝ) :
+    ∀ᶠ s in 𝓝[≠] s₀, ∃ u, (F.axis d s).LAxisGeneric k u := by
+  classical
+  obtain ⟨-, -, -, off₁, K₁⟩ := ((F.axis d s₁).lAxisGeneric_iff k).1 h₁
+  -- `λ`: `K_{t,t} + λK_{t,-t} ≠ 0` at the non-atomic roots at `s₁`
+  obtain ⟨lam, hlam⟩ := exists_add_mul_ne_zero
+    (fun i : Bool × Fin 4 ↦
+      if (F.axis d s₁).Atomic k (u₁ i.2) then 1 else (F.axis d s₁).KL k i.1 i.1 (u₁ i.2))
+    (fun i ↦ if (F.axis d s₁).Atomic k (u₁ i.2) then 0 else (F.axis d s₁).KL k i.1 (!i.1) (u₁ i.2))
+    fun i ↦ by
+      split_ifs with ha
+      · exact Or.inl one_ne_zero
+      · exact K₁ i.1 i.2 ha
+  set f₁ : ℂ → ℂ := fun v ↦ (F.axis d s₁).Kd k lam true v * (F.axis d s₁).Kd k lam false v
+  have hf₁ : ∀ j, ¬(F.axis d s₁).Atomic k (u₁ j) → f₁ (u₁ j) ≠ 0 := fun j ha ↦ by
+    have hK : ∀ t, (F.axis d s₁).Kd k lam t (u₁ j) ≠ 0 := fun t ↦ by
+      refine ((F.axis d s₁).Kd_ne_zero_iff k lam t fun n ↦ (off₁ j ha t n).1).2 ?_
+      simpa [ha] using hlam (t, j)
+    exact mul_ne_zero (hK true) (hK false)
+  -- `μ'`: `f(±u_j) + μ'f(∓u_j) ≠ 0` at the non-atomic roots at `s₁`
+  obtain ⟨μ', hμ'⟩ := exists_add_mul_ne_zero
+    (fun i : Bool × Fin 4 ↦ if (F.axis d s₁).Atomic k (u₁ i.2) then 1 else
+      f₁ (if i.1 then u₁ i.2 else -u₁ i.2))
+    (fun i ↦ if (F.axis d s₁).Atomic k (u₁ i.2) then 0 else
+      f₁ (if i.1 then -u₁ i.2 else u₁ i.2))
+    fun i ↦ by
+      split_ifs with ha hb
+      · exact Or.inl one_ne_zero
+      · exact Or.inl (hf₁ i.2 ha)
+      · exact Or.inr (hf₁ i.2 ha)
+  -- `axisG ≠ 0` at `s₁`
+  have hG₁ : F.axisG k d lam μ' s₁ ≠ 0 := by
+    rw [axisG_ofReal]
+    refine Multiset.prod_ne_zero fun h0 ↦ ?_
+    obtain ⟨r, hr, hr0⟩ := Multiset.mem_map.1 h0
+    obtain ⟨j, ha, hrj | hrj⟩ := F.exists_eq_of_mem_roots_axisPoly k d h₁ hr
+    · have := hμ' (true, j)
+      simp only [ha, ↓reduceIte] at this
+      exact this (by simpa [f₁, hrj] using hr0)
+    · have := hμ' (false, j)
+      simp only [ha, ↓reduceIte, Bool.false_eq_true] at this
+      exact this (by simpa [f₁, hrj] using hr0)
+  filter_upwards [eventually_ne_zero_of_analyticAt (F.analyticAt_axisG_ofReal k d lam μ') hG₁ s₀,
+    F.eventually_lAxisGeneric_iff_axis k d hU s₀, F.eventually_sep_off_axis k d hU s₀]
+    with s hGs hiff hso
+  obtain ⟨u, hu⟩ := (F.axis d s).exists_E8L_eq_prod k
+  obtain ⟨-, off⟩ := hso u hu
+  set f : ℂ → ℂ := fun v ↦ (F.axis d s).Kd k lam true v * (F.axis d s).Kd k lam false v
+  -- at each non-atomic root, `f(u_j) ≠ 0` or `f(-u_j) ≠ 0`
+  have hf : ∀ j, ¬(F.axis d s).Atomic k (u j) → f (u j) ≠ 0 ∨ f (-u j) ≠ 0 := fun j ha ↦ by
+    have hroot : (F.axis d s).E8L k (u j) = 0 := by
+      rw [hu]
+      exact Finset.prod_eq_zero (Finset.mem_univ j) (sub_self _)
+    have hmem := F.mem_roots_axisPoly k d s hroot ha
+    by_contra hc
+    push Not at hc
+    rw [axisG_ofReal] at hGs
+    refine hGs (Multiset.prod_eq_zero (Multiset.mem_map.2 ⟨u j, hmem, ?_⟩))
+    simp only [f] at hc
+    rw [hc.1, hc.2, mul_zero, add_zero]
+  set u' : Fin 4 → ℂ := fun j ↦ if f (u j) ≠ 0 then u j else -u j
+  have hsq : ∀ j, u' j ^ 2 = u j ^ 2 := fun j ↦ by
+    simp only [u']
+    split_ifs <;> simp
+  have hat : ∀ j, (F.axis d s).Atomic k (u' j) ↔ (F.axis d s).Atomic k (u j) := fun j ↦ by
+    simp only [Atomic, hsq]
+  refine ⟨u', (hiff u').2 ⟨fun v ↦ by simp only [hu, hsq], fun t j ha ↦ ?_⟩⟩
+  rw [hat] at ha
+  -- `f(u'_j) ≠ 0`, and `u'_j` is off both lattices
+  have hfu : f (u' j) ≠ 0 := by
+    simp only [u']
+    split_ifs with h
+    · exact h
+    · exact (hf j ha).resolve_left h
+  have hoff : ∀ σ n, ((F.axis d s).BL σ).z k n ≠ u' j := fun σ n ↦ by
+    simp only [u']
+    split_ifs
+    exacts [(off j σ n).1, (off j σ n).2]
+  have hK : (F.axis d s).Kd k lam t (u' j) ≠ 0 := by
+    cases t
+    exacts [right_ne_zero_of_mul hfu, left_ne_zero_of_mul hfu]
+  rw [(F.axis d s).Kd_ne_zero_iff k lam t (hoff t)] at hK
+  by_contra hc
+  push Not at hc
+  rw [hc.1, hc.2, mul_zero, add_zero] at hK
+  exact hK rfl
+
 end FParams
 
 end HubbardAtom
