@@ -112,3 +112,7 @@ import HubbardAtomLean.FieldLAxisGeneric
 import HubbardAtomLean.FieldLAxisFormula
 import HubbardAtomLean.FieldLAxisUnitPM
 import HubbardAtomLean.HalfFillingLZApproach
+import HubbardAtomLean.FieldLAxisClosedForms
+import HubbardAtomLean.FieldLAxisCorner
+import HubbardAtomLean.FieldLNegQ0
+import HubbardAtomLean.FieldLAxisIsolated
