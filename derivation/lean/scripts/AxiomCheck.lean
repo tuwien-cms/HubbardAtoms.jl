@@ -214,8 +214,6 @@ run_cmd Elab.Command.liftCoreM do
       ``HubbardAtom.FParams.isUnit_onePlusKLAll_of_cL_eq_zero,
       ``HubbardAtom.FParams.isUnit_onePlusKLAll_iff_of_cL_eq_zero,
       ``HubbardAtom.FParams.gammaOpLAll_eq_gammaLAll_of_cL_eq_zero,
-      ``HubbardAtom.Params.HFLZ.eventually_hfHyp,
-      ``HubbardAtom.Params.HFLZ.tendsto_gammaHF,
       ``HubbardAtom.FParams.LAxisGeneric.gammaLAll_h0,
       ``HubbardAtom.FParams.LAxisGeneric.gammaLAll_h0_closed,
       ``HubbardAtom.FParams.LAxisGeneric.gammaLAll_h0_closed_self,
@@ -258,7 +256,14 @@ run_cmd Elab.Command.liftCoreM do
       ``HubbardAtom.FParams.eventually_E8L_lattice_ne_axis,
       ``HubbardAtom.FParams.eventually_sep_off_axis,
       ``HubbardAtom.FParams.eventually_lAxisGeneric_iff_axis,
-      ``HubbardAtom.FParams.axis_self] do
+      ``HubbardAtom.FParams.axis_self,
+      ``HubbardAtom.Params.HFLZ.eventually_hfHyp,
+      ``HubbardAtom.Params.HFLZ.tendsto_gammaHF,
+      ``HubbardAtom.Params.HFHyp.exists_eventually_dmGeneric,
+      ``HubbardAtom.Params.HFHyp.exists_tendsto_gammaR,
+      ``HubbardAtom.Params.HFLZ.exists_eventually_dmGeneric,
+      ``HubbardAtom.Params.HFLZ.exists_tendsto_gammaR,
+      ``HubbardAtom.Params.exists_tendsto_gammaR_of_eph] do
     unless audited.contains anchor do
       throwError "{anchor} was not audited; the check is vacuous"
   if checked < 100 then

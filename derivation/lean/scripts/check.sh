@@ -17,7 +17,8 @@ modules="Basic Triplet StableForms Thermal Matsubara SingletInput Singlet PHInpu
   StaticSinglet StaticPairing DivergenceCriterion StaticMagnetic StaticDensity StaticDensityComplex VertexDividedDifferences FieldLDividedDifferences
   ChiFromG FieldDividedDifferences OpLatticeAll SingletBounds SingletOperator HalfFillingBounds DMOperator SingletNull ConfluentOperator DMContinuity SingletContinuity LZLimits
   FieldLAxisBounds FieldLAxisOperator FieldLAxisContinuity FieldLAxisValues SingletLZApproach
-  RootContinuity FieldLAxisGeneric FieldLAxisFormula FieldLAxisUnitPM HalfFillingLZApproach FieldLAxisClosedForms FieldLAxisCorner FieldLNegQ0 FieldLAxisIsolated"
+  RootContinuity FieldLAxisGeneric FieldLAxisFormula FieldLAxisUnitPM FieldLAxisClosedForms
+  FieldLAxisCorner FieldLNegQ0 FieldLAxisIsolated HalfFillingLZApproach HalfFillingApproach"
 
 # 1. Rebuild the library from a cold cache, so that every module is compiled and linted, and fail
 #    on any warning (a `sorry` is only a warning). With SERIAL=1 the modules are compiled one at a
