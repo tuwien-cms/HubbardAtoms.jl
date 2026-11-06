@@ -4,7 +4,37 @@ import HubbardAtomLean.RootProducts
 /-!
 # On the axes, the `K` conditions of `LAxisGeneric` fail only at isolated points
 
-Not in the note.
+Near every axis point, the point itself excepted, `LAxisGeneric` reduces to its `K` conditions
+(`eventually_lAxisGeneric_iff_axis`, `FieldLAxisIsolated.lean`), and near the corner they hold
+under the assumptions of Corollary "half filling" (`eventually_lAxisGeneric_corner`,
+`FieldLAxisCornerK.lean`). Here they are carried along each axis: the roots of `E₈` are not
+analytic in `s` where they collide, but a product over all of them is
+(`analyticAt_prod_roots`, `RootProducts.lean`). Not in the note.
+
+* `KLx`, `KL_eq_KLx`: `K_{t,σ}(u)` as a function of the weights, with `S_t(u)` replaced by a
+  variable, in which it is affine (`KLx_affine`; `K_{t,·}` contains only `S_t`); `KLcd`, `KLcd_eq`:
+  `K_{t,t} + λK_{t,-t}` with the poles of `S_t` cleared by `thDen` (`cosh` for even `k`, `sinh` for
+  odd `k`), nonzero off the lattice of `t` exactly where `K_{t,t} + λK_{t,-t}` is
+  (`Kd_ne_zero_iff`); `gK = f(u) + μ'f(-u)` with `f = KLcd↑ KLcd↓`.
+* `axisE`, `axisZ`, `axisP`: the weights along an axis with complex `s = w`, analytic near the
+  real axis (`analyticAt_axisP`), the weights at real `s` (`axisP_ofReal`); `axisPoly`: `E₈` as an
+  even polynomial in `v` (`evenPoly8`), at `k = 0` divided by `v² - a²` (`evenPoly6`,
+  `E8L_eq_axisPoly`), whose roots are the non-atomic roots `±u_j` (`mem_roots_axisPoly`,
+  `exists_eq_of_mem_roots_axisPoly`).
+* `axisG`: the product of `gK` over the roots of `axisPoly`, analytic near the real axis
+  (`analyticAt_axisG`).
+* `exists_add_mul_ne_zero`: a constant avoiding finitely many values.
+* `eventually_exists_lAxisGeneric`: **at fixed `U ≠ 0`, `β`, `k`, if `LAxisGeneric` holds at one
+  point `s₁` of an axis, then near every `s₀`, at every `s ≠ s₀`, it holds for some choice of the
+  signs of the roots.** With `λ`, `μ'` chosen at `s₁`, `axisG(s₁) ≠ 0`, so `axisG` vanishes only at
+  isolated points (`eventually_ne_zero_of_analyticAt`), and where it does not, at `u_j` or `-u_j`
+  both `K_{t,t} + λK_{t,-t} ≠ 0`.
+* `eventually_exists_lAxisGeneric_of_corner`: **under `HFHyp` for both zero-field channels of
+  `(U, β, 0)` (with `ŝ' ≠ 0` for odd `k`, and `û ≠ 0` on `μ = ±h`), `LAxisGeneric` fails only at
+  isolated points of each axis.**
+
+Not shown: the exceptional points themselves, `μ = ±h` at `û = 0` (where the corner gives no
+point `s₁`), and statements off the axes, with `U` or `β` varying, or uniformly in `k`.
 -/
 
 open Complex Filter Topology Polynomial
@@ -49,7 +79,8 @@ noncomputable def thDen (k : ℤ) (z : ℂ) : ℂ := if Even k then cosh z else 
 
 /-- `S_k(x) = -(β/2) thNum/thDen` at `z = β(x - μ)/2`. -/
 theorem Params.S_eq_thNum_div (A : Params) (k : ℤ) (x : ℂ) :
-    A.S k x = -((A.β : ℂ) / 2) * (thNum k (A.β * (x - A.μ) / 2) / thDen k (A.β * (x - A.μ) / 2)) := by
+    A.S k x =
+      -((A.β : ℂ) / 2) * (thNum k (A.β * (x - A.μ) / 2) / thDen k (A.β * (x - A.μ) / 2)) := by
   unfold Params.S thNum thDen
   split_ifs <;> simp [tanh_eq_sinh_div_cosh, coth]
 
@@ -124,7 +155,8 @@ theorem evenPoly6_natDegree (A : ℂ) (b : Fin 4 → ℂ) : (evenPoly6 A b).natD
   compute_degree!
 
 theorem evenPoly8_eval (b : Fin 4 → ℂ) (v : ℂ) :
-    (evenPoly8 b).eval v = (v ^ 2) ^ 4 + b 3 * (v ^ 2) ^ 3 + b 2 * (v ^ 2) ^ 2 + b 1 * v ^ 2 + b 0 := by
+    (evenPoly8 b).eval v =
+      (v ^ 2) ^ 4 + b 3 * (v ^ 2) ^ 3 + b 2 * (v ^ 2) ^ 2 + b 1 * v ^ 2 + b 0 := by
   simp only [evenPoly8, eval_add, eval_mul, eval_pow, eval_C, eval_X]
   ring
 
@@ -505,6 +537,20 @@ theorem eventually_exists_lAxisGeneric (hU : F.U ≠ 0) {s₁ : ℝ} {u₁ : Fin
   push Not at hc
   rw [hc.1, hc.2, mul_zero, add_zero] at hK
   exact hK rfl
+
+/-- **Under the assumptions of Corollary "half filling" at the corner, `LAxisGeneric` fails only
+at isolated points of each axis**: with `HFHyp` for both zero-field channels of `(U, β, 0)` (and
+`ŝ' ≠ 0` for odd `k`, `û ≠ 0` on `μ = ±h`), near every point `s₀` of the axis `d`, at every
+`s ≠ s₀`, `LAxisGeneric` holds for some choice of the signs of the roots
+(`eventually_lAxisGeneric_corner` near the corner, `eventually_exists_lAxisGeneric`). -/
+theorem eventually_exists_lAxisGeneric_of_corner {u u' : ℂ} (hd : (F.lat 0).HFHyp k 1 u)
+    (hm : (F.lat 0).HFHyp k (-1) u') (hsd : Odd k → (F.lat 0).shat' k 1 ≠ 0)
+    (hsm : Odd k → (F.lat 0).shat' k (-1) ≠ 0) (hu : d = .plus ∨ d = .minus → u ≠ 0 ∧ u' ≠ 0)
+    (s₀ : ℝ) : ∀ᶠ s in 𝓝[≠] s₀, ∃ v, (F.axis d s).LAxisGeneric k v := by
+  have hU : F.U ≠ 0 := fun h ↦ hd.a_ne (by rw [lat_a, a, h, zero_div, ofReal_zero])
+  obtain ⟨v, hv⟩ := F.eventually_lAxisGeneric_corner k d hd hm hsd hsm hu
+  obtain ⟨s₁, hs₁⟩ := hv.exists
+  exact F.eventually_exists_lAxisGeneric k d hU hs₁ s₀
 
 end FParams
 

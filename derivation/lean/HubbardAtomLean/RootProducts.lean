@@ -3,7 +3,22 @@ import Mathlib
 /-!
 # Products over the roots of a polynomial with analytic coefficients
 
-Not in the note.
+A symmetric function of the roots of a polynomial is analytic in the coefficients even where roots
+collide, where the roots themselves are not. Used for the `K` conditions on the axes
+(`FieldLAxisKIsolated.lean`). Not in the note.
+
+* `multiset_mul_esymm_eq_sum`: Newton's identities for a multiset (from Mathlib's
+  `MvPolynomial.mul_esymm_eq_sum`); `analyticAt_esymm_of_psum`, `analyticAt_prod_of_psum`: if the
+  power sums of a family of multisets are analytic, so are its elementary symmetric functions and,
+  at constant cardinality, the product of its elements.
+* `eval_derivative_div_eval`: `p'(x)/p(x) = ∑_r (x - r)⁻¹` for a monic `p` over `ℂ`;
+  `eval_ne_zero_of_coeff_le`: a root bound; `circleIntegral_mul_logDeriv`: for an entire `f` and
+  a circle enclosing the roots, `∮ f p'/p = 2πi ∑_r f(r)` (Cauchy's formula).
+* `analyticAt_circleIntegral`: `w ↦ ∮ h(w, x) dx` is analytic where `h` is analytic on a
+  neighborhood of `{w₀} × circle`, by differentiation under the integral.
+* `analyticAt_prod_roots`: **for monic `p w` of fixed degree with coefficients analytic at `w₀` and
+  `g` analytic, `w ↦ ∏_r g(w, r)` over the roots of `p w` counted with multiplicity is analytic at
+  `w₀`.**
 -/
 
 open Complex Filter Topology Polynomial Finset Metric
