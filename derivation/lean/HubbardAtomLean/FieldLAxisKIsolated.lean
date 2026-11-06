@@ -218,6 +218,90 @@ theorem analyticAt_axisP (s₀ : ℝ) (i : Fin 4) : AnalyticAt ℂ (fun w ↦ F.
   fin_cases i <;> simp [axisE] at hZ ⊢ <;>
     fun_prop (disch := exact hZ)
 
+/-- The arguments `(r↑, r↓, π_S, π_P)` of `E8bx` from the weights `(p₀, p↑, p↓, p₂)`. -/
+noncomputable def E8xOf (p : Fin 4 → ℂ) : Fin 4 → ℂ :=
+  ![p 3 - p 0 - (p 1 - p 2), p 3 - p 0 + (p 1 - p 2), p 1 * p 2, p 0 * p 3]
+
+/-- The coefficients of `E₈` in `s = v²` from the weights. -/
+theorem E8b_eq_E8xOf (G : FParams) (j : Fin 4) :
+    G.E8b k j = E8bx G.a (G.q₀L k) (E8xOf G.pw) j := by
+  have e : E8xOf G.pw = ![(G.rUp : ℂ), G.rDn, G.piS, G.piP] := by
+    ext i
+    fin_cases i <;> simp [E8xOf, rUp, rDn, ρ, mf, piS, piP]
+  rw [e]
+  fin_cases j <;> rfl
+
+/-- `E₈` along the axis, continued to complex `s = w`, as an even polynomial in `v`; at `k = 0`
+divided by `v² - a²`. -/
+noncomputable def axisPoly (w : ℂ) : ℂ[X] :=
+  if k = 0 then evenPoly6 (F.a ^ 2) fun j ↦ E8bx F.a (F.q₀L k) (E8xOf (F.axisP d w)) j
+  else evenPoly8 fun j ↦ E8bx F.a (F.q₀L k) (E8xOf (F.axisP d w)) j
+
+theorem axisPoly_monic (w : ℂ) : (F.axisPoly k d w).Monic := by
+  unfold axisPoly
+  split_ifs
+  exacts [evenPoly6_monic _ _, evenPoly8_monic _]
+
+theorem axisPoly_natDegree (w : ℂ) :
+    (F.axisPoly k d w).natDegree = if k = 0 then 6 else 8 := by
+  unfold axisPoly
+  split_ifs
+  exacts [evenPoly6_natDegree _ _, evenPoly8_natDegree _]
+
+theorem analyticAt_axisPoly_coeff (s₀ : ℝ) (i : ℕ) :
+    AnalyticAt ℂ (fun w ↦ (F.axisPoly k d w).coeff i) s₀ := by
+  have hp := F.analyticAt_axisP d s₀
+  have hb : ∀ j, AnalyticAt ℂ (fun w ↦ E8bx F.a (F.q₀L k) (E8xOf (F.axisP d w)) j) s₀ := by
+    have h0 := hp 0
+    have h1 := hp 1
+    have h2 := hp 2
+    have h3 := hp 3
+    intro j
+    fin_cases j <;> simp only [E8bx, E8xOf] <;> simp <;> fun_prop
+  unfold axisPoly
+  split_ifs
+  exacts [analyticAt_evenPoly6_coeff _ hb i, analyticAt_evenPoly8_coeff hb i]
+
+/-- At real `s`, `E₈ = axisPoly` (`k ≠ 0`) or `E₈ = (v² - a²) axisPoly` (`k = 0`). -/
+theorem E8L_eq_axisPoly (s : ℝ) (v : ℂ) :
+    (F.axis d s).E8L k v = if k = 0 then (v ^ 2 - F.a ^ 2) * (F.axisPoly k d s).eval v
+      else (F.axisPoly k d s).eval v := by
+  have hb : ∀ j, E8bx F.a (F.q₀L k) (E8xOf (F.axisP d s)) j = (F.axis d s).E8b k j := fun j ↦ by
+    rw [axisP_ofReal, E8b_eq_E8xOf]
+    rfl
+  rw [E8L_eq_quartic]
+  unfold axisPoly
+  split_ifs with hk
+  · subst hk
+    have h0 := (F.axis d s).E8L_of_atomic 0 (u := F.a) ⟨rfl, rfl⟩
+    rw [E8L_eq_quartic] at h0
+    rw [← add_zero ((v ^ 2 - _) * _), ← h0]
+    simp only [← hb]
+    rw [← evenPoly8_eval, evenPoly8_eval_eq (F.a ^ 2)]
+  · simp only [evenPoly8_eval, hb]
+
+/-! ### The product over the roots -/
+
+attribute [local fun_prop] analyticAt_fst analyticAt_snd
+
+/-- The product of `gK` over the roots of `axisPoly`, at complex `s = w`. -/
+noncomputable def axisG (lam μ' w : ℂ) : ℂ :=
+  ((F.axisPoly k d w).roots.map
+    (gK F.β F.a (F.q₀L k) k (F.axisP d w) (fun σ ↦ w * d.slope σ) lam μ')).prod
+
+/-- **The product over the roots is analytic near the real axis** (`analyticAt_prod_roots`). -/
+theorem analyticAt_axisG (lam μ' : ℂ) (s₀ : ℝ) : AnalyticAt ℂ (F.axisG k d lam μ') s₀ := by
+  refine analyticAt_prod_roots (F.axisPoly_monic k d) (F.axisPoly_natDegree k d)
+    (F.analyticAt_axisPoly_coeff k d s₀) ?_
+  have hp : ∀ i, ∀ᶠ w in 𝓝 (s₀ : ℂ), AnalyticAt ℂ (fun w ↦ F.axisP d w i) w := fun i ↦
+    (F.analyticAt_axisP d s₀ i).eventually_analyticAt
+  filter_upwards [hp 0, hp 1, hp 2, hp 3] with w h0 h1 h2 h3 x
+  change AnalyticAt ℂ (fun z : ℂ × ℂ ↦ gK F.β F.a (F.q₀L k) k (F.axisP d z.1)
+    (fun σ ↦ z.1 * d.slope σ) lam μ' z.2) (w, x)
+  simp only [gK, KLcd, KLc, KLx, thNum, thDen, Bool.not_true, Bool.not_false, Bool.cond_true,
+    Bool.cond_false, ite_true, reduceCtorEq, ite_false]
+  split_ifs <;> fun_prop
+
 end FParams
 
 end HubbardAtom
