@@ -112,3 +112,4 @@ import HubbardAtomLean.FieldLAxisGeneric
 import HubbardAtomLean.FieldLAxisFormula
 import HubbardAtomLean.FieldLAxisUnitPM
 import HubbardAtomLean.FieldLAxisClosedForms
+import HubbardAtomLean.FieldLAxisCorner
