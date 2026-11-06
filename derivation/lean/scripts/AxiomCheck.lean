@@ -214,6 +214,8 @@ run_cmd Elab.Command.liftCoreM do
       ``HubbardAtom.FParams.isUnit_onePlusKLAll_of_cL_eq_zero,
       ``HubbardAtom.FParams.isUnit_onePlusKLAll_iff_of_cL_eq_zero,
       ``HubbardAtom.FParams.gammaOpLAll_eq_gammaLAll_of_cL_eq_zero,
+      ``HubbardAtom.Params.HFLZ.eventually_hfHyp,
+      ``HubbardAtom.Params.HFLZ.tendsto_gammaHF,
       ``HubbardAtom.FParams.LAxisGeneric.gammaLAll_h0,
       ``HubbardAtom.FParams.LAxisGeneric.gammaLAll_h0_closed,
       ``HubbardAtom.FParams.LAxisGeneric.gammaLAll_h0_closed_self,
