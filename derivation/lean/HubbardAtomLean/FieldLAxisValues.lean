@@ -7,7 +7,9 @@ import HubbardAtomLean.FieldLMu0
 On `h = 0` (`μ ≠ 0`) and `μ = 0` (`h ≠ 0`), where the zero-field `1 + 𝒦_d`, `1 + 𝒦_m` are
 invertible, `χ_L` has the explicit inverse `Y` of `FieldLZero.lean`, `FieldLMu0.lean`, built from
 the zero-field inverses `χ_d⁻¹`, `χ_m⁻¹`. Here `1 + 𝒦` of `FieldLAxisOperator.lean` (lattices `z'`)
-is reduced to them; the point `μ = h = 0` is not covered:
+is reduced to them. The point `μ = h = 0` is not covered here, as the zero-field operators of
+`GammaOperator.lean` need `μ ≠ 0`; `FieldLAxisCorner.lean` redoes the reduction with those of
+`DMOperator.lean` on all of `h = 0` and `μ = 0`, the corner included:
 
 * `FParams.isUnit_onePlusKLAll_iff_onePlusK_h0`: at `h = 0`, `μ ≠ 0`, `1 + 𝒦` is invertible iff
   `1 + 𝒦_d` and `1 + 𝒦_m` of the zero-field atom `(U, β, μ)` are: a null vector `v` of `χ_L` in
