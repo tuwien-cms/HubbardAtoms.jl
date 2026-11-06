@@ -156,6 +156,20 @@ theorem analyticAt_evenPoly6_coeff (A : ℂ) {b : ℂ → Fin 4 → ℂ} {w₀ :
   have h1 := hb 1
   split_ifs <;> fun_prop
 
+/-- **A generic constant**: given finitely many pairs `(xᵢ, yᵢ) ≠ (0, 0)`, some `c` has
+`xᵢ + c yᵢ ≠ 0` for all `i`, as each pair excludes at most one `c`. -/
+theorem exists_add_mul_ne_zero {ι : Type*} [Fintype ι] (x y : ι → ℂ)
+    (h : ∀ i, x i ≠ 0 ∨ y i ≠ 0) : ∃ c : ℂ, ∀ i, x i + c * y i ≠ 0 := by
+  classical
+  obtain ⟨c, hc⟩ := Infinite.exists_notMem_finset (Finset.univ.image fun i ↦ -x i / y i)
+  refine ⟨c, fun i hi ↦ ?_⟩
+  by_cases hy : y i = 0
+  · rw [hy, mul_zero, add_zero] at hi
+    exact (h i).resolve_right (not_not.2 hy) hi
+  · refine hc (Finset.mem_image.2 ⟨i, Finset.mem_univ _, ?_⟩)
+    field_simp
+    linear_combination -hi
+
 namespace FParams
 
 variable (F : FParams) (k : ℤ)
@@ -301,6 +315,95 @@ theorem analyticAt_axisG (lam μ' : ℂ) (s₀ : ℝ) : AnalyticAt ℂ (F.axisG 
   simp only [gK, KLcd, KLc, KLx, thNum, thDen, Bool.not_true, Bool.not_false, Bool.cond_true,
     Bool.cond_false, ite_true, reduceCtorEq, ite_false]
   split_ifs <;> fun_prop
+
+/-! ### At real `s` -/
+
+/-- `K_{t,t} + λK_{t,-t}` with the poles of `S_t` cleared, at the parameters `F`. -/
+noncomputable def Kd (lam : ℂ) (t : Bool) (u : ℂ) : ℂ :=
+  KLcd F.β F.a (F.q₀L k) k F.pw lam t (F.cL t) u
+
+/-- Off the lattice of `t`, `Kd = (K_{t,t} + λK_{t,-t}) thDen` with `thDen ≠ 0`. -/
+theorem Kd_eq (lam : ℂ) (t : Bool) {u : ℂ} (hu : ∀ n, (F.BL t).z k n ≠ u) :
+    F.Kd k lam t u = (F.KL k t t u + lam * F.KL k t (!t) u) *
+      thDen k (F.β * (u - F.cL t) / 2) ∧ thDen k (F.β * (u - F.cL t) / 2) ≠ 0 := by
+  have hd := (F.BL t).thDen_ne_zero_of_off k hu
+  simp only [lat_β, lat_μ] at hd
+  refine ⟨?_, hd⟩
+  rw [Kd, KLcd_eq _ _ _ _ _ _ _ _ _ hd, F.KL_eq_KLx k t t, F.KL_eq_KLx k t (!t),
+    Params.S_eq_thNum_div]
+  simp only [lat_β, lat_μ, KLc]
+
+/-- Off the lattice of `t`, `Kd ≠ 0` iff `K_{t,t} + λK_{t,-t} ≠ 0`. -/
+theorem Kd_ne_zero_iff (lam : ℂ) (t : Bool) {u : ℂ} (hu : ∀ n, (F.BL t).z k n ≠ u) :
+    F.Kd k lam t u ≠ 0 ↔ F.KL k t t u + lam * F.KL k t (!t) u ≠ 0 := by
+  obtain ⟨e, hd⟩ := F.Kd_eq k lam t hu
+  rw [e]
+  exact ⟨fun h h' ↦ h (by rw [h', zero_mul]), fun h ↦ mul_ne_zero h hd⟩
+
+/-- At real `s`, `axisG` is the product over the roots of `Kd↑Kd↓(v) + μ'Kd↑Kd↓(-v)`. -/
+theorem axisG_ofReal (lam μ' : ℂ) (s : ℝ) :
+    F.axisG k d lam μ' s = ((F.axisPoly k d s).roots.map fun v ↦
+      (F.axis d s).Kd k lam true v * (F.axis d s).Kd k lam false v +
+        μ' * ((F.axis d s).Kd k lam true (-v) * (F.axis d s).Kd k lam false (-v))).prod := by
+  have hc : (fun σ ↦ (s : ℂ) * d.slope σ) = fun σ ↦ ((F.axis d s).cL σ : ℂ) := by
+    ext σ
+    rw [axis_cL]
+    push_cast
+    rfl
+  simp only [axisG, Kd, axisP_ofReal, hc, axis_β, axis_a, axis_q₀L]
+  rfl
+
+/-- A non-atomic root of `E₈` at real `s` is a root of `axisPoly`. -/
+theorem mem_roots_axisPoly (s : ℝ) {v : ℂ} (hE : (F.axis d s).E8L k v = 0)
+    (ha : ¬(F.axis d s).Atomic k v) : v ∈ (F.axisPoly k d s).roots := by
+  rw [mem_roots (F.axisPoly_monic k d _).ne_zero, IsRoot.def]
+  rw [F.E8L_eq_axisPoly k d s v] at hE
+  split_ifs at hE with hk
+  · refine (mul_eq_zero.1 hE).resolve_left fun h ↦ ha ⟨hk, ?_⟩
+    rw [axis_a]
+    exact sub_eq_zero.1 h
+  · exact hE
+
+/-- Where `LAxisGeneric` holds at real `s`, every root of `axisPoly` is `±u_j` at a non-atomic
+root `u_j`: at `k = 0`, the factor `v² - a²` of `E₈` is that of the one atomic root. -/
+theorem exists_eq_of_mem_roots_axisPoly {s : ℝ} {u : Fin 4 → ℂ}
+    (h : (F.axis d s).LAxisGeneric k u) {r : ℂ} (hr : r ∈ (F.axisPoly k d s).roots) :
+    ∃ j, ¬(F.axis d s).Atomic k (u j) ∧ (r = u j ∨ r = -u j) := by
+  rw [mem_roots (F.axisPoly_monic k d _).ne_zero, IsRoot.def] at hr
+  have hprod : ∀ v, (F.axis d s).E8L k v = ∏ j, (v ^ 2 - u j ^ 2) := fun v ↦ by
+    rw [(F.axis d s).E8L_eq_prod k h.root h.sep, Fin.prod_univ_four]
+  have hE := F.E8L_eq_axisPoly k d s
+  by_cases hk : k = 0
+  · -- the atomic root
+    subst hk
+    obtain ⟨j₀, -, hj₀⟩ := Finset.prod_eq_zero_iff.1
+      ((hprod F.a).symm.trans ((F.axis d s).E8L_of_atomic 0 (u := F.a) ⟨rfl, rfl⟩))
+    have hj₀' : u j₀ ^ 2 = (F.a : ℂ) ^ 2 := (sub_eq_zero.1 hj₀).symm
+    -- `axisPoly = ∏_{j ≠ j₀} (v² - u_j²)`, first off `v² = a²`, then by continuity
+    have hq : (fun v ↦ (F.axisPoly 0 d s).eval v) =
+        fun v ↦ ∏ j ∈ Finset.univ.erase j₀, (v ^ 2 - u j ^ 2) := by
+      have hc : ({v : ℂ | v ^ 2 = (F.a : ℂ) ^ 2}).Countable := by
+        refine (Set.toFinite ({(F.a : ℂ), -(F.a : ℂ)} : Set ℂ)).countable.mono fun v hv ↦ ?_
+        simpa using sq_eq_sq_iff_eq_or_eq_neg.1 hv
+      refine Continuous.ext_on (hc.dense_compl ℂ) (Polynomial.continuous _) (by fun_prop)
+        fun v hv ↦ ?_
+      have hv' : v ^ 2 - (F.a : ℂ) ^ 2 ≠ 0 := sub_ne_zero.2 hv
+      refine mul_left_cancel₀ hv' ?_
+      have e := hE v
+      simp only [↓reduceIte] at e
+      rw [hprod, ← Finset.mul_prod_erase _ _ (Finset.mem_univ j₀), hj₀'] at e
+      exact e.symm
+    have hr' := congr_fun hq r
+    rw [hr, eq_comm, Finset.prod_eq_zero_iff] at hr'
+    obtain ⟨j, hj, hrj⟩ := hr'
+    refine ⟨j, fun ha ↦ ?_, sq_eq_sq_iff_eq_or_eq_neg.1 (sub_eq_zero.1 hrj)⟩
+    have := ha.2
+    rw [axis_a, ← hj₀'] at this
+    exact h.sep j j₀ (Finset.ne_of_mem_erase hj) (sub_eq_zero.2 this)
+  · have h0 : (F.axis d s).E8L k r = 0 := by simp [hE r, hk, hr]
+    rw [hprod, Finset.prod_eq_zero_iff] at h0
+    obtain ⟨j, -, hrj⟩ := h0
+    exact ⟨j, fun ha ↦ hk ha.1, sq_eq_sq_iff_eq_or_eq_neg.1 (sub_eq_zero.1 hrj)⟩
 
 end FParams
 
