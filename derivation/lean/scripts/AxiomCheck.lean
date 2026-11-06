@@ -245,7 +245,18 @@ run_cmd Elab.Command.liftCoreM do
       ``HubbardAtom.FParams.sq_add_q₀L_ne_of_sep,
       ``HubbardAtom.FParams.LAxisGeneric.mk',
       ``HubbardAtom.FParams.lAxisGeneric_iff,
-      ``HubbardAtom.FParams.KL_opp_eq_zero_of_sep] do
+      ``HubbardAtom.FParams.KL_opp_eq_zero_of_sep,
+      ``HubbardAtom.quarticDisc_prod,
+      ``HubbardAtom.FParams.discE8_eq_prod,
+      ``HubbardAtom.FParams.discE8_corner_ne,
+      ``HubbardAtom.FParams.exists_E8L_eq_prod,
+      ``HubbardAtom.FParams.exists_E8L_ne_of_le,
+      ``HubbardAtom.FParams.eventually_discE8_ne_axis,
+      ``HubbardAtom.FParams.exists_axis_E8L_z_ne_fixed,
+      ``HubbardAtom.FParams.eventually_E8L_lattice_ne_axis,
+      ``HubbardAtom.FParams.eventually_sep_off_axis,
+      ``HubbardAtom.FParams.eventually_lAxisGeneric_iff_axis,
+      ``HubbardAtom.FParams.axis_self] do
     unless audited.contains anchor do
       throwError "{anchor} was not audited; the check is vacuous"
   if checked < 100 then
