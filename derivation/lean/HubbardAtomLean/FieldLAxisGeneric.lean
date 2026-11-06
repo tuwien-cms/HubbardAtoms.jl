@@ -23,8 +23,9 @@ note's explicit formula on the axes is the limit of `gammaL` and, if `1 + 𝒦` 
   the non-atomic ones off both lattices, with `K_t ≠ 0`, or `K_{t,-t} ≠ 0` and `u² + q₀ ≠ 0`, for
   each column spin `t`. It does not ask `μ`, `h`, `μ ± h ≠ 0`, nor `K_t ≠ 0` on the axis `μ_t = 0`:
   there `D_t = 0`, and the quotient identity `res_z` forces `K_t = 0` unless `ρΞ + m_tΠ = 0`. The
-  second alternative is the note's case of Eq. (field-L-quotient), `0/0` but `K_{j,-t} ≠ 0`. It
-  holds on the domain of Eq. (field-L) (`LGeneric.lAxisGeneric`).
+  second alternative is the note's case of Eq. (field-L-quotient), `0/0` but `K_{j,-t} ≠ 0`; its
+  `u² + q₀ ≠ 0` follows from the roots with distinct squares (`LAxisGeneric.mk'`,
+  `FieldLNegQ0.lean`). It holds on the domain of Eq. (field-L) (`LGeneric.lAxisGeneric`).
 * `FParams.continuousAt_famF_KL`: along a family `famF` continuous at `x₀`, `K_{t,σ}(v(x))` is
   continuous at a moving point `v(x)` off the lattice of `t`; `exists_famF_E8L_root`: a simple root
   of `E₈` moves continuously, and the atomic root moves as `±a(x)` and stays atomic.
@@ -135,8 +136,10 @@ each non-atomic root, `u_j` off both lattices and, for each column spin `t`, eit
 `K_t(u_j) ≠ 0` or `K_{t,-t}(u_j) ≠ 0` and `u_j² + q₀ ≠ 0`. The second alternative is the one for
 the axis `μ_t = 0`: there `D_t = 0`, and the quotient identity `res_z` forces `K_t(u_j) = 0` unless
 `ρΞ(u_j²) + m_tΠ(u_j²) = 0`. Wherever `μ_t ≠ 0`, it gives back `K_t(u_j) ≠ 0` (`KL_opp_eq_zero`).
-`LGeneric` for both column spins implies it (`LGeneric.lAxisGeneric`). Whether it holds at a
-given axis point is not shown. -/
+`LGeneric` for both column spins implies it (`LGeneric.lAxisGeneric`). The conjunct
+`u_j² + q₀ ≠ 0` is redundant: it follows from `root` and `sep` (`sq_add_q₀L_ne_of_sep`,
+`LAxisGeneric.mk'`, `lAxisGeneric_iff` in `FieldLNegQ0.lean`). Whether it holds at a given axis
+point is not shown. -/
 structure LAxisGeneric (u : Fin 4 → ℂ) : Prop where
   a_ne : (F.a : ℂ) ≠ 0
   root : ∀ j, F.E8L k (u j) = 0
