@@ -41,7 +41,8 @@ for both zero-field channels at the corner (`HFHyp`, with `ŝ' ≠ 0` for odd `k
   `gammaL → (gammaHF_d + s_στ gammaHF_m)/2` (`exists_tendsto_gammaL_corner`, with
   `tendsto_gammaL_corner`).
 
-Not shown: `μ = ±h` at `û = 0`; the `K` conditions away from the corner.
+Not shown: `μ = ±h` at `û = 0`. Away from the corner, the `K` conditions fail only at isolated
+points of each axis (`eventually_exists_lAxisGeneric_of_corner`, `FieldLAxisKIsolated.lean`).
 -/
 
 open Complex Filter Topology

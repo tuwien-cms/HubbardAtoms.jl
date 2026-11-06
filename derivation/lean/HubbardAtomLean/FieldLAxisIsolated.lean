@@ -46,8 +46,9 @@ fail only at isolated points: near every axis point `s₀`, they hold at every o
 The exceptional points of `sep` and `off` thus do not accumulate anywhere on an axis; at the
 corner `s₀ = 0` this says that `sep` and `off` hold at every axis point near the corner other than
 the corner itself (where `sep` holds too, `discE8_corner_ne`, and `LAxisGeneric` never holds,
-`not_lAxisGeneric_corner`). `U ≠ 0` is needed: at `U = 0`, `E₈ = (s + q₀)⁴`. Not shown: the `K`
-conditions at given points or outside isolated points, the exceptional points themselves, and
+`not_lAxisGeneric_corner`). `U ≠ 0` is needed: at `U = 0`, `E₈ = (s + q₀)⁴`. Not shown here: the
+`K` conditions (near the corner `FieldLAxisCornerK.lean`, outside isolated points of an axis where
+they hold at one point `FieldLAxisKIsolated.lean`), the exceptional points themselves, and
 statements off the axes, with `U` or `β` varying, or uniformly in `k`.
 -/
 
