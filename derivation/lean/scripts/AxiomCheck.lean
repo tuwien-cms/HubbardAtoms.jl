@@ -285,7 +285,14 @@ run_cmd Elab.Command.liftCoreM do
       ``HubbardAtom.FParams.eventually_lAxisGeneric_minus,
       ``HubbardAtom.FParams.exists_tendsto_gammaL_corner,
       ``HubbardAtom.FParams.HFHyp.shiba_lat_zero,
-      ``HubbardAtom.FParams.eventually_lAxisGeneric_corner] do
+      ``HubbardAtom.FParams.eventually_lAxisGeneric_corner,
+      ``HubbardAtom.analyticAt_circleIntegral,
+      ``HubbardAtom.analyticAt_prod_roots,
+      ``HubbardAtom.FParams.KL_eq_KLx,
+      ``HubbardAtom.FParams.analyticAt_axisG,
+      ``HubbardAtom.FParams.exists_eq_of_mem_roots_axisPoly,
+      ``HubbardAtom.FParams.eventually_exists_lAxisGeneric,
+      ``HubbardAtom.FParams.eventually_exists_lAxisGeneric_of_corner] do
     unless audited.contains anchor do
       throwError "{anchor} was not audited; the check is vacuous"
   if checked < 100 then
